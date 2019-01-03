@@ -29,21 +29,34 @@ use Exception;
 class IdPInfo
 {
     /** @var string */
+    private $entityId;
+
+    /** @var string */
     private $ssoUrl;
 
     /** @var resource */
     private $publicKey;
 
     /**
+     * @param string $entityId
      * @param string $ssoUrl
      * @param string $publicKey
      */
-    public function __construct($ssoUrl, $publicKey)
+    public function __construct($entityId, $ssoUrl, $publicKey)
     {
+        $this->entityId = $entityId;
         $this->ssoUrl = $ssoUrl;
         if (false === $this->publicKey = \openssl_pkey_get_public($publicKey)) {
             throw new Exception('invalid public key provided');
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getEntityId()
+    {
+        return $this->entityId;
     }
 
     /**

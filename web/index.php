@@ -32,6 +32,7 @@ use fkooman\SAML\SP\SP;
 \session_start();
 
 $idpInfo = new IdPInfo(
+    'http://localhost:8080/metadata.php',
     'http://localhost:8080/sso.php',
     \file_get_contents($baseDir.'/server.crt')
 );

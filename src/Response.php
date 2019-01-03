@@ -123,6 +123,12 @@ class Response
         $signedElement = self::getOneElement($x, $sigPrefix);
         $signedElementId = $signedElement->getAttribute('ID');
 
+        // the response Issuer MUST be IdP entityId
+        $issuerElement = self::getOneElement($x, $sigPrefix.'/saml:Issuer');
+        if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
+            throw new Exception('unexpected Issuer');
+        }
+
         // 4. TODO check whether the *response* is signed, or the *assertion*, for now we
         //    expect the Response to be signed
         $signatureElement = self::getOneElement($x, $sigPrefix.'/ds:Signature');

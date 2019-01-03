@@ -49,7 +49,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
-            new IdPInfo('http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/server.crt'))
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/server.crt'))
         );
         $this->assertSame(
             [
@@ -74,7 +74,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
-            new IdPInfo('http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/SURFconext.crt'))
+            new IdPInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/SURFconext.crt'))
         );
         $this->assertSame(
             [
@@ -107,7 +107,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_b354c4367b3e379f940145868f28987e9520b1fb0b',
             'https://vpn.tuxed.net/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
-            new IdPInfo('http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/simpleSAMLphp.crt'))
+            new IdPInfo('https://vpn.tuxed.net/simplesaml/saml2/idp/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/simpleSAMLphp.crt'))
         );
         $this->assertSame(
             [
