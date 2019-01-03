@@ -87,6 +87,7 @@ class Response
             $this->verifySignature($x, '/samlp:Response', $idpInfo);
             ++$sigCount;
         }
+
         if (self::hasElement($x, '/samlp:Response/saml:Assertion/ds:Signature')) {
             $this->verifySignature($x, '/samlp:Response/saml:Assertion', $idpInfo);
             ++$sigCount;
@@ -235,8 +236,8 @@ class Response
     private function getDomDocument($xmlStr)
     {
         $domDocument = new DOMDocument();
-        $schemaFile = \sprintf('%s/saml-schema-protocol-2.0.xsd', $this->schemaDir);
         $domDocument->loadXML($xmlStr, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT);
+        $schemaFile = \sprintf('%s/saml-schema-protocol-2.0.xsd', $this->schemaDir);
         if (false === $domDocument->schemaValidate($schemaFile)) {
             throw new Exception('schema validation failed');
         }
