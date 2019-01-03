@@ -22,55 +22,39 @@
  * SOFTWARE.
  */
 
+require_once \dirname(__DIR__).'/vendor/autoload.php';
+$baseDir = \dirname(__DIR__);
+
+use fkooman\SAML\SP\IdPInfo;
+use fkooman\SAML\SP\SP;
+
 \session_name('SID');
 \session_start();
 
-if (\array_key_exists('auth', $_SESSION)) {
-    echo '<html><head><title>Auth</title></head><body><table>';
-    foreach ($_SESSION['auth'] as $k => $v) {
-        $x = '';
-        foreach ($v as $w) {
-            $x .= '<li>'.$w.'</li>';
-        }
-        echo \sprintf('<tr><td>%s</td><td><ul>%s</ul></td></tr>', $k, $x);
-    }
-    echo '</table></body></html>';
-    unset($_SESSION['auth']);
-} else {
-    // we want to verify the ID on the ACS (InResponseTo)
-    $id = '_'.\bin2hex(\random_bytes(32));
-    $_SESSION['ID'] = $id;
+$idpInfo = new IdPInfo(
+    'http://localhost:8080/sso.php',
+    \file_get_contents($baseDir.'/server.crt')
+);
 
-    $idpSso = 'http://localhost:8080/sso.php';
-    $spEntityId = 'http://localhost:8081/metadata.php';
-    $acsUrl = 'http://localhost:8081/acs.php';
+$entityId = 'http://localhost:8081/metadata.php';
+$acsUrl = 'http://localhost:8081/acs.php';
+$relayState = 'http://localhost:8081/index.php';
 
-    // not yet authenticated
-    $authnRequest = \sprintf('<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
-                    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-                    ID="%s"
-                    Version="2.0"
-                    IssueInstant="2019-01-02T12:50:24Z"
-                    Destination="%s"
-                    Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit"
-                    ForceAuthn="false"
-                    IsPassive="false"
-                    AssertionConsumerServiceURL="%s"
-                    >
-    <saml:Issuer>%s</saml:Issuer>
-    <samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
-                        AllowCreate="true"
-                        />
-</samlp:AuthnRequest>', $id, $idpSso, $acsUrl, $spEntityId);
+$sp = new SP($entityId, $acsUrl);
 
-    $samlRequest = \base64_encode(\gzdeflate($authnRequest));
-
-    $q = \http_build_query(
-        [
-            'SAMLRequest' => $samlRequest,
-        ]
-    );
-
+if (false === $samlAssertion = $sp->getAssertion()) {
     \http_response_code(302);
-    \header(\sprintf('Location: %s?%s', $idpSso, $q));
+    \header(\sprintf('Location: %s', $sp->login($idpInfo, $relayState)));
+    exit(0);
 }
+
+echo '<html><head><title>Auth</title></head><body><table>';
+foreach ($samlAssertion->getAttributes() as $k => $v) {
+    $x = '';
+    foreach ($v as $w) {
+        $x .= '<li>'.$w.'</li>';
+    }
+    echo \sprintf('<tr><td>%s</td><td><ul>%s</ul></td></tr>', $k, $x);
+}
+echo '</table></body></html>';
+unset($_SESSION['pss']);

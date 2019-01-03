@@ -28,17 +28,30 @@ use Exception;
 
 class IdPInfo
 {
+    /** @var string */
+    private $ssoUrl;
+
     /** @var resource */
     private $publicKey;
 
     /**
+     * @param string $ssoUrl
      * @param string $publicKey
      */
-    public function __construct($publicKey)
+    public function __construct($ssoUrl, $publicKey)
     {
+        $this->ssoUrl = $ssoUrl;
         if (false === $this->publicKey = \openssl_pkey_get_public($publicKey)) {
             throw new Exception('invalid public key provided');
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getSsoUrl()
+    {
+        return $this->ssoUrl;
     }
 
     /**

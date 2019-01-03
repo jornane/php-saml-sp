@@ -26,31 +26,27 @@ require_once \dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = \dirname(__DIR__);
 
 use fkooman\SAML\SP\IdPInfo;
-use fkooman\SAML\SP\Response;
+use fkooman\SAML\SP\SP;
 
 try {
     \session_name('SID');
     \session_start();
 
-    $r = new Response(
-        $baseDir.'/schema'
+    $idpInfo = new IdPInfo(
+        'http://localhost:8080/sso.php',
+        \file_get_contents($baseDir.'/server.crt')
     );
 
-    $inResponseTo = $_SESSION['ID'];
+    $entityId = 'http://localhost:8081/metadata.php';
     $acsUrl = 'http://localhost:8081/acs.php';
-    $returnTo = 'http://localhost:8081/index.php';
+    $relayState = 'http://localhost:8081/index.php';
 
-    $samlResponse = \base64_decode($_POST['SAMLResponse'], true);
-    $samlAssertion = $r->verify(
-        $samlResponse,
-        $inResponseTo,
-        $acsUrl,
-        new IdPInfo(\file_get_contents($baseDir.'/server.crt'))
-    );
-    $_SESSION['auth'] = $samlAssertion->getAttributes();
+    $sp = new SP($entityId, $acsUrl);
 
+    $samlResponse = $_POST['SAMLResponse'];
+    $sp->handleResponse($idpInfo, $samlResponse);
     \http_response_code(302);
-    \header('Location: '.$returnTo);
+    \header(\sprintf('Location: %s', $_POST['RelayState']));
 } catch (Exception $e) {
     echo 'Error: '.$e->getMessage().PHP_EOL;
 }
