@@ -49,6 +49,8 @@ if (false === $samlAssertion = $sp->getAssertion()) {
 }
 
 echo '<pre>';
-\var_dump($samlAssertion->getIssuer());
-\var_dump($samlAssertion->getAttributes());
+echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
+foreach ($samlAssertion->getAttributes() as $k => $v) {
+    echo $k.': '.\implode(',', $v).PHP_EOL;
+}
 echo '</pre>';
