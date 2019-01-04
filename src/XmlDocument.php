@@ -1,0 +1,125 @@
+<?php
+
+/*
+ * Copyright (c) 2018 François Kooman <fkooman@tuxed.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+namespace fkooman\SAML\SP;
+
+use DOMDocument;
+use DOMXPath;
+use fkooman\SAML\SP\Exception\XmlDocumentException;
+
+class XmlDocument
+{
+    /** @var \DOMDocument */
+    private $domDocument;
+
+    /** @var \DOMXPath */
+    private $domXPath;
+
+    public function __construct(DOMDocument $domDocument)
+    {
+        $this->domDocument = $domDocument;
+        $this->domXPath = new DOMXPath($domDocument);
+        $this->domXPath->registerNamespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+        $this->domXPath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+        $this->domXPath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->domDocument->saveXML();
+    }
+
+    /**
+     * @param string $xmlStr
+     *
+     * @return self
+     */
+    public static function fromString($xmlStr)
+    {
+        $entityLoader = \libxml_disable_entity_loader(true);
+        $domDocument = new DOMDocument();
+        $domDocument->loadXML($xmlStr, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT);
+        \libxml_disable_entity_loader($entityLoader);
+
+        return new self($domDocument);
+    }
+
+    /**
+     * @param string $schemaFile
+     *
+     * @return void
+     */
+    public function verifySchema($schemaFile)
+    {
+//        $schemaFile = \sprintf('%s/saml-schema-protocol-2.0.xsd', $this->schemaDir);
+//        if (false === $domDocument->schemaValidate($schemaFile)) {
+//            throw new Exception('schema validation failed');
+//        }
+    }
+
+    /**
+     * @param string $xPathQuery
+     *
+     * @return bool
+     */
+    public function hasElement($xPathQuery)
+    {
+        $queryResult = $this->domXPath->query($xPathQuery);
+
+        return 1 === $queryResult->count();
+    }
+
+    /**
+     * @param string $xPathQuery
+     *
+     * @return \DOMElement
+     */
+    public function getElement($xPathQuery)
+    {
+        $queryResult = $this->domXPath->query($xPathQuery);
+        if (1 !== $queryResult->count()) {
+            throw new XmlDocumentException(\sprintf('expected 1 element for query "%s", got %d elements', $xPathQuery, $queryResult->count()));
+        }
+
+        $resultElement = $queryResult->item(0);
+        if (!($resultElement instanceof \DOMElement)) {
+            throw new XmlDocumentException(\sprintf('expected DOMElement, got "%s"', \get_class($resultElement)));
+        }
+
+        return $resultElement;
+    }
+
+    /**
+     * @param string $xPathQuery
+     *
+     * @return \DOMNodeList
+     */
+    public function getElements($xPathQuery)
+    {
+        return $this->domXPath->query($xPathQuery);
+    }
+}

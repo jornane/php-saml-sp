@@ -41,15 +41,15 @@ class ResponseTest extends TestCase
         );
     }
 
-    public function testAssertion()
+    public function testFrkoIdP()
     {
         $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
-        $samlResponse = \file_get_contents(__DIR__.'/data/assertion.xml');
+        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
         $samlAssertion = $this->response->verify(
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/server.crt'))
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt'))
         );
         $this->assertSame(
             [
@@ -120,6 +120,86 @@ class ResponseTest extends TestCase
                 ],
             ],
             $samlAssertion->getAttributes()
+        );
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage digest does not match
+     */
+    public function testInvalidDigest()
+    {
+        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_digest.xml');
+        $this->response->verify(
+            $samlResponse,
+            '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
+            'http://localhost:8081/acs.php',
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt'))
+        );
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage invalid signature over SignedInfo
+     */
+    public function testWrongCertificate()
+    {
+        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
+        $this->response->verify(
+            $samlResponse,
+            '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
+            'http://localhost:8081/acs.php',
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/simpleSAMLphp.crt'))
+        );
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage invalid signature over SignedInfo
+     */
+    public function testWrongSignature()
+    {
+        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_signature.xml');
+        $this->response->verify(
+            $samlResponse,
+            '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
+            'http://localhost:8081/acs.php',
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt'))
+        );
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage neither the response, nor the assertion was signed
+     */
+    public function testNotSigned()
+    {
+        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_not_signed.xml');
+        $this->response->verify(
+            $samlResponse,
+            '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
+            'http://localhost:8081/acs.php',
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt'))
+        );
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage expected 1 element for query "/samlp:Response/saml:Assertion", got 2 elements
+     */
+    public function testTwoAssertions()
+    {
+        $this->response->setDateTime(new DateTime('2019-01-02T21:58:23Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext_two_assertions.xml');
+        $this->response->verify(
+            $samlResponse,
+            '_928BA2C80BB10E7BA8F2C4504E0EB20B',
+            'https://labrat.eduvpn.nl/saml/postResponse',
+            new IdPInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/SURFconext.crt'))
         );
     }
 }

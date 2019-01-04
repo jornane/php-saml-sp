@@ -22,39 +22,10 @@
  * SOFTWARE.
  */
 
-namespace fkooman\SAML\SP;
+namespace fkooman\SAML\SP\Exception;
 
-class Assertion
+use Exception;
+
+class XmlDocumentException extends Exception
 {
-    /** @var string */
-    private $issuer;
-
-    /** @var array<string,array<string>> */
-    private $attributeList;
-
-    /**
-     * @param string                      $issuer
-     * @param array<string,array<string>> $attributeList
-     */
-    public function __construct($issuer, array $attributeList)
-    {
-        $this->issuer = $issuer;
-        $this->attributeList = $attributeList;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIssuer()
-    {
-        return $this->issuer;
-    }
-
-    /**
-     * @return array<string,array<string>>
-     */
-    public function getAttributes()
-    {
-        return $this->attributeList;
-    }
 }
