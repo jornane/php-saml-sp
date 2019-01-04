@@ -29,6 +29,8 @@ IdPs.
 
 # TODO 
 
+- handle `NameID` eduPersonTargetedId properly (?)
+- verify response status code
 - Metadata Generator
 - Allow to specify `AuthnContext` on authentication for MFA support;
 - [Identity Provider Discovery Service Protocol and Profile](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-idp-discovery.pdf)

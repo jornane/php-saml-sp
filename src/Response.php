@@ -52,14 +52,11 @@ class Response
     public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdPInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromString($samlResponse);
-
-        // XXX verify status code in response
-
-        $sigCount = 0;
+        $signatureCount = 0;
         if ($responseDocument->hasElement('/samlp:Response/ds:Signature')) {
             // samlp:Response is signed
             self::verifySignature($responseDocument, '/samlp:Response', $idpInfo->getPublicKey());
-            ++$sigCount;
+            ++$signatureCount;
         }
 
         // make sure we have exactly 1 assertion
@@ -69,10 +66,10 @@ class Response
         if ($responseDocument->hasElement('/samlp:Response/saml:Assertion/ds:Signature')) {
             // saml:Assertion is signed
             self::verifySignature($responseDocument, '/samlp:Response/saml:Assertion', $idpInfo->getPublicKey());
-            ++$sigCount;
+            ++$signatureCount;
         }
 
-        if (0 === $sigCount) {
+        if (0 === $signatureCount) {
             throw new Exception('neither the response, nor the assertion was signed');
         }
 
