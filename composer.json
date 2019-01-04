@@ -16,6 +16,7 @@
         "ext-dom": "*",
         "ext-hash": "*",
         "ext-openssl": "*",
+        "paragonie/constant_time_encoding": "^1|^2",
         "php": ">=5.4"
     }
 }

@@ -25,6 +25,8 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
+use ParagonIE\ConstantTime\Base64;
+use ParagonIE\ConstantTime\Hex;
 
 class SP
 {
@@ -56,12 +58,10 @@ class SP
      */
     public function login(IdPInfo $idpInfo, $relayState)
     {
-        // XXX delete all existing session stuff!
+        unset($_SESSION['_saml_auth_id']);
 
-        $requestId = \sprintf('_%s', \bin2hex(\random_bytes(16)));
+        $requestId = \sprintf('_%s', Hex::encode(\random_bytes(16)));
         $_SESSION['_saml_auth_id'] = $requestId;
-        // XXX why do we store idpInfo?!
-        $_SESSION['_saml_auth_idp'] = $idpInfo;
 
         $authnRequest = <<< EOF
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{{ID}}" Version="2.0" IssueInstant="{{IssueInstant}}" Destination="{{Destination}}" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="{{AssertionConsumerServiceURL}}">
@@ -88,7 +88,7 @@ EOF;
             $authnRequest
         );
 
-        $samlRequest = \base64_encode(\gzdeflate($authnRequest));
+        $samlRequest = Base64::encode(\gzdeflate($authnRequest));
 
         // set the session stuff
         // create a SSO SAMLRequest URL, return it
@@ -125,7 +125,7 @@ EOF;
     public function handleResponse(IdPInfo $idpInfo, $samlResponse)
     {
         $r = new Response(\dirname(__DIR__).'/schema');
-        $samlAssertion = $r->verify(\base64_decode($samlResponse, true), $_SESSION['_saml_auth_id'], $this->acsUrl, $idpInfo);
+        $samlAssertion = $r->verify(Base64::decode($samlResponse, true), $_SESSION['_saml_auth_id'], $this->acsUrl, $idpInfo);
 
         $_SESSION['_saml_auth_assertion'] = $samlAssertion;
     }

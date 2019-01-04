@@ -26,6 +26,7 @@ namespace fkooman\SAML\SP;
 
 use DateTime;
 use Exception;
+use ParagonIE\ConstantTime\Base64;
 
 class Response
 {
@@ -151,7 +152,7 @@ class Response
 
         // calculate the digest over the Response element without the Signature
         // element
-        $signedElementDigest = \base64_encode(
+        $signedElementDigest = Base64::encode(
             \hash(
                 'sha256',
                 $signedElement->C14N(true, false),
@@ -165,7 +166,7 @@ class Response
         }
 
         // verify the signature over the SignedInfo element
-        if (1 !== \openssl_verify($signedInfoElementCanonical, \base64_decode($signatureValueStr, true), $publicKey, OPENSSL_ALGO_SHA256)) {
+        if (1 !== \openssl_verify($signedInfoElementCanonical, Base64::decode($signatureValueStr, true), $publicKey, OPENSSL_ALGO_SHA256)) {
             throw new Exception('invalid signature over SignedInfo');
         }
     }
