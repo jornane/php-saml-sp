@@ -42,6 +42,9 @@ class SP
     /** @var SessionInterface */
     private $session;
 
+    /** @var RandomInterface */
+    private $random;
+
     /**
      * @param string $entityId
      * @param string $acsUrl
@@ -52,6 +55,7 @@ class SP
         $this->acsUrl = $acsUrl;
         $this->dateTime = new DateTime();
         $this->session = new Session();
+        $this->random = new Random();
     }
 
     /**
@@ -75,6 +79,16 @@ class SP
     }
 
     /**
+     * @param RandomInterface $random
+     *
+     * @return void
+     */
+    public function setRandom(RandomInterface $random)
+    {
+        $this->random = $random;
+    }
+
+    /**
      * @param IdPInfo $idpInfo
      * @param string  $relayState
      *
@@ -86,7 +100,7 @@ class SP
         $this->session->delete('_saml_auth_id');
         $this->session->delete('_saml_auth_assertion');
 
-        $requestId = \sprintf('_%s', Hex::encode(\random_bytes(16)));
+        $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
         $this->session->set('_saml_auth_id', $requestId);
 
         $authnRequest = <<< EOF

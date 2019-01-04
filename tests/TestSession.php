@@ -22,12 +22,15 @@
  * SOFTWARE.
  */
 
-namespace fkooman\SAML\SP;
+namespace fkooman\SAML\SP\Tests;
 
 use fkooman\SAML\SP\Exception\SessionException;
+use fkooman\SAML\SP\SessionInterface;
 
-class Session implements SessionInterface
+class TestSession implements SessionInterface
 {
+    private $sessionData = [];
+
     /**
      * @param string $key
      *
@@ -35,9 +38,7 @@ class Session implements SessionInterface
      */
     public function has($key)
     {
-        self::requireSession();
-
-        return \array_key_exists($key, $_SESSION);
+        return \array_key_exists($key, $this->sessionData);
     }
 
     /**
@@ -47,12 +48,11 @@ class Session implements SessionInterface
      */
     public function get($key)
     {
-        self::requireSession();
         if (!$this->has($key)) {
             throw new SessionException(\sprintf('key "%s" not found in session', $key));
         }
 
-        return $_SESSION[$key];
+        return $this->sessionData[$key];
     }
 
     /**
@@ -63,8 +63,7 @@ class Session implements SessionInterface
      */
     public function set($key, $value)
     {
-        self::requireSession();
-        $_SESSION[$key] = $value;
+        $this->sessionData[$key] = $value;
     }
 
     /**
@@ -74,18 +73,6 @@ class Session implements SessionInterface
      */
     public function delete($key)
     {
-        self::requireSession();
-        unset($_SESSION[$key]);
-    }
-
-    /**
-     * @return void
-     */
-    private static function requireSession()
-    {
-        if (PHP_SESSION_ACTIVE !== \session_status()) {
-            // we MUST have an active session
-            throw new SessionException('no active session');
-        }
+        unset($this->sessionData[$key]);
     }
 }
