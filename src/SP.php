@@ -138,7 +138,6 @@ EOF;
     /**
      * @param IdPInfo $idpInfo
      * @param string  $samlResponse
-     * @param string  $relayState
      *
      * @return void
      */
