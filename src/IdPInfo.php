@@ -46,9 +46,7 @@ class IdPInfo
     {
         $this->entityId = $entityId;
         $this->ssoUrl = $ssoUrl;
-        if (false === $this->publicKey = \openssl_pkey_get_public($publicKey)) {
-            throw new Exception('invalid public key provided');
-        }
+        $this->publicKey = self::preparePublicKey($publicKey);
     }
 
     /**
@@ -73,5 +71,20 @@ class IdPInfo
     public function getPublicKey()
     {
         return $this->publicKey;
+    }
+
+    /**
+     * @param string $publicKey
+     *
+     * @return resource
+     */
+    private static function preparePublicKey($publicKey)
+    {
+        $publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey)."-----END CERTIFICATE-----\n";
+        if (false === $publicKeyResource = \openssl_pkey_get_public($publicKey)) {
+            throw new Exception('invalid public key provided');
+        }
+
+        return $publicKeyResource;
     }
 }
