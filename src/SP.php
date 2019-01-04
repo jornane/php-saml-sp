@@ -57,8 +57,9 @@ class SP
     public function login(IdPInfo $idpInfo, $relayState)
     {
         $requestId = \sprintf('_%s', \bin2hex(\random_bytes(16)));
-        $_SESSION['pss']['ID'] = $requestId;
-        $_SESSION['pss']['IdP'] = $idpInfo;
+        $_SESSION['_saml_auth_id'] = $requestId;
+        // XXX why do we store idpInfo?!
+        $_SESSION['_saml_auth_idp'] = $idpInfo;
 
         $authnRequest = <<< EOF
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{{ID}}" Version="2.0" IssueInstant="{{IssueInstant}}" Destination="{{Destination}}" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="{{AssertionConsumerServiceURL}}">
@@ -105,14 +106,11 @@ EOF;
      */
     public function getAssertion()
     {
-        if (!\array_key_exists('pss', $_SESSION)) {
-            return false;
-        }
-        if (!\array_key_exists('Assertion', $_SESSION['pss'])) {
+        if (!\array_key_exists('_saml_auth_assertion', $_SESSION)) {
             return false;
         }
 
-        return $_SESSION['pss']['Assertion'];
+        return $_SESSION['_saml_auth_assertion'];
     }
 
     /**
@@ -125,8 +123,8 @@ EOF;
     public function handleResponse(IdPInfo $idpInfo, $samlResponse)
     {
         $r = new Response(\dirname(__DIR__).'/schema');
-        $samlAssertion = $r->verify(\base64_decode($samlResponse, true), $_SESSION['pss']['ID'], $this->acsUrl, $idpInfo);
+        $samlAssertion = $r->verify(\base64_decode($samlResponse, true), $_SESSION['_saml_auth_id'], $this->acsUrl, $idpInfo);
 
-        $_SESSION['pss']['Assertion'] = $samlAssertion;
+        $_SESSION['_saml_auth_assertion'] = $samlAssertion;
     }
 }
