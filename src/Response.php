@@ -154,20 +154,16 @@ class Response
      */
     private static function extractAttributes(XmlDocument $xmlDocument)
     {
-        $queryResponse = $xmlDocument->getElements('/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute');
-        // find all attribute names
+        $attributeValueElements = $xmlDocument->getElements(
+            '/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute/saml:AttributeValue'
+        );
         $attributeList = [];
-        foreach ($queryResponse as $qR) {
-            $attributeList[$qR->getAttribute('Name')] = [];
-        }
-
-        // find the attribute values
-        foreach (\array_keys($attributeList) as $attrName) {
-            $queryResponse = $xmlDocument->getElements(\sprintf('/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute[@Name="%s"]/saml:AttributeValue', $attrName));
-            foreach ($queryResponse as $qR) {
-                // XXX this does NOT always work, only when there is actually textContent...
-                $attributeList[$attrName][] = $qR->textContent;
+        foreach ($attributeValueElements as $attributeValueElement) {
+            $attributeName = $attributeValueElement->parentNode->getAttribute('Name');
+            if (!\array_key_exists($attributeName, $attributeList)) {
+                $attributeList[$attributeName] = [];
             }
+            $attributeList[$attributeName][] = $attributeValueElement->textContent;
         }
 
         return $attributeList;
