@@ -13,10 +13,16 @@
     },
     "name": "fkooman/php-saml-sp",
     "require": {
+        "ext-date": "*",
         "ext-dom": "*",
         "ext-hash": "*",
+        "ext-libxml": "*",
         "ext-openssl": "*",
+        "ext-session": "*",
+        "ext-zlib": "*",
         "paragonie/constant_time_encoding": "^1|^2",
-        "php": ">=5.4"
+        "paragonie/random_compat": ">=1",
+        "php": ">=5.4",
+        "symfony/polyfill-php56": "^1"
     }
 }
