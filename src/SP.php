@@ -56,6 +56,8 @@ class SP
      */
     public function login(IdPInfo $idpInfo, $relayState)
     {
+        // XXX delete all existing session stuff!
+
         $requestId = \sprintf('_%s', \bin2hex(\random_bytes(16)));
         $_SESSION['_saml_auth_id'] = $requestId;
         // XXX why do we store idpInfo?!

@@ -6,12 +6,11 @@ IdPs.
 # Why
 
 - simpleSAMLphp is the "swiss army knife", we want only SAML 2.0, and only SP 
-  functionality and no extensive list of dependencies;
-- we want to have certain functionality configurable from the application at 
-  "runtime" which is not possible with e.g. mod_auth_mellon or simpleSAMLphp 
-  without hacks;
-- mod_auth_mellon depends on Apache
-- small code base, no dependencies, easy to audit
+  functionality and no extensive list of features/dependencies;
+- we want to support "at runtime" `AuthnContext` switches, i.e. upgrade to a
+  higher LoA with MFA;
+- mod_auth_mellon depends on Apache;
+- small code base, no dependencies, easy to audit;
 
 # Features
 
@@ -19,25 +18,22 @@ IdPs.
 - Only HTTP-Redirect binding for sending `AuthnRequest` to IdP
 - Only HTTP-POST binding for receiving `Assertion` from IdP
 - Only supports RSA with SHA256 for signatures
-- No encryption support
+- Supports signed `samlp:Response` and/or signed `saml:Assertion`
+- Validates XML schema(s)
+- **NO** encryption support
 - Tested with IdPs:
   - simpleSAMLphp
   - OpenConext
   - FrkoIdP
-- Less than 1000 NCLOC
+- Currently ~400 NCLOC
 
 # TODO 
 
 - Metadata Generator
-- Metadata Importer
-- Scales for eduGAIN (large number of IdPs)
-- Allows application to at runtime specify `AuthnContext` in the `AuthnRequest` 
-  e.g. for MFA
-- Allows applications to scope the IdP list in combination with IdP Discovery
-- Supports [Identity Provider Discovery Service Protocol and Profile](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-idp-discovery.pdf)
-- Supports `eduPersonTargetedId` (also formatted as a NameID)
-- Supports `<shib:Scope>` (which scopes can be claimed by which IdP)
-- Supports figuring out IdP when using SAML Proxies supporting ... (special Proxy? thingy)
+- Allow to specify `AuthnContext` on authentication for MFA support;
+- [Identity Provider Discovery Service Protocol and Profile](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-idp-discovery.pdf)
+- Logout
+- (Maybe) SLO
 
 # Resources
 
