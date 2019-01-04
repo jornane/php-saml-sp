@@ -27,6 +27,7 @@ namespace fkooman\SAML\SP;
 use DateTime;
 use ParagonIE\ConstantTime\Base64;
 use ParagonIE\ConstantTime\Hex;
+use RuntimeException;
 
 class SP
 {
@@ -48,6 +49,11 @@ class SP
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
         $this->dateTime = new DateTime();
+
+        if (PHP_SESSION_ACTIVE !== \session_status()) {
+            // we MUST have an active session
+            throw new RuntimeException('no session');
+        }
     }
 
     /**
