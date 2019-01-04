@@ -33,7 +33,7 @@ class ResponseTest extends TestCase
 {
     public function testFrkoIdP()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
@@ -58,7 +58,7 @@ class ResponseTest extends TestCase
 
     public function testSURFconext()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T21:58:23Z'));
+        $response = new Response(new DateTime('2019-01-02T21:58:23Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
@@ -91,7 +91,7 @@ class ResponseTest extends TestCase
 
     public function testSimpleSamlPhp()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T22:19:20Z'));
+        $response = new Response(new DateTime('2019-01-02T22:19:20Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/simpleSAMLphp.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
@@ -119,7 +119,7 @@ class ResponseTest extends TestCase
      */
     public function testInvalidDigest()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_digest.xml');
         $response->verify(
             $samlResponse,
@@ -135,7 +135,7 @@ class ResponseTest extends TestCase
      */
     public function testWrongCertificate()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
         $response->verify(
             $samlResponse,
@@ -151,7 +151,7 @@ class ResponseTest extends TestCase
      */
     public function testWrongSignature()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_signature.xml');
         $response->verify(
             $samlResponse,
@@ -167,7 +167,7 @@ class ResponseTest extends TestCase
      */
     public function testNotSigned()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_not_signed.xml');
         $response->verify(
             $samlResponse,
@@ -183,7 +183,7 @@ class ResponseTest extends TestCase
      */
     public function testTwoAssertions()
     {
-        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T21:58:23Z'));
+        $response = new Response(new DateTime('2019-01-02T21:58:23Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext_two_assertions.xml');
         $response->verify(
             $samlResponse,

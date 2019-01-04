@@ -30,18 +30,14 @@ use ParagonIE\ConstantTime\Base64;
 
 class Response
 {
-    /** @var string */
-    private $schemaDir;
-
     /** @var \DateTime */
     private $dateTime;
 
     /**
-     * @param string $schemaDir
+     * @param \DateTime $dateTime
      */
-    public function __construct($schemaDir, DateTime $dateTime)
+    public function __construct(DateTime $dateTime)
     {
-        $this->schemaDir = $schemaDir;
         $this->dateTime = $dateTime;
     }
 
@@ -56,7 +52,6 @@ class Response
     public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdPInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromString($samlResponse);
-        $responseDocument->verifySchema('');
 
         // XXX verify status code in response
 

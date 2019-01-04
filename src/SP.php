@@ -152,7 +152,6 @@ EOF;
     public function handleResponse(IdPInfo $idpInfo, $samlResponse)
     {
         $responseStr = new Response(
-            \dirname(__DIR__).'/schema',
             $this->dateTime
         );
         $samlAssertion = $responseStr->verify(

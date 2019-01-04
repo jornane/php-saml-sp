@@ -46,14 +46,6 @@ class XmlDocument
     }
 
     /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->domDocument->saveXML();
-    }
-
-    /**
      * @param string $xmlStr
      *
      * @return self
@@ -62,23 +54,22 @@ class XmlDocument
     {
         $entityLoader = \libxml_disable_entity_loader(true);
         $domDocument = new DOMDocument();
-        $domDocument->loadXML($xmlStr, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT);
+        $loadResult = $domDocument->loadXML($xmlStr, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT);
         \libxml_disable_entity_loader($entityLoader);
+        if (false === $loadResult) {
+            throw new XmlDocumentException('unable to load XML document');
+        }
+
+        // validate the document against the SAML schema
+        $schemaFile = \dirname(__DIR__).'/schema/saml-schema-protocol-2.0.xsd';
+        $entityLoader = \libxml_disable_entity_loader(false);
+        $validateResult = $domDocument->schemaValidate($schemaFile);
+        \libxml_disable_entity_loader($entityLoader);
+        if (false === $validateResult) {
+            throw new XmlDocumentException(\sprintf('schema validation against "%s" failed', $schemaFile));
+        }
 
         return new self($domDocument);
-    }
-
-    /**
-     * @param string $schemaFile
-     *
-     * @return void
-     */
-    public function verifySchema($schemaFile)
-    {
-//        $schemaFile = \sprintf('%s/saml-schema-protocol-2.0.xsd', $this->schemaDir);
-//        if (false === $domDocument->schemaValidate($schemaFile)) {
-//            throw new Exception('schema validation failed');
-//        }
     }
 
     /**
