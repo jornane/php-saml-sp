@@ -39,19 +39,9 @@ class Response
     /**
      * @param string $schemaDir
      */
-    public function __construct($schemaDir)
+    public function __construct($schemaDir, DateTime $dateTime)
     {
         $this->schemaDir = $schemaDir;
-        $this->dateTime = new DateTime();
-    }
-
-    /**
-     * @param \DateTime $dateTime
-     *
-     * @return void
-     */
-    public function setDateTime(DateTime $dateTime)
-    {
         $this->dateTime = $dateTime;
     }
 
@@ -166,7 +156,7 @@ class Response
         }
 
         // verify the signature over the SignedInfo element
-        if (1 !== \openssl_verify($signedInfoElementCanonical, Base64::decode($signatureValueStr, true), $publicKey, OPENSSL_ALGO_SHA256)) {
+        if (1 !== \openssl_verify($signedInfoElementCanonical, Base64::decode($signatureValueStr), $publicKey, OPENSSL_ALGO_SHA256)) {
             throw new Exception('invalid signature over SignedInfo');
         }
     }

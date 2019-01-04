@@ -51,6 +51,16 @@ class SP
     }
 
     /**
+     * @param \DateTime $dateTime
+     *
+     * @return void
+     */
+    public function setDateTime(DateTime $dateTime)
+    {
+        $this->dateTime = $dateTime;
+    }
+
+    /**
      * @param IdPInfo $idpInfo
      * @param string  $relayState
      *
@@ -58,7 +68,9 @@ class SP
      */
     public function login(IdPInfo $idpInfo, $relayState)
     {
+        // unset the existing session variables
         unset($_SESSION['_saml_auth_id']);
+        unset($_SESSION['_saml_auth_assertion']);
 
         $requestId = \sprintf('_%s', Hex::encode(\random_bytes(16)));
         $_SESSION['_saml_auth_id'] = $requestId;
@@ -90,17 +102,19 @@ EOF;
 
         $samlRequest = Base64::encode(\gzdeflate($authnRequest));
 
-        // set the session stuff
-        // create a SSO SAMLRequest URL, return it
+        // create a SSO SAMLRequest URL
         $httpQuery = \http_build_query(
             [
                 'SAMLRequest' => $samlRequest,
                 'RelayState' => $relayState,
             ]
         );
+        $ssoUrl = $idpInfo->getSsoUrl();
+        if (false === \strpos($ssoUrl, '?')) {
+            return \sprintf('%s?%s', $ssoUrl, $httpQuery);
+        }
 
-        // XXX make sure the SSO URL does not yet contain a '?'
-        return \sprintf('%s?%s', $idpInfo->getSsoUrl(), $httpQuery);
+        return \sprintf('%s&%s', $ssoUrl, $httpQuery);
     }
 
     /**
@@ -124,9 +138,16 @@ EOF;
      */
     public function handleResponse(IdPInfo $idpInfo, $samlResponse)
     {
-        $r = new Response(\dirname(__DIR__).'/schema');
-        $samlAssertion = $r->verify(Base64::decode($samlResponse, true), $_SESSION['_saml_auth_id'], $this->acsUrl, $idpInfo);
-
+        $responseStr = new Response(
+            \dirname(__DIR__).'/schema',
+            $this->dateTime
+        );
+        $samlAssertion = $responseStr->verify(
+            Base64::decode($samlResponse),
+            $_SESSION['_saml_auth_id'],
+            $this->acsUrl,
+            $idpInfo
+        );
         $_SESSION['_saml_auth_assertion'] = $samlAssertion;
     }
 }

@@ -31,21 +31,11 @@ use PHPUnit\Framework\TestCase;
 
 class ResponseTest extends TestCase
 {
-    /** @var \fkooman\SAML\SP\Response */
-    private $response;
-
-    public function setUp()
-    {
-        $this->response = new Response(
-            \dirname(__DIR__).'/schema'
-        );
-    }
-
     public function testFrkoIdP()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
-        $samlAssertion = $this->response->verify(
+        $samlAssertion = $response->verify(
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
@@ -68,9 +58,9 @@ class ResponseTest extends TestCase
 
     public function testSURFconext()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T21:58:23Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T21:58:23Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext.xml');
-        $samlAssertion = $this->response->verify(
+        $samlAssertion = $response->verify(
             $samlResponse,
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
@@ -101,9 +91,9 @@ class ResponseTest extends TestCase
 
     public function testSimpleSamlPhp()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T22:19:20Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T22:19:20Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/simpleSAMLphp.xml');
-        $samlAssertion = $this->response->verify(
+        $samlAssertion = $response->verify(
             $samlResponse,
             '_b354c4367b3e379f940145868f28987e9520b1fb0b',
             'https://vpn.tuxed.net/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
@@ -129,9 +119,9 @@ class ResponseTest extends TestCase
      */
     public function testInvalidDigest()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_digest.xml');
-        $this->response->verify(
+        $response->verify(
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
@@ -145,9 +135,9 @@ class ResponseTest extends TestCase
      */
     public function testWrongCertificate()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
-        $this->response->verify(
+        $response->verify(
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
@@ -161,9 +151,9 @@ class ResponseTest extends TestCase
      */
     public function testWrongSignature()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_signature.xml');
-        $this->response->verify(
+        $response->verify(
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
@@ -177,9 +167,9 @@ class ResponseTest extends TestCase
      */
     public function testNotSigned()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T20:05:33Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_not_signed.xml');
-        $this->response->verify(
+        $response->verify(
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
@@ -193,9 +183,9 @@ class ResponseTest extends TestCase
      */
     public function testTwoAssertions()
     {
-        $this->response->setDateTime(new DateTime('2019-01-02T21:58:23Z'));
+        $response = new Response(\dirname(__DIR__).'/schema', new DateTime('2019-01-02T21:58:23Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext_two_assertions.xml');
-        $this->response->verify(
+        $response->verify(
             $samlResponse,
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
