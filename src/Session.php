@@ -22,31 +22,62 @@
  * SOFTWARE.
  */
 
-require_once \dirname(__DIR__).'/vendor/autoload.php';
-$baseDir = \dirname(__DIR__);
+namespace fkooman\SAML\SP;
 
-use fkooman\SAML\SP\IdPInfo;
-use fkooman\SAML\SP\SP;
+use fkooman\SAML\SP\Exception\SessionException;
 
-try {
-    \session_name('SID');
-    \session_start();
+class Session implements SessionInterface
+{
+    public function __construct()
+    {
+        if (PHP_SESSION_ACTIVE !== \session_status()) {
+            // we MUST have an active session
+            throw new SessionException('no active session');
+        }
+    }
 
-    $idpInfo = new IdPInfo(
-        'http://localhost:8080/metadata.php',
-        'http://localhost:8080/sso.php',
-        \file_get_contents($baseDir.'/server.crt')
-    );
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function has($key)
+    {
+        return \array_key_exists($key, $_SESSION);
+    }
 
-    $entityId = 'http://localhost:8081/metadata.php';
-    $acsUrl = 'http://localhost:8081/acs.php';
-    $relayState = 'http://localhost:8081/index.php';
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     */
+    public function get($key)
+    {
+        if (!$this->has($key)) {
+            throw new SessionException(\sprintf('key "%s" not found in session', $key));
+        }
 
-    $sp = new SP($entityId, $acsUrl);
-    $samlResponse = $_POST['SAMLResponse'];
-    $sp->handleResponse($idpInfo, $samlResponse);
-    \http_response_code(302);
-    \header(\sprintf('Location: %s', $_POST['RelayState']));
-} catch (Exception $e) {
-    echo 'Error: '.$e->getMessage().PHP_EOL;
+        return $_SESSION[$key];
+    }
+
+    /**
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return void
+     */
+    public function set($key, $value)
+    {
+        $_SESSION[$key] = $value;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return void
+     */
+    public function delete($key)
+    {
+        unset($_SESSION[$key]);
+    }
 }

@@ -22,31 +22,36 @@
  * SOFTWARE.
  */
 
-require_once \dirname(__DIR__).'/vendor/autoload.php';
-$baseDir = \dirname(__DIR__);
+namespace fkooman\SAML\SP;
 
-use fkooman\SAML\SP\IdPInfo;
-use fkooman\SAML\SP\SP;
+interface SessionInterface
+{
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function has($key);
 
-try {
-    \session_name('SID');
-    \session_start();
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     */
+    public function get($key);
 
-    $idpInfo = new IdPInfo(
-        'http://localhost:8080/metadata.php',
-        'http://localhost:8080/sso.php',
-        \file_get_contents($baseDir.'/server.crt')
-    );
+    /**
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return void
+     */
+    public function set($key, $value);
 
-    $entityId = 'http://localhost:8081/metadata.php';
-    $acsUrl = 'http://localhost:8081/acs.php';
-    $relayState = 'http://localhost:8081/index.php';
-
-    $sp = new SP($entityId, $acsUrl);
-    $samlResponse = $_POST['SAMLResponse'];
-    $sp->handleResponse($idpInfo, $samlResponse);
-    \http_response_code(302);
-    \header(\sprintf('Location: %s', $_POST['RelayState']));
-} catch (Exception $e) {
-    echo 'Error: '.$e->getMessage().PHP_EOL;
+    /**
+     * @param string $key
+     *
+     * @return void
+     */
+    public function delete($key);
 }

@@ -27,7 +27,6 @@ namespace fkooman\SAML\SP;
 use DateTime;
 use ParagonIE\ConstantTime\Base64;
 use ParagonIE\ConstantTime\Hex;
-use RuntimeException;
 
 class SP
 {
@@ -40,6 +39,9 @@ class SP
     /** @var \DateTime */
     private $dateTime;
 
+    /** @var SessionInterface */
+    private $session;
+
     /**
      * @param string $entityId
      * @param string $acsUrl
@@ -49,11 +51,7 @@ class SP
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
         $this->dateTime = new DateTime();
-
-        if (PHP_SESSION_ACTIVE !== \session_status()) {
-            // we MUST have an active session
-            throw new RuntimeException('no session');
-        }
+        $this->session = new Session();
     }
 
     /**
@@ -67,6 +65,16 @@ class SP
     }
 
     /**
+     * @param SessionInterface $session
+     *
+     * @return void
+     */
+    public function setSession(SessionInterface $session)
+    {
+        $this->session = $session;
+    }
+
+    /**
      * @param IdPInfo $idpInfo
      * @param string  $relayState
      *
@@ -75,11 +83,11 @@ class SP
     public function login(IdPInfo $idpInfo, $relayState)
     {
         // unset the existing session variables
-        unset($_SESSION['_saml_auth_id']);
-        unset($_SESSION['_saml_auth_assertion']);
+        $this->session->delete('_saml_auth_id');
+        $this->session->delete('_saml_auth_assertion');
 
         $requestId = \sprintf('_%s', Hex::encode(\random_bytes(16)));
-        $_SESSION['_saml_auth_id'] = $requestId;
+        $this->session->set('_saml_auth_id', $requestId);
 
         $authnRequest = <<< EOF
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{{ID}}" Version="2.0" IssueInstant="{{IssueInstant}}" Destination="{{Destination}}" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="{{AssertionConsumerServiceURL}}">
@@ -128,11 +136,11 @@ EOF;
      */
     public function getAssertion()
     {
-        if (!\array_key_exists('_saml_auth_assertion', $_SESSION)) {
+        if (!$this->session->has('_saml_auth_assertion')) {
             return false;
         }
 
-        return $_SESSION['_saml_auth_assertion'];
+        return $this->session->get('_saml_auth_assertion');
     }
 
     /**
@@ -149,10 +157,10 @@ EOF;
         );
         $samlAssertion = $responseStr->verify(
             Base64::decode($samlResponse),
-            $_SESSION['_saml_auth_id'],
+            $this->session->get('_saml_auth_id'),
             $this->acsUrl,
             $idpInfo
         );
-        $_SESSION['_saml_auth_assertion'] = $samlAssertion;
+        $this->session->set('_saml_auth_assertion', $samlAssertion);
     }
 }

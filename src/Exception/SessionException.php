@@ -22,31 +22,10 @@
  * SOFTWARE.
  */
 
-require_once \dirname(__DIR__).'/vendor/autoload.php';
-$baseDir = \dirname(__DIR__);
+namespace fkooman\SAML\SP\Exception;
 
-use fkooman\SAML\SP\IdPInfo;
-use fkooman\SAML\SP\SP;
+use Exception;
 
-try {
-    \session_name('SID');
-    \session_start();
-
-    $idpInfo = new IdPInfo(
-        'http://localhost:8080/metadata.php',
-        'http://localhost:8080/sso.php',
-        \file_get_contents($baseDir.'/server.crt')
-    );
-
-    $entityId = 'http://localhost:8081/metadata.php';
-    $acsUrl = 'http://localhost:8081/acs.php';
-    $relayState = 'http://localhost:8081/index.php';
-
-    $sp = new SP($entityId, $acsUrl);
-    $samlResponse = $_POST['SAMLResponse'];
-    $sp->handleResponse($idpInfo, $samlResponse);
-    \http_response_code(302);
-    \header(\sprintf('Location: %s', $_POST['RelayState']));
-} catch (Exception $e) {
-    echo 'Error: '.$e->getMessage().PHP_EOL;
+class SessionException extends Exception
+{
 }
