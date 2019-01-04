@@ -42,20 +42,13 @@ $acsUrl = 'http://localhost:8081/acs.php';
 $relayState = 'http://localhost:8081/index.php';
 
 $sp = new SP($entityId, $acsUrl);
-
 if (false === $samlAssertion = $sp->getAssertion()) {
     \http_response_code(302);
     \header(\sprintf('Location: %s', $sp->login($idpInfo, $relayState)));
     exit(0);
 }
 
-echo '<html><head><title>Auth</title></head><body><table>';
-foreach ($samlAssertion->getAttributes() as $k => $v) {
-    $x = '';
-    foreach ($v as $w) {
-        $x .= '<li>'.$w.'</li>';
-    }
-    echo \sprintf('<tr><td>%s</td><td><ul>%s</ul></td></tr>', $k, $x);
-}
-echo '</table></body></html>';
-unset($_SESSION['pss']);
+echo '<pre>';
+echo var_export($samlAssertion->getIssuer());
+echo var_export($samlAssertion->getAttributes());
+echo '</pre>';
