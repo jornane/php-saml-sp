@@ -108,50 +108,41 @@ class Response
      */
     private static function verifySignature(XmlDocument $xmlDocument, $signatureRoot, $publicKey)
     {
-        $signedElement = $xmlDocument->getElement($signatureRoot);
-        $signedElementId = $signedElement->getAttribute('ID');
-
-        $signatureElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature');
-
-        // 5. make sure the Reference points to Response
-        $referenceElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference');
-        $referenceUri = $referenceElement->getAttribute('URI');
-
-        if ('#'.$signedElementId !== $referenceUri) {
+        $rootElement = $xmlDocument->getElement($signatureRoot);
+        $rootElementId = $rootElement->getAttribute('ID');
+        $referenceUri = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference')->getAttribute('URI');
+        if (\sprintf('#%s', $rootElementId) !== $referenceUri) {
             throw new Exception('reference URI does not point to Response document ID');
         }
 
-        // 3. get the SignatureValue from XML (from Response OR from Assertion)
-        $signatureValueElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue');
-        $signatureValueStr = $signatureValueElement->textContent;
+        $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
+        $digestValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue')->textContent;
 
-        // 4. get the DigestValue from XML
-        $digestValueElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue');
-        $digestValueStr = $digestValueElement->textContent;
+        $canonicalSignedInfo = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo')->C14N(true, false);
+        $signatureElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature');
+        $rootElement->removeChild($signatureElement);
 
-        $signedInfoElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo');
-        $signedInfoElementCanonical = $signedInfoElement->C14N(true, false);
-
-        // 6. remove the Signature from the XML
-        $signedElement->removeChild($signatureElement);
-
-        // calculate the digest over the Response element without the Signature
-        // element
-        $signedElementDigest = Base64::encode(
+        $rootElementDigest = Base64::encode(
             \hash(
                 'sha256',
-                $signedElement->C14N(true, false),
+                $rootElement->C14N(true, false),
                 true
             )
         );
 
-        // compare the SignedInfo digest with the actual digest
-        if (!\hash_equals($signedElementDigest, $digestValueStr)) {
+        // compare the digest from the XML with the actual digest
+        if (!\hash_equals($rootElementDigest, $digestValue)) {
             throw new Exception('digest does not match');
         }
 
-        // verify the signature over the SignedInfo element
-        if (1 !== \openssl_verify($signedInfoElementCanonical, Base64::decode($signatureValueStr), $publicKey, OPENSSL_ALGO_SHA256)) {
+        // verify the signature
+        $verifyResult = \openssl_verify(
+            $canonicalSignedInfo,
+            Base64::decode($signatureValue),
+            $publicKey,
+            OPENSSL_ALGO_SHA256
+        );
+        if (1 !== $verifyResult) {
             throw new Exception('invalid signature over SignedInfo');
         }
     }
