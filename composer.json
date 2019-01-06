@@ -36,7 +36,7 @@
     },
     "support": {
         "email": "fkooman@tuxed.net",
-        "source": "https://git.tuxed.net/fkooman/php-oauth2-server"
+        "source": "https://git.tuxed.net/fkooman/php-saml-sp"
     },
     "type": "library"
 }

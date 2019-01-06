@@ -44,11 +44,10 @@ $relayState = 'http://localhost:8081/index.php';
 $sp = new SP($entityId, $acsUrl);
 if (false === $samlAssertion = $sp->getAssertion()) {
     $authOptions = [
-        'authnContextClassRefList' => [
-//            'http://foo.example.org/loa3',
-//            'http://foo.example.org/loa2',
-            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
-        ],
+//        'authnContextClassRefList' => [
+//            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+//        ],
+//        'forceAuthn' => true,
     ];
 
     \http_response_code(302);
