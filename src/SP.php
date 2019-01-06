@@ -99,6 +99,7 @@ class SP
     {
         // unset the existing session variables
         $this->session->delete('_saml_auth_id');
+        $this->session->delete('_saml_auth_idp');
         $this->session->delete('_saml_auth_assertion');
         $this->session->delete('_salm_auth_authn_context_class_ref_list');
 
@@ -117,6 +118,7 @@ class SP
         $authnRequest = \trim(\ob_get_clean());
 
         $this->session->set('_saml_auth_id', $authnRequestId);
+        $this->session->set('_saml_auth_idp', $idpInfo);
         $this->session->set('_salm_auth_authn_context_class_ref_list', $authnContextClassRefList);
 
         $samlRequest = Base64::encode(\gzdeflate($authnRequest));
@@ -149,13 +151,13 @@ class SP
     }
 
     /**
-     * @param IdPInfo $idpInfo
-     * @param string  $samlResponse
+     * @param string $samlResponse
      *
      * @return void
      */
-    public function handleResponse(IdPInfo $idpInfo, $samlResponse)
+    public function handleResponse($samlResponse)
     {
+        $idpInfo = $this->session->get('_saml_auth_idp');
         $responseStr = new Response(
             $this->dateTime
         );
@@ -171,6 +173,9 @@ class SP
             throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_salm_auth_authn_context_class_ref_list'))));
         }
 
+        $this->session->delete('_saml_auth_id');
+        $this->session->delete('_saml_auth_idp');
+        $this->session->delete('_salm_auth_authn_context_class_ref_list');
         $this->session->set('_saml_auth_assertion', $samlAssertion);
     }
 }
