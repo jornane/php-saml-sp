@@ -5,6 +5,7 @@
     <directory name="web"/>
     <ignoreFiles>
       <directory name="vendor"/>
+      <file name="src/AuthnRequestTemplate.php"/>
     </ignoreFiles>
   </projectFiles>
 </psalm>
