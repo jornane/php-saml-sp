@@ -29,11 +29,11 @@ use ParagonIE\ConstantTime\Base64;
 
 class Signature
 {
-    /** @var resource */
+    /** @var string */
     private $publicKey;
 
     /**
-     * @param resource $publicKey
+     * @param string $publicKey
      */
     public function __construct($publicKey)
     {

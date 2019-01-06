@@ -24,8 +24,6 @@
 
 namespace fkooman\SAML\SP;
 
-use Exception;
-
 class IdPInfo
 {
     /** @var string */
@@ -34,7 +32,7 @@ class IdPInfo
     /** @var string */
     private $ssoUrl;
 
-    /** @var resource */
+    /** @var string */
     private $publicKey;
 
     /**
@@ -46,7 +44,7 @@ class IdPInfo
     {
         $this->entityId = $entityId;
         $this->ssoUrl = $ssoUrl;
-        $this->publicKey = self::preparePublicKey($publicKey);
+        $this->publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey)."-----END CERTIFICATE-----\n";
     }
 
     /**
@@ -66,25 +64,10 @@ class IdPInfo
     }
 
     /**
-     * @return resource
+     * @return string
      */
     public function getPublicKey()
     {
         return $this->publicKey;
-    }
-
-    /**
-     * @param string $publicKey
-     *
-     * @return resource
-     */
-    private static function preparePublicKey($publicKey)
-    {
-        $publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey)."-----END CERTIFICATE-----\n";
-        if (false === $publicKeyResource = \openssl_pkey_get_public($publicKey)) {
-            throw new Exception('invalid public key provided');
-        }
-
-        return $publicKeyResource;
     }
 }
