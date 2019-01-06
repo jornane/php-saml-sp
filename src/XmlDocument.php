@@ -81,7 +81,7 @@ class XmlDocument
     {
         $queryResult = $this->domXPath->query($xPathQuery);
 
-        return 1 === $queryResult->count();
+        return 1 === $queryResult->length;
     }
 
     /**
@@ -92,8 +92,8 @@ class XmlDocument
     public function getElement($xPathQuery)
     {
         $queryResult = $this->domXPath->query($xPathQuery);
-        if (1 !== $queryResult->count()) {
-            throw new XmlDocumentException(\sprintf('expected 1 element for query "%s", got %d elements', $xPathQuery, $queryResult->count()));
+        if (1 !== $queryResult->length) {
+            throw new XmlDocumentException(\sprintf('expected 1 element for query "%s", got %d elements', $xPathQuery, $queryResult->length));
         }
 
         $resultElement = $queryResult->item(0);
