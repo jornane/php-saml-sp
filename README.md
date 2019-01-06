@@ -25,7 +25,6 @@ used in production! See [Resources](#resources).
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
 - Allow specifying `AuthnContextClassRef` as part of Authentication Request
 - Validates XML schema(s)
-- No encryption support (yet)
 - Tested with IdPs:
   - simpleSAMLphp
   - OpenConext
@@ -33,13 +32,19 @@ used in production! See [Resources](#resources).
 - Currently ~500 NCLOC
 
 # TODO 
-
-- handle `NameID` eduPersonTargetedId properly (?)
+ 
 - verify response status code
 - Metadata Generator
-- [Identity Provider Discovery Service Protocol and Profile](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-idp-discovery.pdf)
 - Logout
-- (Maybe) SLO
+
+# Nice To Have
+
+- sign AuthnRequest (saml2int)
+- handle `NameID` eduPersonTargetedId properly (?)
+- SLO
+- support encrypted Assertions (saml2int)
+  - rsa-oaep-mgf1p
+  - aes-256-gcm
 
 # Resources
 
