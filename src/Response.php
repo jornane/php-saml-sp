@@ -26,7 +26,6 @@ namespace fkooman\SAML\SP;
 
 use DateTime;
 use Exception;
-use ParagonIE\ConstantTime\Base64;
 
 class Response
 {
@@ -51,21 +50,23 @@ class Response
      */
     public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdPInfo $idpInfo)
     {
+        $signature = new Signature($idpInfo->getPublicKey());
+
         $responseDocument = XmlDocument::fromString($samlResponse);
         $signatureCount = 0;
         if ($responseDocument->hasElement('/samlp:Response/ds:Signature')) {
             // samlp:Response is signed
-            self::verifySignature($responseDocument, '/samlp:Response', $idpInfo->getPublicKey());
+            $signature->verify($responseDocument, '/samlp:Response');
             ++$signatureCount;
         }
 
         // make sure we have exactly 1 assertion
         // XXX introduce count method?!
-        $assertionElement = $responseDocument->getElement('/samlp:Response/saml:Assertion');
+        $responseDocument->getElement('/samlp:Response/saml:Assertion');
 
         if ($responseDocument->hasElement('/samlp:Response/saml:Assertion/ds:Signature')) {
             // saml:Assertion is signed
-            self::verifySignature($responseDocument, '/samlp:Response/saml:Assertion', $idpInfo->getPublicKey());
+            $signature->verify($responseDocument, '/samlp:Response/saml:Assertion');
             ++$signatureCount;
         }
 
@@ -94,54 +95,6 @@ class Response
         $attributeList = self::extractAttributes($responseDocument);
 
         return new Assertion($idpInfo->getEntityId(), $attributeList);
-    }
-
-    /**
-     * @param XmlDocument $xmlDocument
-     * @param string      $signatureRoot
-     * @param resource    $publicKey
-     *
-     * @return void
-     */
-    private static function verifySignature(XmlDocument $xmlDocument, $signatureRoot, $publicKey)
-    {
-        $rootElement = $xmlDocument->getElement($signatureRoot);
-        $rootElementId = $rootElement->getAttribute('ID');
-        $referenceUri = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference')->getAttribute('URI');
-        if (\sprintf('#%s', $rootElementId) !== $referenceUri) {
-            throw new Exception('reference URI does not point to Response document ID');
-        }
-
-        $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
-        $digestValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue')->textContent;
-
-        $canonicalSignedInfo = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo')->C14N(true, false);
-        $signatureElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature');
-        $rootElement->removeChild($signatureElement);
-
-        $rootElementDigest = Base64::encode(
-            \hash(
-                'sha256',
-                $rootElement->C14N(true, false),
-                true
-            )
-        );
-
-        // compare the digest from the XML with the actual digest
-        if (!\hash_equals($rootElementDigest, $digestValue)) {
-            throw new Exception('digest does not match');
-        }
-
-        // verify the signature
-        $verifyResult = \openssl_verify(
-            $canonicalSignedInfo,
-            Base64::decode($signatureValue),
-            $publicKey,
-            OPENSSL_ALGO_SHA256
-        );
-        if (1 !== $verifyResult) {
-            throw new Exception('invalid signature over SignedInfo');
-        }
     }
 
     /**
