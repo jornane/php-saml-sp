@@ -36,6 +36,9 @@ class SP
     /** @var string */
     private $acsUrl;
 
+    /** @var array */
+    private $authOptions;
+
     /** @var \DateTime */
     private $dateTime;
 
