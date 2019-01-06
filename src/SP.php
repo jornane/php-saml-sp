@@ -110,7 +110,6 @@ class SP
         $issuer = $this->entityId;
 
         $authnContextClassRefList = \array_key_exists('authnContextClassRefList', $authOptions) ? $authOptions['authnContextClassRefList'] : [];
-        // XXX we also MUST get this class ref back in the assertion
 
         // XXX there must be a better way...
         \ob_start();
@@ -168,7 +167,7 @@ class SP
 
         // make sure we get the expected AuthnContextClassRef
         if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_salm_auth_authn_context_class_ref_list'), true)) {
-            throw new \Exception('blah');
+            throw new \Exception(sprintf('we wanted any of "%s"', implode(', ', $this->session->get('_salm_auth_authn_context_class_ref_list'))));
         }
 
         $this->session->set('_saml_auth_assertion', $samlAssertion);
