@@ -105,38 +105,23 @@ class SP
         $this->session->delete('_saml_auth_id');
         $this->session->delete('_saml_auth_assertion');
 
-        $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
-        $this->session->set('_saml_auth_id', $requestId);
-
+        $authnRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
+        $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
+        $destination = $idpInfo->getSsoUrl();
         $forceAuthn = \array_key_exists('forceAuthn', $this->authOptions) && $this->authOptions['forceAuthn'];
+        $assertionConsumerServiceURL = $this->acsUrl;
+        $issuer = $this->entityId;
 
-        $authnRequest = <<< EOF
-<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{{ID}}" Version="2.0" IssueInstant="{{IssueInstant}}" Destination="{{Destination}}" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="{{ForceAuthn}}" IsPassive="false" AssertionConsumerServiceURL="{{AssertionConsumerServiceURL}}">
-  <saml:Issuer>{{Issuer}}</saml:Issuer>
-  <samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/>
-</samlp:AuthnRequest>
-EOF;
+        $authnContextClassRef = null;
+//        $authnContextClassRef = \array_key_exists('authnContextClassRef', $this->authOptions) ? $this->authOptions['authnContextClassRef'] : null;
+        // XXX we also MUST get this class ref back in the assertion
+        // XXX probably support an array to allow for multiple acceptable values
 
-        $authnRequest = \str_replace(
-            [
-                '{{ID}}',
-                '{{IssueInstant}}',
-                '{{Destination}}',
-                '{{ForceAuthn}}',
-                '{{AssertionConsumerServiceURL}}',
-                '{{Issuer}}',
-            ],
-            [
-                $requestId,
-                $this->dateTime->format('Y-m-d\TH:i:s\Z'),
-                $idpInfo->getSsoUrl(),
-                $forceAuthn ? 'true' : 'false',
-                $this->acsUrl,
-                $this->entityId,
-            ],
-            $authnRequest
-        );
+        \ob_start();
+        include __DIR__.'/AuthnRequestTemplate.php';
+        $authnRequest = \trim(\ob_get_clean());
 
+        $this->session->set('_saml_auth_id', $authnRequestId);
         $samlRequest = Base64::encode(\gzdeflate($authnRequest));
 
         // create a SSO SAMLRequest URL
