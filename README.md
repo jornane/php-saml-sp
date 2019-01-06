@@ -1,7 +1,7 @@
 # Introduction
 
-This library allows web applications to allow users to authenticate with SAML 
-IdPs.
+This library allows adding SAML Service Provider (SP) support to your PHP web
+application.
 
 **NOTE**: because this library contains its own minimal implemention of 
 "XML Signature Verification" it **really** requires an audit before it can be 

@@ -7,10 +7,16 @@
     ],
     "autoload": {
         "psr-4": {
-            "fkooman\\SAML\\SP\\": "src/",
+            "fkooman\\SAML\\SP\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "fkooman\\SAML\\SP\\Tests\\": "tests/"
         }
     },
+    "description": "SAML Service Provider library",
+    "license": "MIT",
     "name": "fkooman/php-saml-sp",
     "require": {
         "ext-date": "*",
@@ -24,5 +30,13 @@
         "paragonie/random_compat": ">=1",
         "php": ">=5.4",
         "symfony/polyfill-php56": "^1"
-    }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4|^5|^6|^7"
+    },
+    "support": {
+        "email": "fkooman@tuxed.net",
+        "source": "https://git.tuxed.net/fkooman/php-oauth2-server"
+    },
+    "type": "library"
 }
