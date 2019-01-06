@@ -36,9 +36,6 @@ class SP
     /** @var string */
     private $acsUrl;
 
-    /** @var array */
-    private $authOptions;
-
     /** @var \DateTime */
     private $dateTime;
 
@@ -51,13 +48,11 @@ class SP
     /**
      * @param string $entityId
      * @param string $acsUrl
-     * @param array  $authOptions
      */
-    public function __construct($entityId, $acsUrl, $authOptions = [])
+    public function __construct($entityId, $acsUrl)
     {
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
-        $this->authOptions = $authOptions;
         $this->dateTime = new DateTime();
         $this->session = new Session();
         $this->random = new Random();
@@ -96,10 +91,11 @@ class SP
     /**
      * @param IdPInfo $idpInfo
      * @param string  $relayState
+     * @param array   $authOptions
      *
      * @return string
      */
-    public function login(IdPInfo $idpInfo, $relayState)
+    public function login(IdPInfo $idpInfo, $relayState, $authOptions = [])
     {
         // unset the existing session variables
         $this->session->delete('_saml_auth_id');
@@ -108,19 +104,17 @@ class SP
         $authnRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
         $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
         $destination = $idpInfo->getSsoUrl();
-        $forceAuthn = \array_key_exists('forceAuthn', $this->authOptions) && $this->authOptions['forceAuthn'];
+        $forceAuthn = \array_key_exists('forceAuthn', $authOptions) && $authOptions['forceAuthn'];
         $assertionConsumerServiceURL = $this->acsUrl;
         $issuer = $this->entityId;
 
-        $authnContextClassRef = null;
-//        $authnContextClassRef = \array_key_exists('authnContextClassRef', $this->authOptions) ? $this->authOptions['authnContextClassRef'] : null;
+        $authnContextClassRefList = \array_key_exists('authnContextClassRefList', $authOptions) ? $authOptions['authnContextClassRefList'] : [];
         // XXX we also MUST get this class ref back in the assertion
-        // XXX probably support an array to allow for multiple acceptable values
 
+        // XXX there must be a better way...
         \ob_start();
         include __DIR__.'/AuthnRequestTemplate.php';
         $authnRequest = \trim(\ob_get_clean());
-
         $this->session->set('_saml_auth_id', $authnRequestId);
         $samlRequest = Base64::encode(\gzdeflate($authnRequest));
 

@@ -43,8 +43,15 @@ $relayState = 'http://localhost:8081/index.php';
 
 $sp = new SP($entityId, $acsUrl);
 if (false === $samlAssertion = $sp->getAssertion()) {
+    $authOptions = [
+        'authnContextClassRefList' => [
+            'http://foo.example.org/loa3',
+            'http://foo.example.org/loa2',
+        ],
+    ];
+
     \http_response_code(302);
-    \header(\sprintf('Location: %s', $sp->login($idpInfo, $relayState)));
+    \header(\sprintf('Location: %s', $sp->login($idpInfo, $relayState, $authOptions)));
     exit(0);
 }
 
