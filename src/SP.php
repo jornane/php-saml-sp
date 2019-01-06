@@ -48,11 +48,13 @@ class SP
     /**
      * @param string $entityId
      * @param string $acsUrl
+     * @param array  $authOptions
      */
-    public function __construct($entityId, $acsUrl)
+    public function __construct($entityId, $acsUrl, $authOptions = [])
     {
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
+        $this->authOptions = $authOptions;
         $this->dateTime = new DateTime();
         $this->session = new Session();
         $this->random = new Random();
@@ -103,8 +105,10 @@ class SP
         $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
         $this->session->set('_saml_auth_id', $requestId);
 
+        $forceAuthn = \array_key_exists('forceAuthn', $this->authOptions) && $this->authOptions['forceAuthn'];
+
         $authnRequest = <<< EOF
-<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{{ID}}" Version="2.0" IssueInstant="{{IssueInstant}}" Destination="{{Destination}}" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="{{AssertionConsumerServiceURL}}">
+<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="{{ID}}" Version="2.0" IssueInstant="{{IssueInstant}}" Destination="{{Destination}}" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="{{ForceAuthn}}" IsPassive="false" AssertionConsumerServiceURL="{{AssertionConsumerServiceURL}}">
   <saml:Issuer>{{Issuer}}</saml:Issuer>
   <samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/>
 </samlp:AuthnRequest>
@@ -115,6 +119,7 @@ EOF;
                 '{{ID}}',
                 '{{IssueInstant}}',
                 '{{Destination}}',
+                '{{ForceAuthn}}',
                 '{{AssertionConsumerServiceURL}}',
                 '{{Issuer}}',
             ],
@@ -122,6 +127,7 @@ EOF;
                 $requestId,
                 $this->dateTime->format('Y-m-d\TH:i:s\Z'),
                 $idpInfo->getSsoUrl(),
+                $forceAuthn ? 'true' : 'false',
                 $this->acsUrl,
                 $this->entityId,
             ],
