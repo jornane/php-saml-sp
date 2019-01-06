@@ -115,6 +115,7 @@ class SP
         \ob_start();
         include __DIR__.'/AuthnRequestTemplate.php';
         $authnRequest = \trim(\ob_get_clean());
+
         $this->session->set('_saml_auth_id', $authnRequestId);
         $this->session->set('_salm_auth_authn_context_class_ref_list', $authnContextClassRefList);
 
@@ -165,9 +166,9 @@ class SP
             $idpInfo
         );
 
-        // make sure we get the expected AuthnContextClassRef
+        // make sure we get any of the requested AuthnContextClassRef
         if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_salm_auth_authn_context_class_ref_list'), true)) {
-            throw new \Exception(sprintf('we wanted any of "%s"', implode(', ', $this->session->get('_salm_auth_authn_context_class_ref_list'))));
+            throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_salm_auth_authn_context_class_ref_list'))));
         }
 
         $this->session->set('_saml_auth_assertion', $samlAssertion);
