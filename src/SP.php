@@ -100,6 +100,7 @@ class SP
         // unset the existing session variables
         $this->session->delete('_saml_auth_id');
         $this->session->delete('_saml_auth_assertion');
+        $this->session->delete('_salm_auth_authn_context_class_ref_list');
 
         $authnRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
         $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
@@ -116,6 +117,8 @@ class SP
         include __DIR__.'/AuthnRequestTemplate.php';
         $authnRequest = \trim(\ob_get_clean());
         $this->session->set('_saml_auth_id', $authnRequestId);
+        $this->session->set('_salm_auth_authn_context_class_ref_list', $authnContextClassRefList);
+
         $samlRequest = Base64::encode(\gzdeflate($authnRequest));
 
         // create a SSO SAMLRequest URL
@@ -162,6 +165,12 @@ class SP
             $this->acsUrl,
             $idpInfo
         );
+
+        // make sure we get the expected AuthnContextClassRef
+        if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_salm_auth_authn_context_class_ref_list'), true)) {
+            throw new \Exception('blah');
+        }
+
         $this->session->set('_saml_auth_assertion', $samlAssertion);
     }
 }

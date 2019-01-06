@@ -45,8 +45,9 @@ $sp = new SP($entityId, $acsUrl);
 if (false === $samlAssertion = $sp->getAssertion()) {
     $authOptions = [
         'authnContextClassRefList' => [
-            'http://foo.example.org/loa3',
-            'http://foo.example.org/loa2',
+//            'http://foo.example.org/loa3',
+//            'http://foo.example.org/loa2',
+            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
         ],
     ];
 
