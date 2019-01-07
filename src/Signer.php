@@ -24,10 +24,10 @@
 
 namespace fkooman\SAML\SP;
 
-use fkooman\SAML\SP\Exception\SignatureException;
+use fkooman\SAML\SP\Exception\SignerException;
 use ParagonIE\ConstantTime\Base64;
 
-class Signature
+class Signer
 {
     /** @var string */
     private $publicKey;
@@ -46,13 +46,13 @@ class Signature
      *
      * @return void
      */
-    public function verify(XmlDocument $xmlDocument, $signatureRoot)
+    public function verifyPost(XmlDocument $xmlDocument, $signatureRoot)
     {
         $rootElement = $xmlDocument->getElement($signatureRoot);
         $rootElementId = $rootElement->getAttribute('ID');
         $referenceUri = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference')->getAttribute('URI');
         if (\sprintf('#%s', $rootElementId) !== $referenceUri) {
-            throw new SignatureException('reference URI does not point to Response document ID');
+            throw new SignerException('reference URI does not point to Response document ID');
         }
 
         $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
@@ -72,7 +72,7 @@ class Signature
 
         // compare the digest from the XML with the actual digest
         if (!\hash_equals($rootElementDigest, $digestValue)) {
-            throw new SignatureException('digest does not match');
+            throw new SignerException('digest does not match');
         }
 
         // verify the signature
@@ -83,7 +83,7 @@ class Signature
             OPENSSL_ALGO_SHA256
         );
         if (1 !== $verifyResult) {
-            throw new SignatureException('invalid signature over SignedInfo');
+            throw new SignerException('invalid signature over SignedInfo');
         }
     }
 }

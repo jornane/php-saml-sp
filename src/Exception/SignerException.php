@@ -26,6 +26,6 @@ namespace fkooman\SAML\SP\Exception;
 
 use Exception;
 
-class SignatureException extends Exception
+class SignerException extends Exception
 {
 }
