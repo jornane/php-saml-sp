@@ -97,11 +97,7 @@ class SP
      */
     public function login(IdPInfo $idpInfo, $relayState, $authOptions = [])
     {
-        // unset the existing session variables
-        $this->session->delete('_saml_auth_id');
-        $this->session->delete('_saml_auth_idp');
-        $this->session->delete('_saml_auth_assertion');
-        $this->session->delete('_salm_auth_authn_context_class_ref_list');
+        $this->clearSessionVariables();
 
         $authnRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
         $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
@@ -114,7 +110,7 @@ class SP
 
         // XXX there must be a better way...
         \ob_start();
-        include __DIR__.'/AuthnRequestTemplate.php';
+        include __DIR__.'/tpl/AuthnRequest.php';
         $authnRequest = \trim(\ob_get_clean());
 
         $this->session->set('_saml_auth_id', $authnRequestId);
@@ -139,6 +135,56 @@ class SP
     }
 
     /**
+     * @param string $relayState
+     *
+     * @return false|string
+     */
+    public function logout($relayState)
+    {
+        if (false === $samlAssertion = $this->getAssertion()) {
+            // user not authenticated, we don't need to do anything
+            return false;
+        }
+
+        $nameId = $samlAssertion->getNameId();
+        /** @var IdPInfo */
+        $idpInfo = $this->session->get('_saml_auth_idp');
+
+        // unset the existing session variables
+        $this->clearSessionVariables();
+
+        if (null === $sloUrl = $idpInfo->getSloUrl()) {
+            // IdP does not support SLO, nothing we can do about it
+            return false;
+        }
+
+        $logoutRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
+        $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
+        $destination = $idpInfo->getSloUrl();
+        $issuer = $this->entityId;
+
+        // XXX there must be a better way...
+        \ob_start();
+        include __DIR__.'/tpl/LogoutRequest.php';
+        $logoutRequest = \trim(\ob_get_clean());
+        $samlRequest = Base64::encode(\gzdeflate($logoutRequest));
+
+        // create a SSO SAMLRequest URL
+        $httpQuery = \http_build_query(
+            [
+                'SAMLRequest' => $samlRequest,
+                'RelayState' => $relayState,
+            ]
+        );
+
+        if (false === \strpos($sloUrl, '?')) {
+            return \sprintf('%s?%s', $sloUrl, $httpQuery);
+        }
+
+        return \sprintf('%s&%s', $sloUrl, $httpQuery);
+    }
+
+    /**
      * @return false|Assertion
      */
     public function getAssertion()
@@ -147,6 +193,7 @@ class SP
             return false;
         }
 
+        /* @var Assertion */
         return $this->session->get('_saml_auth_assertion');
     }
 
@@ -176,8 +223,18 @@ class SP
         }
 
         $this->session->delete('_saml_auth_id');
-        $this->session->delete('_saml_auth_idp');
         $this->session->delete('_salm_auth_authn_context_class_ref_list');
         $this->session->set('_saml_auth_assertion', $samlAssertion);
+    }
+
+    /**
+     * @return void
+     */
+    private function clearSessionVariables()
+    {
+        $this->session->delete('_saml_auth_id');
+        $this->session->delete('_saml_auth_idp');
+        $this->session->delete('_saml_auth_assertion');
+        $this->session->delete('_salm_auth_authn_context_class_ref_list');
     }
 }

@@ -95,7 +95,9 @@ class Response
         $attributeList = self::extractAttributes($responseDocument);
         $authnContextClassRef = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef')->textContent;
 
-        return new Assertion($idpInfo->getEntityId(), $authnContextClassRef, $attributeList);
+        $nameId = $responseDocument->getElementString('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
+
+        return new Assertion($idpInfo->getEntityId(), $nameId, $authnContextClassRef, $attributeList);
     }
 
     /**

@@ -30,6 +30,9 @@ class Assertion
     private $issuer;
 
     /** @var string */
+    private $nameId;
+
+    /** @var string */
     private $authnContextClassRef;
 
     /** @var array<string,array<string>> */
@@ -37,12 +40,14 @@ class Assertion
 
     /**
      * @param string                      $issuer
+     * @param string                      $nameId
      * @param string                      $authnContextClassRef
      * @param array<string,array<string>> $attributeList
      */
-    public function __construct($issuer, $authnContextClassRef, array $attributeList)
+    public function __construct($issuer, $nameId, $authnContextClassRef, array $attributeList)
     {
         $this->issuer = $issuer;
+        $this->nameId = $nameId;
         $this->authnContextClassRef = $authnContextClassRef;
         $this->attributeList = $attributeList;
     }
@@ -53,6 +58,14 @@ class Assertion
     public function getIssuer()
     {
         return $this->issuer;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNameId()
+    {
+        return $this->nameId;
     }
 
     /**

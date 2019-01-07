@@ -105,6 +105,18 @@ class XmlDocument
     }
 
     /**
+     * Extract a portion of an XML document as string.
+     *
+     * @param string $xPathQuery
+     *
+     * @return string
+     */
+    public function getElementString($xPathQuery)
+    {
+        return $this->domDocument->saveXML($this->getElement($xPathQuery));
+    }
+
+    /**
      * @param string $xPathQuery
      *
      * @return \DOMNodeList

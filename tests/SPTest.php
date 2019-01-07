@@ -25,6 +25,7 @@
 namespace fkooman\SAML\SP\Tests;
 
 use DateTime;
+use fkooman\SAML\SP\Assertion;
 use fkooman\SAML\SP\IdPInfo;
 use fkooman\SAML\SP\SP;
 use PHPUnit\Framework\TestCase;
@@ -41,7 +42,7 @@ class SPTest extends TestCase
         $sp->setSession(new TestSession());
         $sp->setRandom(new TestRandom());
         $ssoUrl = $sp->login(
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
             'http://localhost:8080/app'
         );
 
@@ -72,7 +73,7 @@ EOF;
         $sp->setSession(new TestSession());
         $sp->setRandom(new TestRandom());
         $ssoUrl = $sp->login(
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
             'http://localhost:8080/app',
             ['authnContextClassRefList' => ['urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken']]
         );
@@ -107,7 +108,7 @@ EOF;
         $sp->setSession(new TestSession());
         $sp->setRandom(new TestRandom());
         $ssoUrl = $sp->login(
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
+            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
             'http://localhost:8080/app',
             ['forceAuthn' => true]
         );
@@ -127,5 +128,54 @@ EOF;
         );
 
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s', $httpQuery), $ssoUrl);
+    }
+
+    public function testLogout()
+    {
+        $sp = new SP(
+            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/acs.php'
+        );
+        $testSession = new TestSession();
+        $samlAssertion = new Assertion(
+            'http://localhost:8080/metadata.php',
+            '<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>',
+            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+            [
+                'urn:oid:0.9.2342.19200300.100.1.1' => [
+                    'foo',
+                ],
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.7' => [
+                    'foo',
+                    'bar',
+                    'baz',
+                ],
+            ]
+        );
+        $idpInfo = new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt'));
+        $testSession->set('_saml_auth_assertion', $samlAssertion);
+        $testSession->set('_saml_auth_idp', $idpInfo);
+        $sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
+        $sp->setSession($testSession);
+        $sp->setRandom(new TestRandom());
+        $sloUrl = $sp->logout(
+            'http://localhost:8080/app'
+        );
+
+        $logoutRequest = <<< EOF
+<samlp:LogoutRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/slo.php">
+  <saml:Issuer>http://localhost:8081/metadata.php</saml:Issuer>
+  <saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID></samlp:LogoutRequest>
+EOF;
+
+        $relayState = 'http://localhost:8080/app';
+        $httpQuery = \http_build_query(
+            [
+                'SAMLRequest' => \base64_encode(\gzdeflate($logoutRequest)),
+                'RelayState' => $relayState,
+            ]
+        );
+
+        $this->assertSame(\sprintf('http://localhost:8080/slo.php?%s', $httpQuery), $sloUrl);
     }
 }

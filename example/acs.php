@@ -33,7 +33,6 @@ try {
 
     $entityId = 'http://localhost:8081/metadata.php';
     $acsUrl = 'http://localhost:8081/acs.php';
-    $relayState = 'http://localhost:8081/index.php';
 
     $sp = new SP($entityId, $acsUrl);
     $samlResponse = $_POST['SAMLResponse'];

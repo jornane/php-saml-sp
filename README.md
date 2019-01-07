@@ -35,11 +35,14 @@ used in production! See [Resources](#resources).
  
 - verify response status code
 - Metadata Generator
-- Logout
+- Handle LogoutResponse from IdP
+- Better Exceptions / Error handling
+- No longer store the complete IdP object in the session, entity ID is 
+  available from `Assertion` object anyway
 
 # Nice To Have
 
-- sign AuthnRequest (saml2int)
+- sign AuthnRequest / LogoutRequest (saml2int)
 - handle `NameID` eduPersonTargetedId properly (?)
 - SLO
 - support encrypted Assertions (saml2int)

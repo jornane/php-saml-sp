@@ -32,18 +32,23 @@ class IdPInfo
     /** @var string */
     private $ssoUrl;
 
+    /** @var null|string */
+    private $sloUrl;
+
     /** @var string */
     private $publicKey;
 
     /**
-     * @param string $entityId
-     * @param string $ssoUrl
-     * @param string $publicKey
+     * @param string      $entityId
+     * @param string      $ssoUrl
+     * @param null|string $sloUrl
+     * @param string      $publicKey
      */
-    public function __construct($entityId, $ssoUrl, $publicKey)
+    public function __construct($entityId, $ssoUrl, $sloUrl, $publicKey)
     {
         $this->entityId = $entityId;
         $this->ssoUrl = $ssoUrl;
+        $this->sloUrl = $sloUrl;
         $this->publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey)."-----END CERTIFICATE-----\n";
     }
 
@@ -61,6 +66,14 @@ class IdPInfo
     public function getSsoUrl()
     {
         return $this->ssoUrl;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getSloUrl()
+    {
+        return $this->sloUrl;
     }
 
     /**
