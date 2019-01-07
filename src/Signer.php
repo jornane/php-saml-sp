@@ -42,7 +42,7 @@ class Signer
         $rootElementId = $rootElement->getAttribute('ID');
         $referenceUri = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference')->getAttribute('URI');
         if (\sprintf('#%s', $rootElementId) !== $referenceUri) {
-            throw new SignerException('reference URI does not point to Response document ID');
+            throw new SignerException('reference URI does not point to document ID');
         }
 
         $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
@@ -62,18 +62,44 @@ class Signer
 
         // compare the digest from the XML with the actual digest
         if (!\hash_equals($rootElementDigest, $digestValue)) {
-            throw new SignerException('digest does not match');
+            throw new SignerException('unexpected digest');
         }
 
-        // verify the signature
-        $verifyResult = \openssl_verify(
-            $canonicalSignedInfo,
-            Base64::decode($signatureValue),
-            $publicKey,
-            OPENSSL_ALGO_SHA256
+        self::verifySignature($canonicalSignedInfo, Base64::decode($signatureValue), $publicKey);
+    }
+
+    /**
+     * @param string $samlRequest
+     * @param string $relayState
+     * @param string $signature
+     * @param string $publicKey
+     *
+     * @return void
+     */
+    public static function verifyRedirect($samlRequest, $relayState, $signature, $publicKey)
+    {
+        $httpQuery = \http_build_query(
+            [
+                'SAMLRequest' => $samlRequest,
+                'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+            ]
         );
-        if (1 !== $verifyResult) {
-            throw new SignerException('invalid signature over SignedInfo');
+
+        self::verifySignature($httpQuery, Base64::decode($signature), $publicKey);
+    }
+
+    /**
+     * @param string $data
+     * @param string $signature
+     * @param string $publicKey
+     *
+     * @return void
+     */
+    private static function verifySignature($data, $signature, $publicKey)
+    {
+        if (1 !== \openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256)) {
+            throw new SignerException('invalid signature');
         }
     }
 }

@@ -117,8 +117,8 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage digest does not match
+     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedExceptionMessage unexpected digest
      */
     public function testInvalidDigest()
     {
@@ -133,8 +133,8 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage invalid signature over SignedInfo
+     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedExceptionMessage invalid signature
      */
     public function testWrongCertificate()
     {
@@ -149,8 +149,8 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage invalid signature over SignedInfo
+     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedExceptionMessage invalid signature
      */
     public function testWrongSignature()
     {
