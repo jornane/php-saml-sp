@@ -31,14 +31,8 @@ use ParagonIE\ConstantTime\Hex;
 
 class SP
 {
-    /** @var string */
-    private $spEntityId;
-
-    /** @var string */
-    private $spAcsUrl;
-
-    /** @var string */
-    private $privateKey;
+    /** @var SpInfo */
+    private $spInfo;
 
     /** @var IdpInfoSourceInterface */
     private $idpInfoSource;
@@ -56,16 +50,12 @@ class SP
     private $tpl;
 
     /**
-     * @param string $spEntityId
-     * @param string $spAcsUrl
-     * @param string $privateKey
-     * @param string $privateKey
+     * @param SpInfo                 $spInfo
+     * @param IdpInfoSourceInterface $idpInfoSource
      */
-    public function __construct($spEntityId, $spAcsUrl, $privateKey, IdpInfoSourceInterface $idpInfoSource)
+    public function __construct(SpInfo $spInfo, IdpInfoSourceInterface $idpInfoSource)
     {
-        $this->spEntityId = $spEntityId;
-        $this->spAcsUrl = $spAcsUrl;
-        $this->privateKey = $privateKey;
+        $this->spInfo = $spInfo;
         $this->idpInfoSource = $idpInfoSource;
         $this->dateTime = new DateTime();
         $this->session = new Session();
@@ -126,8 +116,8 @@ class SP
                 'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
                 'Destination' => $ssoUrl,
                 'ForceAuthn' => \array_key_exists('ForceAuthn', $authOptions) && $authOptions['ForceAuthn'],
-                'AssertionConsumerServiceURL' => $this->spAcsUrl,
-                'Issuer' => $this->spEntityId,
+                'AssertionConsumerServiceURL' => $this->spInfo->getAcsUrl(),
+                'Issuer' => $this->spInfo->getEntityId(),
                 'AuthnContextClassRef' => $authnContextClassRef,
             ]
         );
@@ -136,7 +126,7 @@ class SP
         $this->session->set('_saml_auth_idp', $idpEntityId);
         $this->session->set('_saml_auth_authn_context_class_ref', $authnContextClassRef);
 
-        return self::prepareRequestUrl($ssoUrl, $authnRequest, $relayState, $this->privateKey);
+        return self::prepareRequestUrl($ssoUrl, $authnRequest, $relayState, $this->spInfo->getPrivateKey());
     }
 
     /**
@@ -151,11 +141,11 @@ class SP
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
 
-        $responseStr = new Response($this->dateTime);
-        $samlAssertion = $responseStr->verify(
+        $response = new Response($this->dateTime);
+        $samlAssertion = $response->verify(
             Base64::decode($samlResponse),
             $this->session->get('_saml_auth_id'),
-            $this->spAcsUrl,
+            $this->spInfo->getAcsUrl(),
             $idpInfo
         );
 
@@ -206,7 +196,7 @@ class SP
                 'ID' => $requestId,
                 'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
                 'Destination' => $sloUrl,
-                'Issuer' => $this->spEntityId,
+                'Issuer' => $this->spInfo->getEntityId(),
                 // we need the _exact_ (XML) NameID we got during
                 // authentication for the LogoutRequest
                 'NameID' => $samlAssertion->getNameId(),
@@ -216,16 +206,33 @@ class SP
         $this->session->set('_saml_auth_logout_id', $requestId);
         $this->session->set('_saml_auth_logout_idp', $idpEntityId);
 
-        return self::prepareRequestUrl($sloUrl, $logoutRequest, $relayState, $this->privateKey);
+        return self::prepareRequestUrl($sloUrl, $logoutRequest, $relayState, $this->spInfo->getPrivateKey());
     }
 
     /**
      * @param string $samlResponse
+     * @param string $relayState
+     * @param string $signature
      *
      * @return void
      */
-    public function handleLogoutResponse($samlResponse)
+    public function handleLogoutResponse($samlResponse, $relayState, $signature)
     {
+        $idpEntityId = $this->session->get('_saml_auth_logout_idp');
+        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
+            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
+        }
+
+        $logoutResponse = new LogoutResponse($this->dateTime);
+        $logoutResponse->verify(
+            Base64::decode($samlResponse),
+            $relayState,
+            $signature,
+            $this->session->get('_saml_auth_logout_id'),
+            $this->spInfo->getSloUrl(),
+            $idpInfo
+        );
+
         $this->session->delete('_saml_auth_logout_id');
         $this->session->delete('_saml_auth_logout_idp');
     }

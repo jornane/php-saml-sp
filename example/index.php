@@ -27,6 +27,7 @@ $baseDir = \dirname(__DIR__);
 
 use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\SP;
+use fkooman\SAML\SP\SpInfo;
 
 try {
     \session_name('SID');
@@ -43,11 +44,15 @@ try {
     );
 
     $idpEntityId = 'http://localhost:8080/metadata.php';
-    $spEntityId = 'http://localhost:8081/metadata.php';
-    $spAcsUrl = 'http://localhost:8081/acs.php';
     $relayState = 'http://localhost:8081/index.php';
+    $spInfo = new SpInfo(
+        'http://localhost:8081/metadata.php',
+        'http://localhost:8081/acs.php',
+        'http://localhost:8081/logout.php',
+        \file_get_contents('sp.key')
+    );
 
-    $sp = new SP($spEntityId, $spAcsUrl, \file_get_contents('sp.key'), $idpInfoSource);
+    $sp = new SP($spInfo, $idpInfoSource);
     if (false === $samlAssertion = $sp->getAssertion()) {
         if (\array_key_exists('login', $_GET)) {
             $authOptions = [

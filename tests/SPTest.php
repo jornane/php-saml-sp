@@ -29,6 +29,7 @@ use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\Assertion;
 use fkooman\SAML\SP\Signer;
 use fkooman\SAML\SP\SP;
+use fkooman\SAML\SP\SpInfo;
 use PHPUnit\Framework\TestCase;
 
 class SPTest extends TestCase
@@ -39,9 +40,12 @@ class SPTest extends TestCase
     public function setUp()
     {
         $this->sp = new SP(
-            'http://localhost:8081/metadata.php',
-            'http://localhost:8081/acs.php',
-            \file_get_contents(__DIR__.'/data/sp.key'),
+            new SpInfo(
+                'http://localhost:8081/metadata.php',
+                'http://localhost:8081/acs.php',
+                'http://localhost:8081/logout.php',
+                \file_get_contents(__DIR__.'/data/sp.key')
+            ),
             new ArrayIdpInfoSource(
                 [
                     'http://localhost:8080/metadata.php' => [

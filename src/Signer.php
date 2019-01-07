@@ -69,18 +69,18 @@ class Signer
     }
 
     /**
-     * @param string $samlRequest
+     * @param string $samlResponse
      * @param string $relayState
      * @param string $signature
      * @param string $publicKey
      *
      * @return void
      */
-    public static function verifyRedirect($samlRequest, $relayState, $signature, $publicKey)
+    public static function verifyRedirect($samlResponse, $relayState, $signature, $publicKey)
     {
         $httpQuery = \http_build_query(
             [
-                'SAMLRequest' => $samlRequest,
+                'SAMLResponse' => $samlResponse,
                 'RelayState' => $relayState,
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
