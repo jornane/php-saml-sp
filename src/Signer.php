@@ -29,24 +29,14 @@ use ParagonIE\ConstantTime\Base64;
 
 class Signer
 {
-    /** @var string */
-    private $publicKey;
-
-    /**
-     * @param string $publicKey
-     */
-    public function __construct($publicKey)
-    {
-        $this->publicKey = $publicKey;
-    }
-
     /**
      * @param XmlDocument $xmlDocument
      * @param string      $signatureRoot
+     * @param string      $publicKey
      *
      * @return void
      */
-    public function verifyPost(XmlDocument $xmlDocument, $signatureRoot)
+    public static function verifyPost(XmlDocument $xmlDocument, $signatureRoot, $publicKey)
     {
         $rootElement = $xmlDocument->getElement($signatureRoot);
         $rootElementId = $rootElement->getAttribute('ID');
@@ -79,7 +69,7 @@ class Signer
         $verifyResult = \openssl_verify(
             $canonicalSignedInfo,
             Base64::decode($signatureValue),
-            $this->publicKey,
+            $publicKey,
             OPENSSL_ALGO_SHA256
         );
         if (1 !== $verifyResult) {

@@ -50,13 +50,11 @@ class Response
      */
     public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdpInfo $idpInfo)
     {
-        $signer = new Signer($idpInfo->getPublicKey());
-
         $responseDocument = XmlDocument::fromString($samlResponse);
         $signerCount = 0;
         if ($responseDocument->hasElement('/samlp:Response/ds:Signature')) {
             // samlp:Response is signed
-            $signer->verifyPost($responseDocument, '/samlp:Response');
+            Signer::verifyPost($responseDocument, '/samlp:Response', $idpInfo->getPublicKey());
             ++$signerCount;
         }
 
@@ -66,7 +64,7 @@ class Response
 
         if ($responseDocument->hasElement('/samlp:Response/saml:Assertion/ds:Signature')) {
             // saml:Assertion is signed
-            $signer->verifyPost($responseDocument, '/samlp:Response/saml:Assertion');
+            Signer::verifyPost($responseDocument, '/samlp:Response/saml:Assertion', $idpInfo->getPublicKey());
             ++$signerCount;
         }
 
