@@ -35,16 +35,18 @@ used in production! See [Resources](#resources).
  
 - verify response status code
 - Metadata Generator
-- Handle LogoutResponse from IdP
+- Handle `LogoutResponse` from IdP
 - Better Exceptions / Error handling
 - No longer store the complete IdP object in the session, entity ID is 
   available from `Assertion` object anyway
+- allow reading `IdPInfo` objects from XML metadata file, e.g. eduGAIN
+- also write unit tests for `handleResponse()` and `handleLogout()`
 
 # Nice To Have
 
-- sign AuthnRequest / LogoutRequest (saml2int)
-- handle `NameID` eduPersonTargetedId properly (?)
-- SLO
+- sign `AuthnRequest` / `LogoutRequest` (saml2int)
+- handle `NameID` value for `eduPersonTargetedId` properly (?)
+- SLO (respond to unsolicited LogoutRequest from IdPs)
 - support encrypted Assertions (saml2int)
   - rsa-oaep-mgf1p
   - aes-256-gcm
