@@ -53,6 +53,7 @@ used in production! See [Resources](#resources).
   - performance issues?
 - also write unit tests for `handleResponse()` and `handleLogout()`
 - add `<SessionIndex>` to `LogoutRequest`
+- make sure `RelayState` returned is the exact value we sent?
 
 # Nice To Have
 
