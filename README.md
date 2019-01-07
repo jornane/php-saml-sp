@@ -37,8 +37,6 @@ used in production! See [Resources](#resources).
 - Metadata Generator
 - Handle `LogoutResponse` from IdP
 - Better Exceptions / Error handling
-- No longer store the complete IdP object in the session, entity ID is 
-  available from `Assertion` object anyway
 - allow reading `IdPInfo` objects from XML metadata file, e.g. eduGAIN
 - also write unit tests for `handleResponse()` and `handleLogout()`
 
