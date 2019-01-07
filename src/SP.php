@@ -25,16 +25,20 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
+use fkooman\SAML\SP\Exception\SpException;
 use ParagonIE\ConstantTime\Base64;
 use ParagonIE\ConstantTime\Hex;
 
 class SP
 {
     /** @var string */
-    private $entityId;
+    private $spEntityId;
 
     /** @var string */
-    private $acsUrl;
+    private $spAcsUrl;
+
+    /** @var IdpInfoSourceInterface */
+    private $idpInfoSource;
 
     /** @var \DateTime */
     private $dateTime;
@@ -45,17 +49,22 @@ class SP
     /** @var RandomInterface */
     private $random;
 
+    /** @var Template */
+    private $tpl;
+
     /**
-     * @param string $entityId
-     * @param string $acsUrl
+     * @param string $spEntityId
+     * @param string $spAcsUrl
      */
-    public function __construct($entityId, $acsUrl)
+    public function __construct($spEntityId, $spAcsUrl, IdpInfoSourceInterface $idpInfoSource)
     {
-        $this->entityId = $entityId;
-        $this->acsUrl = $acsUrl;
+        $this->spEntityId = $spEntityId;
+        $this->spAcsUrl = $spAcsUrl;
+        $this->idpInfoSource = $idpInfoSource;
         $this->dateTime = new DateTime();
         $this->session = new Session();
         $this->random = new Random();
+        $this->tpl = new Template(__DIR__.'/tpl');
     }
 
     /**
@@ -89,99 +98,85 @@ class SP
     }
 
     /**
-     * @param IdPInfo $idpInfo
-     * @param string  $relayState
-     * @param array   $authOptions
+     * @param string $idpEntityId
+     * @param string $relayState
+     * @param array  $authOptions
      *
      * @return string
      */
-    public function login(IdPInfo $idpInfo, $relayState, $authOptions = [])
+    public function login($idpEntityId, $relayState, array $authOptions = [])
     {
-        $this->clearSessionVariables();
+        $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
+        $authnContextClassRef = \array_key_exists('AuthnContextClassRef', $authOptions) ? $authOptions['AuthnContextClassRef'] : [];
+        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
+            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
+        }
+        $ssoUrl = $idpInfo->getSsoUrl();
 
-        $authnRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
-        $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
-        $destination = $idpInfo->getSsoUrl();
-        $forceAuthn = \array_key_exists('forceAuthn', $authOptions) && $authOptions['forceAuthn'];
-        $assertionConsumerServiceURL = $this->acsUrl;
-        $issuer = $this->entityId;
-
-        $authnContextClassRefList = \array_key_exists('authnContextClassRefList', $authOptions) ? $authOptions['authnContextClassRefList'] : [];
-
-        // XXX there must be a better way...
-        \ob_start();
-        include __DIR__.'/tpl/AuthnRequest.php';
-        $authnRequest = \trim(\ob_get_clean());
-
-        $this->session->set('_saml_auth_id', $authnRequestId);
-        $this->session->set('_saml_auth_idp', $idpInfo);
-        $this->session->set('_salm_auth_authn_context_class_ref_list', $authnContextClassRefList);
-
-        $samlRequest = Base64::encode(\gzdeflate($authnRequest));
-
-        // create a SSO SAMLRequest URL
-        $httpQuery = \http_build_query(
+        $authnRequest = $this->tpl->render(
+            'AuthnRequest',
             [
-                'SAMLRequest' => $samlRequest,
-                'RelayState' => $relayState,
+                'ID' => $requestId,
+                'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
+                'Destination' => $ssoUrl,
+                'ForceAuthn' => \array_key_exists('ForceAuthn', $authOptions) && $authOptions['ForceAuthn'],
+                'AssertionConsumerServiceURL' => $this->spAcsUrl,
+                'Issuer' => $this->spEntityId,
+                'AuthnContextClassRef' => $authnContextClassRef,
             ]
         );
-        $ssoUrl = $idpInfo->getSsoUrl();
-        if (false === \strpos($ssoUrl, '?')) {
-            return \sprintf('%s?%s', $ssoUrl, $httpQuery);
-        }
 
-        return \sprintf('%s&%s', $ssoUrl, $httpQuery);
+        $this->session->set('_saml_auth_id', $requestId);
+        $this->session->set('_saml_auth_idp', $idpEntityId);
+        $this->session->set('_saml_auth_authn_context_class_ref', $authnContextClassRef);
+
+        return self::prepareRequestUrl($ssoUrl, $authnRequest, $relayState);
     }
 
     /**
      * @param string $relayState
      *
-     * @return false|string
+     * @return string
      */
     public function logout($relayState)
     {
         if (false === $samlAssertion = $this->getAssertion()) {
-            // user not authenticated, we don't need to do anything
-            return false;
+            // no session available
+            return $relayState;
         }
 
-        $nameId = $samlAssertion->getNameId();
-        /** @var IdPInfo */
-        $idpInfo = $this->session->get('_saml_auth_idp');
+        $idpEntityId = $this->session->get('_saml_auth_idp');
+        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
+            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
+        }
+        $sloUrl = $idpInfo->getSloUrl();
 
-        // unset the existing session variables
-        $this->clearSessionVariables();
+        // delete the assertion, so we are no longer authenticated
+        $this->session->delete('_saml_auth_assertion');
 
-        if (null === $sloUrl = $idpInfo->getSloUrl()) {
+        if (null === $sloUrl) {
             // IdP does not support SLO, nothing we can do about it
-            return false;
+            return $relayState;
         }
 
-        $logoutRequestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
-        $issueInstant = $this->dateTime->format('Y-m-d\TH:i:s\Z');
-        $destination = $idpInfo->getSloUrl();
-        $issuer = $this->entityId;
-
-        // XXX there must be a better way...
-        \ob_start();
-        include __DIR__.'/tpl/LogoutRequest.php';
-        $logoutRequest = \trim(\ob_get_clean());
-        $samlRequest = Base64::encode(\gzdeflate($logoutRequest));
-
-        // create a SSO SAMLRequest URL
-        $httpQuery = \http_build_query(
+        $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
+        $logoutRequest = $this->tpl->render(
+            'LogoutRequest',
             [
-                'SAMLRequest' => $samlRequest,
-                'RelayState' => $relayState,
+                'ID' => $requestId,
+                'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
+                'Destination' => $sloUrl,
+                'Issuer' => $this->spEntityId,
+                // we need the _exact_ (XML) NameID we got during
+                // authentication for the LogoutRequest
+                'NameID' => $samlAssertion->getNameId(),
             ]
         );
 
-        if (false === \strpos($sloUrl, '?')) {
-            return \sprintf('%s?%s', $sloUrl, $httpQuery);
-        }
+        $this->session->set('_saml_auth_logout_id', $requestId);
+        $this->session->set('_saml_auth_logout_idp', $idpEntityId);
 
-        return \sprintf('%s&%s', $sloUrl, $httpQuery);
+        return self::prepareRequestUrl($sloUrl, $logoutRequest, $relayState);
     }
 
     /**
@@ -204,37 +199,63 @@ class SP
      */
     public function handleResponse($samlResponse)
     {
-        $idpInfo = $this->session->get('_saml_auth_idp');
-        $responseStr = new Response(
-            $this->dateTime
-        );
+        $idpEntityId = $this->session->get('_saml_auth_idp');
+        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
+            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
+        }
+
+        $responseStr = new Response($this->dateTime);
         $samlAssertion = $responseStr->verify(
             Base64::decode($samlResponse),
             $this->session->get('_saml_auth_id'),
-            $this->acsUrl,
+            $this->spAcsUrl,
             $idpInfo
         );
 
         // make sure we get any of the requested AuthnContextClassRef
-        if (0 !== \count($this->session->get('_salm_auth_authn_context_class_ref_list'))) {
-            if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_salm_auth_authn_context_class_ref_list'), true)) {
-                throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_salm_auth_authn_context_class_ref_list'))));
+        // XXX move this to Response?!
+        if (0 !== \count($this->session->get('_saml_auth_authn_context_class_ref'))) {
+            if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_saml_auth_authn_context_class_ref'), true)) {
+                throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_saml_auth_authn_context_class_ref'))));
             }
         }
 
         $this->session->delete('_saml_auth_id');
-        $this->session->delete('_salm_auth_authn_context_class_ref_list');
+        $this->session->delete('_saml_auth_authn_context_class_ref');
         $this->session->set('_saml_auth_assertion', $samlAssertion);
     }
 
     /**
+     * @param string $samlResponse
+     *
      * @return void
      */
-    private function clearSessionVariables()
+    public function handleLogoutResponse($samlResponse)
     {
-        $this->session->delete('_saml_auth_id');
-        $this->session->delete('_saml_auth_idp');
-        $this->session->delete('_saml_auth_assertion');
-        $this->session->delete('_salm_auth_authn_context_class_ref_list');
+    }
+
+    /**
+     * @param string $requestUrl
+     * @param string $requestXml
+     * @param string $relayState
+     *
+     * @return string
+     */
+    private function prepareRequestUrl($requestUrl, $requestXml, $relayState)
+    {
+        // XXX check  return value gzdeflate?
+        $samlRequest = Base64::encode(\gzdeflate($requestXml));
+        $httpQuery = \http_build_query(
+            [
+                'SAMLRequest' => $samlRequest,
+                'RelayState' => $relayState,
+            ]
+        );
+
+        if (false === \strpos($requestUrl, '?')) {
+            return \sprintf('%s?%s', $requestUrl, $httpQuery);
+        }
+
+        return \sprintf('%s&%s', $requestUrl, $httpQuery);
     }
 }

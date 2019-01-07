@@ -44,11 +44,11 @@ class Response
      * @param string  $samlResponse
      * @param string  $expectedInResponseTo
      * @param string  $expectedAcsUrl
-     * @param IdPInfo $idpInfo
+     * @param IdpInfo $idpInfo
      *
      * @return Assertion
      */
-    public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdPInfo $idpInfo)
+    public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdpInfo $idpInfo)
     {
         $signature = new Signature($idpInfo->getPublicKey());
 

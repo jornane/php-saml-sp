@@ -25,16 +25,27 @@
 require_once \dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = \dirname(__DIR__);
 
+use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\SP;
 
 try {
     \session_name('SID');
     \session_start();
 
-    $entityId = 'http://localhost:8081/metadata.php';
-    $acsUrl = 'http://localhost:8081/acs.php';
+    $idpInfoSource = new ArrayIdpInfoSource(
+        [
+            'http://localhost:8080/metadata.php' => [
+                'ssoUrl' => 'http://localhost:8080/sso.php',
+                'sloUrl' => 'http://localhost:8080/slo.php',
+                'publicKey' => 'MIIEBzCCAm+gAwIBAgIUcIRtCxY3eLWX+LdiAYSN3wfotb0wDQYJKoZIhvcNAQELBQAwEzERMA8GA1UEAwwIU0FNTCBJZFAwHhcNMTgxMjI2MDkzMzQ2WhcNMjgxMTAzMDkzMzQ2WjATMREwDwYDVQQDDAhTQU1MIElkUDCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAMCKe4GcjMlArsLJLz6JoNQtMre/ENnUnzVldTpbg4IN0fdZNzXtru+pn8WNugNgK2Xip8eePf2CFwf4jKqnPdIV46VnuumMQxnXuv5ZgoWrIa2Siz8r8GiLWxOU14BFReaR49kYGTfM5S85bSp+c6aQg0R79uCDzMTo47+W5/UIObpJy9BSDPORgSB0Z/QWTv7G1sk3ETP4LBTu98cfFEL9vIbA8p9ZJI5mP35/vCT57EODoQLpbaOUmEyZP0P9eIX83KFoQd/FH6n3gScTHjTd5KQ4Mx0fAyPuWEHL3THaAPNAhy0ZyhceWFDxDjakXDgbpchDvvlesbHxnAHx57wAYeceyJZrjGj+fzCtbrXXdFYE7lUp4Y2GoBAhUrzXwqcW+zougwBhPTuWy3KBnFUrCYmGwqKMAdqKbXtoMz0e50boxeIn/t9vwRZVHvSLHtW/6VCjWR69vcUcBsjcBDTpj0L6++8Xd+c7AFLFkY0LKTEIdYIa0SuNH1ekjJiKJQIDAQABo1MwUTAdBgNVHQ4EFgQUlLVXzf5MmAQkld7/gbis0isR8skwHwYDVR0jBBgwFoAUlLVXzf5MmAQkld7/gbis0isR8skwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEARJIbFgB3XuBoK9k6EzUuce1Q7IvhnorjVrfKUM7rL2plQ6p24Eagqzh2O8S4O2AHaHo5fc/FItQ0XSWAQeOBpYR5fs994ZAknVT0NZV0We20Dn7JcIBf9EgRvCJGKjfxUlQOQfJ6B1EbsouGaF17FOfUKb03UqmB5kyTX2b9HJj96rW/nXzxQ5OsqJ7PlDXLxz6GVf5urpvs66mUIPR67qKTIOXNUz9rgOVZ80MiifdXOB60u2a9QraC1++g8ZSEn+ROm+pGzPMSXAVmnehDoquA7w/1FPz4OachJEuvajGqENjQX+lDjWTkeozkAFOw0C51unjOCNwfaFxzBH9YulLcpMKNEoXawIXc8RZhyMktL2zZ3y0QDKY/qkDhCE+Nf1mLiK5byyUM5dlXw9JVKcu9EGvYfm04ONZVV1g/idAVJ3WxnNtE5ednATZTI4EzomnYzfvZevqViX4SBVast2396LqpxJgWQ8VYCAwYUssqQe/ZWSIhhwzb61QIqg5N',
+            ],
+        ]
+    );
 
-    $sp = new SP($entityId, $acsUrl);
+    $spEntityId = 'http://localhost:8081/metadata.php';
+    $spAcsUrl = 'http://localhost:8081/acs.php';
+
+    $sp = new SP($spEntityId, $spAcsUrl, $idpInfoSource);
     $samlResponse = $_POST['SAMLResponse'];
     $sp->handleResponse($samlResponse);
     \http_response_code(302);

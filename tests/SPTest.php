@@ -25,24 +25,40 @@
 namespace fkooman\SAML\SP\Tests;
 
 use DateTime;
+use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\Assertion;
-use fkooman\SAML\SP\IdPInfo;
 use fkooman\SAML\SP\SP;
 use PHPUnit\Framework\TestCase;
 
 class SPTest extends TestCase
 {
+    /** @var \fkooman\SAML\SP\SP */
+    private $sp;
+
+    public function setUp()
+    {
+        $this->sp = new SP(
+            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/acs.php',
+            new ArrayIdpInfoSource(
+                [
+                    'http://localhost:8080/metadata.php' => [
+                        'ssoUrl' => 'http://localhost:8080/sso.php',
+                        'sloUrl' => 'http://localhost:8080/slo.php',
+                        'publicKey' => \file_get_contents(__DIR__.'/data/FrkoIdP.crt'),
+                    ],
+                ]
+            )
+        );
+        $this->sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
+        $this->sp->setSession(new TestSession());
+        $this->sp->setRandom(new TestRandom());
+    }
+
     public function testSimple()
     {
-        $sp = new SP(
-            'http://localhost:8081/metadata.php',
-            'http://localhost:8081/acs.php'
-        );
-        $sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
-        $sp->setSession(new TestSession());
-        $sp->setRandom(new TestRandom());
-        $ssoUrl = $sp->login(
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
+        $ssoUrl = $this->sp->login(
+            'http://localhost:8080/metadata.php',
             'http://localhost:8080/app'
         );
 
@@ -65,17 +81,14 @@ EOF;
 
     public function testAuthnContextClassRef()
     {
-        $sp = new SP(
-            'http://localhost:8081/metadata.php',
-            'http://localhost:8081/acs.php'
-        );
-        $sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
-        $sp->setSession(new TestSession());
-        $sp->setRandom(new TestRandom());
-        $ssoUrl = $sp->login(
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
+        $ssoUrl = $this->sp->login(
+            'http://localhost:8080/metadata.php',
             'http://localhost:8080/app',
-            ['authnContextClassRefList' => ['urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken']]
+            [
+                'AuthnContextClassRef' => [
+                    'urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken',
+                ],
+            ]
         );
 
         $samlRequest = <<< EOF
@@ -100,17 +113,12 @@ EOF;
 
     public function testForceAuthn()
     {
-        $sp = new SP(
-            'http://localhost:8081/metadata.php',
-            'http://localhost:8081/acs.php'
-        );
-        $sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
-        $sp->setSession(new TestSession());
-        $sp->setRandom(new TestRandom());
-        $ssoUrl = $sp->login(
-            new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt')),
+        $ssoUrl = $this->sp->login(
+            'http://localhost:8080/metadata.php',
             'http://localhost:8080/app',
-            ['forceAuthn' => true]
+            [
+                'ForceAuthn' => true,
+            ]
         );
 
         $samlRequest = <<< EOF
@@ -132,10 +140,6 @@ EOF;
 
     public function testLogout()
     {
-        $sp = new SP(
-            'http://localhost:8081/metadata.php',
-            'http://localhost:8081/acs.php'
-        );
         $testSession = new TestSession();
         $samlAssertion = new Assertion(
             'http://localhost:8080/metadata.php',
@@ -152,13 +156,10 @@ EOF;
                 ],
             ]
         );
-        $idpInfo = new IdPInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', 'http://localhost:8080/slo.php', \file_get_contents(__DIR__.'/data/FrkoIdP.crt'));
         $testSession->set('_saml_auth_assertion', $samlAssertion);
-        $testSession->set('_saml_auth_idp', $idpInfo);
-        $sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
-        $sp->setSession($testSession);
-        $sp->setRandom(new TestRandom());
-        $sloUrl = $sp->logout(
+        $testSession->set('_saml_auth_idp', 'http://localhost:8080/metadata.php');
+        $this->sp->setSession($testSession);
+        $sloUrl = $this->sp->logout(
             'http://localhost:8080/app'
         );
 

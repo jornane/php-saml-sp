@@ -25,48 +25,61 @@
 require_once \dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = \dirname(__DIR__);
 
-use fkooman\SAML\SP\IdPInfo;
+use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\SP;
 
-\session_name('SID');
-\session_start();
+try {
+    \session_name('SID');
+    \session_start();
 
-$idpInfo = new IdPInfo(
-    'http://localhost:8080/metadata.php',
-    'http://localhost:8080/sso.php',
-    'http://localhost:8080/slo.php',
-    'MIIEBzCCAm+gAwIBAgIUcIRtCxY3eLWX+LdiAYSN3wfotb0wDQYJKoZIhvcNAQELBQAwEzERMA8GA1UEAwwIU0FNTCBJZFAwHhcNMTgxMjI2MDkzMzQ2WhcNMjgxMTAzMDkzMzQ2WjATMREwDwYDVQQDDAhTQU1MIElkUDCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAMCKe4GcjMlArsLJLz6JoNQtMre/ENnUnzVldTpbg4IN0fdZNzXtru+pn8WNugNgK2Xip8eePf2CFwf4jKqnPdIV46VnuumMQxnXuv5ZgoWrIa2Siz8r8GiLWxOU14BFReaR49kYGTfM5S85bSp+c6aQg0R79uCDzMTo47+W5/UIObpJy9BSDPORgSB0Z/QWTv7G1sk3ETP4LBTu98cfFEL9vIbA8p9ZJI5mP35/vCT57EODoQLpbaOUmEyZP0P9eIX83KFoQd/FH6n3gScTHjTd5KQ4Mx0fAyPuWEHL3THaAPNAhy0ZyhceWFDxDjakXDgbpchDvvlesbHxnAHx57wAYeceyJZrjGj+fzCtbrXXdFYE7lUp4Y2GoBAhUrzXwqcW+zougwBhPTuWy3KBnFUrCYmGwqKMAdqKbXtoMz0e50boxeIn/t9vwRZVHvSLHtW/6VCjWR69vcUcBsjcBDTpj0L6++8Xd+c7AFLFkY0LKTEIdYIa0SuNH1ekjJiKJQIDAQABo1MwUTAdBgNVHQ4EFgQUlLVXzf5MmAQkld7/gbis0isR8skwHwYDVR0jBBgwFoAUlLVXzf5MmAQkld7/gbis0isR8skwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEARJIbFgB3XuBoK9k6EzUuce1Q7IvhnorjVrfKUM7rL2plQ6p24Eagqzh2O8S4O2AHaHo5fc/FItQ0XSWAQeOBpYR5fs994ZAknVT0NZV0We20Dn7JcIBf9EgRvCJGKjfxUlQOQfJ6B1EbsouGaF17FOfUKb03UqmB5kyTX2b9HJj96rW/nXzxQ5OsqJ7PlDXLxz6GVf5urpvs66mUIPR67qKTIOXNUz9rgOVZ80MiifdXOB60u2a9QraC1++g8ZSEn+ROm+pGzPMSXAVmnehDoquA7w/1FPz4OachJEuvajGqENjQX+lDjWTkeozkAFOw0C51unjOCNwfaFxzBH9YulLcpMKNEoXawIXc8RZhyMktL2zZ3y0QDKY/qkDhCE+Nf1mLiK5byyUM5dlXw9JVKcu9EGvYfm04ONZVV1g/idAVJ3WxnNtE5ednATZTI4EzomnYzfvZevqViX4SBVast2396LqpxJgWQ8VYCAwYUssqQe/ZWSIhhwzb61QIqg5N'
-);
+    $idpInfoSource = new ArrayIdpInfoSource(
+        [
+            'http://localhost:8080/metadata.php' => [
+                'ssoUrl' => 'http://localhost:8080/sso.php',
+                'sloUrl' => 'http://localhost:8080/slo.php',
+                'publicKey' => 'MIIEBzCCAm+gAwIBAgIUcIRtCxY3eLWX+LdiAYSN3wfotb0wDQYJKoZIhvcNAQELBQAwEzERMA8GA1UEAwwIU0FNTCBJZFAwHhcNMTgxMjI2MDkzMzQ2WhcNMjgxMTAzMDkzMzQ2WjATMREwDwYDVQQDDAhTQU1MIElkUDCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAMCKe4GcjMlArsLJLz6JoNQtMre/ENnUnzVldTpbg4IN0fdZNzXtru+pn8WNugNgK2Xip8eePf2CFwf4jKqnPdIV46VnuumMQxnXuv5ZgoWrIa2Siz8r8GiLWxOU14BFReaR49kYGTfM5S85bSp+c6aQg0R79uCDzMTo47+W5/UIObpJy9BSDPORgSB0Z/QWTv7G1sk3ETP4LBTu98cfFEL9vIbA8p9ZJI5mP35/vCT57EODoQLpbaOUmEyZP0P9eIX83KFoQd/FH6n3gScTHjTd5KQ4Mx0fAyPuWEHL3THaAPNAhy0ZyhceWFDxDjakXDgbpchDvvlesbHxnAHx57wAYeceyJZrjGj+fzCtbrXXdFYE7lUp4Y2GoBAhUrzXwqcW+zougwBhPTuWy3KBnFUrCYmGwqKMAdqKbXtoMz0e50boxeIn/t9vwRZVHvSLHtW/6VCjWR69vcUcBsjcBDTpj0L6++8Xd+c7AFLFkY0LKTEIdYIa0SuNH1ekjJiKJQIDAQABo1MwUTAdBgNVHQ4EFgQUlLVXzf5MmAQkld7/gbis0isR8skwHwYDVR0jBBgwFoAUlLVXzf5MmAQkld7/gbis0isR8skwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEARJIbFgB3XuBoK9k6EzUuce1Q7IvhnorjVrfKUM7rL2plQ6p24Eagqzh2O8S4O2AHaHo5fc/FItQ0XSWAQeOBpYR5fs994ZAknVT0NZV0We20Dn7JcIBf9EgRvCJGKjfxUlQOQfJ6B1EbsouGaF17FOfUKb03UqmB5kyTX2b9HJj96rW/nXzxQ5OsqJ7PlDXLxz6GVf5urpvs66mUIPR67qKTIOXNUz9rgOVZ80MiifdXOB60u2a9QraC1++g8ZSEn+ROm+pGzPMSXAVmnehDoquA7w/1FPz4OachJEuvajGqENjQX+lDjWTkeozkAFOw0C51unjOCNwfaFxzBH9YulLcpMKNEoXawIXc8RZhyMktL2zZ3y0QDKY/qkDhCE+Nf1mLiK5byyUM5dlXw9JVKcu9EGvYfm04ONZVV1g/idAVJ3WxnNtE5ednATZTI4EzomnYzfvZevqViX4SBVast2396LqpxJgWQ8VYCAwYUssqQe/ZWSIhhwzb61QIqg5N',
+            ],
+        ]
+    );
 
-$entityId = 'http://localhost:8081/metadata.php';
-$acsUrl = 'http://localhost:8081/acs.php';
-$relayState = 'http://localhost:8081/index.php';
+    $idpEntityId = 'http://localhost:8080/metadata.php';
+    $spEntityId = 'http://localhost:8081/metadata.php';
+    $spAcsUrl = 'http://localhost:8081/acs.php';
+    $relayState = 'http://localhost:8081/index.php';
 
-$sp = new SP($entityId, $acsUrl);
-if (false === $samlAssertion = $sp->getAssertion()) {
-    $authOptions = [
-//        'authnContextClassRefList' => [
-//            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
-//        ],
-//        'forceAuthn' => true,
-    ];
+    $sp = new SP($spEntityId, $spAcsUrl, $idpInfoSource);
+    if (false === $samlAssertion = $sp->getAssertion()) {
+        if (\array_key_exists('login', $_GET)) {
+            $authOptions = [
+        //        'AuthnContextClassRef' => [
+        //            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+        //        ],
+        //        'ForceAuthn' => true,
+            ];
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState, $authOptions)));
+            exit(0);
+        }
 
-    \http_response_code(302);
-    \header(\sprintf('Location: %s', $sp->login($idpInfo, $relayState, $authOptions)));
-    exit(0);
+        // not logged in, show login button
+        echo '<a href="?login">Login</a>';
+        exit(0);
+    }
+
+    if (\array_key_exists('logout', $_GET)) {
+        // logout requested
+        \http_response_code(302);
+        \header(\sprintf('Location: %s', $sp->logout($relayState)));
+        exit(0);
+    }
+
+    echo '<pre>';
+    echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
+    foreach ($samlAssertion->getAttributes() as $k => $v) {
+        echo $k.': '.\implode(',', $v).PHP_EOL;
+    }
+    echo '</pre>';
+    echo '<a href="?logout">Logout</a>';
+} catch (Exception $e) {
+    echo 'Error: '.$e->getMessage().PHP_EOL;
 }
-
-if (\array_key_exists('logout', $_GET) && '1' === $_GET['logout']) {
-    // logout requested
-    \http_response_code(302);
-    \header(\sprintf('Location: %s', $sp->logout($relayState)));
-    exit(0);
-}
-
-echo '<pre>';
-echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
-foreach ($samlAssertion->getAttributes() as $k => $v) {
-    echo $k.': '.\implode(',', $v).PHP_EOL;
-}
-echo '</pre>';
-echo '<a href="?logout=1">Logout</a>';

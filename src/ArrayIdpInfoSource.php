@@ -24,63 +24,34 @@
 
 namespace fkooman\SAML\SP;
 
-class IdPInfo
+class ArrayIdpInfoSource implements IdpInfoSourceInterface
 {
-    /** @var string */
-    private $entityId;
+    /** @var array */
+    private $idpList;
 
-    /** @var string */
-    private $ssoUrl;
-
-    /** @var null|string */
-    private $sloUrl;
-
-    /** @var string */
-    private $publicKey;
-
-    /**
-     * @param string      $entityId
-     * @param string      $ssoUrl
-     * @param null|string $sloUrl
-     * @param string      $publicKey
-     */
-    public function __construct($entityId, $ssoUrl, $sloUrl, $publicKey)
+    public function __construct(array $idpList)
     {
-        $this->entityId = $entityId;
-        $this->ssoUrl = $ssoUrl;
-        $this->sloUrl = $sloUrl;
-        $this->publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey)."-----END CERTIFICATE-----\n";
+        $this->idpList = $idpList;
     }
 
     /**
-     * @return string
+     * @param string $entityId
+     *
+     * @return false|IdpInfo
      */
-    public function getEntityId()
+    public function get($entityId)
     {
-        return $this->entityId;
-    }
+        if (!\array_key_exists($entityId, $this->idpList)) {
+            return false;
+        }
 
-    /**
-     * @return string
-     */
-    public function getSsoUrl()
-    {
-        return $this->ssoUrl;
-    }
+        $sloUrl = \array_key_exists('sloUrl', $this->idpList[$entityId]) ? $this->idpList[$entityId]['sloUrl'] : null;
 
-    /**
-     * @return null|string
-     */
-    public function getSloUrl()
-    {
-        return $this->sloUrl;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPublicKey()
-    {
-        return $this->publicKey;
+        return new IdpInfo(
+            $entityId,
+            $this->idpList[$entityId]['ssoUrl'],
+            $sloUrl,
+            $this->idpList[$entityId]['publicKey']
+        );
     }
 }

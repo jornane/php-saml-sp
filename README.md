@@ -29,7 +29,7 @@ used in production! See [Resources](#resources).
   - simpleSAMLphp
   - OpenConext
   - FrkoIdP
-- Currently ~600 NCLOC
+- Currently ~700 NCLOC
 
 # TODO 
  
