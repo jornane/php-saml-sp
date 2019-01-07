@@ -23,7 +23,8 @@ used in production! See [Resources](#resources).
 - Only HTTP-POST binding for receiving `Assertion` from IdP
 - Only supports RSA with SHA256 for verifying signatures
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
-- Allow specifying `AuthnContextClassRef` as part of Authentication Request
+- Allow specifying `AuthnContextClassRef` and `ForceAuthn` as part of 
+  Authentication Request
 - Validates XML schema(s)
 - Tested with IdPs:
   - simpleSAMLphp
@@ -38,6 +39,7 @@ used in production! See [Resources](#resources).
 - Handle `LogoutResponse` from IdP
 - Better Exceptions / Error handling
 - allow reading `IdPInfo` objects from XML metadata file, e.g. eduGAIN
+  - performance issues?
 - also write unit tests for `handleResponse()` and `handleLogout()`
 
 # Nice To Have

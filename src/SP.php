@@ -134,6 +134,40 @@ class SP
     }
 
     /**
+     * @param string $samlResponse
+     *
+     * @return void
+     */
+    public function handleResponse($samlResponse)
+    {
+        $idpEntityId = $this->session->get('_saml_auth_idp');
+        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
+            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
+        }
+
+        $responseStr = new Response($this->dateTime);
+        $samlAssertion = $responseStr->verify(
+            Base64::decode($samlResponse),
+            $this->session->get('_saml_auth_id'),
+            $this->spAcsUrl,
+            $idpInfo
+        );
+
+        // make sure we get any of the requested AuthnContextClassRef
+        // XXX move this to Response?!
+        if (0 !== \count($this->session->get('_saml_auth_authn_context_class_ref'))) {
+            if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_saml_auth_authn_context_class_ref'), true)) {
+                throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_saml_auth_authn_context_class_ref'))));
+            }
+        }
+
+        $this->session->delete('_saml_auth_id');
+        $this->session->delete('_saml_auth_idp');
+        $this->session->delete('_saml_auth_authn_context_class_ref');
+        $this->session->set('_saml_auth_assertion', $samlAssertion);
+    }
+
+    /**
      * @param string $relayState
      *
      * @return string
@@ -145,7 +179,7 @@ class SP
             return $relayState;
         }
 
-        $idpEntityId = $this->session->get('_saml_auth_idp');
+        $idpEntityId = $samlAssertion->getIssuer();
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
@@ -180,6 +214,17 @@ class SP
     }
 
     /**
+     * @param string $samlResponse
+     *
+     * @return void
+     */
+    public function handleLogoutResponse($samlResponse)
+    {
+        $this->session->delete('_saml_auth_logout_id');
+        $this->session->delete('_saml_auth_logout_idp');
+    }
+
+    /**
      * @return false|Assertion
      */
     public function getAssertion()
@@ -193,48 +238,6 @@ class SP
     }
 
     /**
-     * @param string $samlResponse
-     *
-     * @return void
-     */
-    public function handleResponse($samlResponse)
-    {
-        $idpEntityId = $this->session->get('_saml_auth_idp');
-        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
-            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
-        }
-
-        $responseStr = new Response($this->dateTime);
-        $samlAssertion = $responseStr->verify(
-            Base64::decode($samlResponse),
-            $this->session->get('_saml_auth_id'),
-            $this->spAcsUrl,
-            $idpInfo
-        );
-
-        // make sure we get any of the requested AuthnContextClassRef
-        // XXX move this to Response?!
-        if (0 !== \count($this->session->get('_saml_auth_authn_context_class_ref'))) {
-            if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_saml_auth_authn_context_class_ref'), true)) {
-                throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_saml_auth_authn_context_class_ref'))));
-            }
-        }
-
-        $this->session->delete('_saml_auth_id');
-        $this->session->delete('_saml_auth_authn_context_class_ref');
-        $this->session->set('_saml_auth_assertion', $samlAssertion);
-    }
-
-    /**
-     * @param string $samlResponse
-     *
-     * @return void
-     */
-    public function handleLogoutResponse($samlResponse)
-    {
-    }
-
-    /**
      * @param string $requestUrl
      * @param string $requestXml
      * @param string $relayState
@@ -243,7 +246,6 @@ class SP
      */
     private function prepareRequestUrl($requestUrl, $requestXml, $relayState)
     {
-        // XXX check  return value gzdeflate?
         $samlRequest = Base64::encode(\gzdeflate($requestXml));
         $httpQuery = \http_build_query(
             [
