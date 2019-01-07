@@ -27,6 +27,7 @@ namespace fkooman\SAML\SP\Tests;
 use DateTime;
 use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\Assertion;
+use fkooman\SAML\SP\Signer;
 use fkooman\SAML\SP\SP;
 use PHPUnit\Framework\TestCase;
 
@@ -40,6 +41,7 @@ class SPTest extends TestCase
         $this->sp = new SP(
             'http://localhost:8081/metadata.php',
             'http://localhost:8081/acs.php',
+            \file_get_contents(__DIR__.'/data/sp.key'),
             new ArrayIdpInfoSource(
                 [
                     'http://localhost:8080/metadata.php' => [
@@ -73,10 +75,11 @@ EOF;
             [
                 'SAMLRequest' => \base64_encode(\gzdeflate($samlRequest)),
                 'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-
-        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s', $httpQuery), $ssoUrl);
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
+        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 
     public function testAuthnContextClassRef()
@@ -105,10 +108,11 @@ EOF;
             [
                 'SAMLRequest' => \base64_encode(\gzdeflate($samlRequest)),
                 'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-
-        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s', $httpQuery), $ssoUrl);
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
+        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 
     public function testForceAuthn()
@@ -132,10 +136,12 @@ EOF;
             [
                 'SAMLRequest' => \base64_encode(\gzdeflate($samlRequest)),
                 'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
 
-        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s', $httpQuery), $ssoUrl);
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
+        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 
     public function testLogout()
@@ -174,9 +180,11 @@ EOF;
             [
                 'SAMLRequest' => \base64_encode(\gzdeflate($logoutRequest)),
                 'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
 
-        $this->assertSame(\sprintf('http://localhost:8080/slo.php?%s', $httpQuery), $sloUrl);
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
+        $this->assertSame(\sprintf('http://localhost:8080/slo.php?%s&%s', $httpQuery, $signatureQuery), $sloUrl);
     }
 }

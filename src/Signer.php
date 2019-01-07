@@ -90,6 +90,21 @@ class Signer
     }
 
     /**
+     * @param string $httpQuery
+     * @param string $privateKey
+     *
+     * @return string
+     */
+    public static function signRedirect($httpQuery, $privateKey)
+    {
+        if (false === \openssl_sign($httpQuery, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+            throw new SignerException('unable to sign');
+        }
+
+        return Base64::encode($signature);
+    }
+
+    /**
      * @param string $data
      * @param string $signature
      * @param string $publicKey

@@ -32,6 +32,18 @@ used in production! See [Resources](#resources).
   - FrkoIdP
 - Currently ~700 NCLOC
 
+# X.509
+
+    $ openssl req \
+        -nodes \
+        -subj "/CN=SAML SP" \
+        -x509 \
+        -sha256 \
+        -newkey rsa:3072 \
+        -keyout "sp.key" \
+        -out "sp.crt" \
+        -days 3600
+
 # TODO 
  
 - verify response status code
@@ -41,10 +53,10 @@ used in production! See [Resources](#resources).
 - allow reading `IdPInfo` objects from XML metadata file, e.g. eduGAIN
   - performance issues?
 - also write unit tests for `handleResponse()` and `handleLogout()`
+- add `<SessionIndex>` to `LogoutRequest`
 
 # Nice To Have
 
-- sign `AuthnRequest` / `LogoutRequest` (saml2int)
 - handle `NameID` value for `eduPersonTargetedId` properly (?)
 - SLO (respond to unsolicited LogoutRequest from IdPs)
 - support encrypted Assertions (saml2int)

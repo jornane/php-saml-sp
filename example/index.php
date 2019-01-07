@@ -47,7 +47,7 @@ try {
     $spAcsUrl = 'http://localhost:8081/acs.php';
     $relayState = 'http://localhost:8081/index.php';
 
-    $sp = new SP($spEntityId, $spAcsUrl, $idpInfoSource);
+    $sp = new SP($spEntityId, $spAcsUrl, \file_get_contents('sp.key'), $idpInfoSource);
     if (false === $samlAssertion = $sp->getAssertion()) {
         if (\array_key_exists('login', $_GET)) {
             $authOptions = [

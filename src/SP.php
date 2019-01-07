@@ -37,6 +37,9 @@ class SP
     /** @var string */
     private $spAcsUrl;
 
+    /** @var string */
+    private $privateKey;
+
     /** @var IdpInfoSourceInterface */
     private $idpInfoSource;
 
@@ -55,11 +58,14 @@ class SP
     /**
      * @param string $spEntityId
      * @param string $spAcsUrl
+     * @param string $privateKey
+     * @param string $privateKey
      */
-    public function __construct($spEntityId, $spAcsUrl, IdpInfoSourceInterface $idpInfoSource)
+    public function __construct($spEntityId, $spAcsUrl, $privateKey, IdpInfoSourceInterface $idpInfoSource)
     {
         $this->spEntityId = $spEntityId;
         $this->spAcsUrl = $spAcsUrl;
+        $this->privateKey = $privateKey;
         $this->idpInfoSource = $idpInfoSource;
         $this->dateTime = new DateTime();
         $this->session = new Session();
@@ -130,7 +136,7 @@ class SP
         $this->session->set('_saml_auth_idp', $idpEntityId);
         $this->session->set('_saml_auth_authn_context_class_ref', $authnContextClassRef);
 
-        return self::prepareRequestUrl($ssoUrl, $authnRequest, $relayState);
+        return self::prepareRequestUrl($ssoUrl, $authnRequest, $relayState, $this->privateKey);
     }
 
     /**
@@ -210,7 +216,7 @@ class SP
         $this->session->set('_saml_auth_logout_id', $requestId);
         $this->session->set('_saml_auth_logout_idp', $idpEntityId);
 
-        return self::prepareRequestUrl($sloUrl, $logoutRequest, $relayState);
+        return self::prepareRequestUrl($sloUrl, $logoutRequest, $relayState, $this->privateKey);
     }
 
     /**
@@ -241,23 +247,32 @@ class SP
      * @param string $requestUrl
      * @param string $requestXml
      * @param string $relayState
+     * @param string $privateKey
      *
      * @return string
      */
-    private function prepareRequestUrl($requestUrl, $requestXml, $relayState)
+    private static function prepareRequestUrl($requestUrl, $requestXml, $relayState, $privateKey)
     {
         $samlRequest = Base64::encode(\gzdeflate($requestXml));
         $httpQuery = \http_build_query(
             [
                 'SAMLRequest' => $samlRequest,
                 'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+            ]
+        );
+        $signatureQuery = \http_build_query(
+            [
+                'Signature' => Signer::signRedirect($httpQuery, $privateKey),
             ]
         );
 
-        if (false === \strpos($requestUrl, '?')) {
-            return \sprintf('%s?%s', $requestUrl, $httpQuery);
-        }
-
-        return \sprintf('%s&%s', $requestUrl, $httpQuery);
+        return \sprintf(
+            '%s%s%s&%s',
+            $requestUrl,
+            false === \strpos($requestUrl, '?') ? '?' : '&',
+            $httpQuery,
+            $signatureQuery
+        );
     }
 }

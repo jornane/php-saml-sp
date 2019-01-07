@@ -45,7 +45,7 @@ try {
     $spEntityId = 'http://localhost:8081/metadata.php';
     $spAcsUrl = 'http://localhost:8081/acs.php';
 
-    $sp = new SP($spEntityId, $spAcsUrl, $idpInfoSource);
+    $sp = new SP($spEntityId, $spAcsUrl, \file_get_contents('sp.key'), $idpInfoSource);
     $samlResponse = $_POST['SAMLResponse'];
     $sp->handleResponse($samlResponse);
     \http_response_code(302);
