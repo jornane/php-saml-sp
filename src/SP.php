@@ -225,7 +225,7 @@ class SP
 
         $logoutResponse = new LogoutResponse($this->dateTime);
         $logoutResponse->verify(
-            Base64::decode($samlResponse),
+            $samlResponse,
             $relayState,
             $signature,
             $this->session->get('_saml_auth_logout_id'),

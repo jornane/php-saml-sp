@@ -48,7 +48,6 @@ used in production! See [Resources](#resources).
  
 - verify response status code
 - Metadata Generator
-- Handle `LogoutResponse` from IdP
 - Better Exceptions / Error handling
 - allow reading `IdPInfo` objects from XML metadata file, e.g. eduGAIN
   - performance issues?

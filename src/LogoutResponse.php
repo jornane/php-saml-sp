@@ -26,6 +26,7 @@ namespace fkooman\SAML\SP;
 
 use DateTime;
 use Exception;
+use ParagonIE\ConstantTime\Base64;
 
 class LogoutResponse
 {
@@ -53,29 +54,26 @@ class LogoutResponse
     public function verify($samlResponse, $relayState, $signature, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
         Signer::verifyRedirect($samlResponse, $relayState, $signature, $idpInfo->getPublicKey());
-        $logoutResponseDocument = XmlDocument::fromString($samlResponse);
 
-//        // the Assertion Issuer MUST be IdP entityId
-//        $issuerElement = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:Issuer');
-//        if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
-//            throw new Exception('unexpected Issuer');
-//        }
+        $logoutResponseDocument = XmlDocument::fromString(\gzinflate(Base64::decode($samlResponse)));
+        $logoutResponseElement = $logoutResponseDocument->getElement('/samlp:LogoutResponse');
+        $inResponseTo = $logoutResponseElement->getAttribute('InResponseTo');
 
-//        $subjectConfirmationDataElement = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData');
-//        $notOnOrAfter = new DateTime($subjectConfirmationDataElement->getAttribute('NotOnOrAfter'));
-//        if ($this->dateTime >= $notOnOrAfter) {
-//            throw new Exception('notOnOrAfter expired');
-//        }
-//        if ($expectedAcsUrl !== $subjectConfirmationDataElement->getAttribute('Recipient')) {
-//            throw new Exception('unexpected Recipient');
-//        }
-//        if ($expectedInResponseTo !== $subjectConfirmationDataElement->getAttribute('InResponseTo')) {
-//            throw new Exception('unexpected InResponseTo');
-//        }
+        // the LogoutResponse Issuer MUST be IdP entityId
+        $issuerElement = $logoutResponseDocument->getElement('/samlp:LogoutResponse/saml:Issuer');
+        if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
+            throw new Exception('unexpected Issuer');
+        }
 
-//        $attributeList = self::extractAttributes($responseDocument);
-//        $authnContextClassRef = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef')->textContent;
+        // XXX do not accept old logout responses
 
-//        $nameId = $responseDocument->getElementString('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
+        if ($inResponseTo !== $expectedInResponseTo) {
+            throw new Exception('unexpected InResponseTo');
+        }
+
+        $destination = $logoutResponseElement->getAttribute('Destination');
+        if ($destination !== $expectedSloUrl) {
+            throw new Exception('unexpected Destination');
+        }
     }
 }
