@@ -49,7 +49,7 @@ class IdpInfo
         $this->entityId = $entityId;
         $this->ssoUrl = $ssoUrl;
         $this->sloUrl = $sloUrl;
-        $this->publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey)."-----END CERTIFICATE-----\n";
+        $this->publicKey = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey, 76, "\n").'-----END CERTIFICATE-----';
     }
 
     /**

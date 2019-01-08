@@ -49,14 +49,13 @@ used in production! See [Resources](#resources).
 - verify response status code
 - Metadata Generator
 - Better Exceptions / Error handling
-- allow reading `IdPInfo` objects from XML metadata file, e.g. eduGAIN
-  - performance issues?
 - also write unit tests for `handleResponse()` and `handleLogout()`
 - add `<SessionIndex>` to `LogoutRequest`
 - make sure `RelayState` returned is the exact value we sent?
 
 # Nice To Have
 
+- improve performance of XML metadata reader in case of eduGAIN ~ 40MB XML file
 - handle `NameID` value for `eduPersonTargetedId` properly (?)
 - SLO (respond to unsolicited LogoutRequest from IdPs)
 - support encrypted Assertions (saml2int)
