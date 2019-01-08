@@ -46,9 +46,17 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     public function get($entityId)
     {
         foreach ($this->xmlFileList as $xmlFile) {
-            $domDocument = new DOMDocument();
-            if (false === $domDocument->load($xmlFile, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT)) {
+            // before we directly used DOMDocument::load to load a file, but
+            // that didn't work reliably, sometimes it failed to load the XML,
+            // not sure what is going on there!
+            // now we load the XML in memory which is a BAD idea when using
+            // big XML files, e.g. eduGAIN
+            if (false === $xmlData = \file_get_contents($xmlFile)) {
                 throw new Exception(\sprintf('unable to read "%s"', $xmlFile));
+            }
+            $domDocument = new DOMDocument();
+            if (false === $domDocument->loadXML($xmlData, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT)) {
+                throw new Exception(\sprintf('unable to load data from "%s"', $xmlFile));
             }
             $domXPath = new DOMXPath($domDocument);
             $domXPath->registerNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
