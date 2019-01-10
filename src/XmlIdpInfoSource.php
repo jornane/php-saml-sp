@@ -42,7 +42,6 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             throw new RuntimeException(\sprintf('unable to read "%s"', $metadataFile));
         }
         $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-        $this->simpleXml->registerXPathNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
     }
 
     /**
@@ -124,6 +123,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     private static function getPublicKey(SimpleXMLElement $idpSsoDescriptor)
     {
         $publicKeys = [];
+        $idpSsoDescriptor->registerXPathNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
         $queryResult = $idpSsoDescriptor->xpath('md:KeyDescriptor[not(@use) or @use="signing"]/ds:KeyInfo/ds:X509Data/ds:X509Certificate');
         if (0 === \count($queryResult)) {
             throw new XmlIdpInfoSourceException('entry MUST have at least one X509Certificate');
