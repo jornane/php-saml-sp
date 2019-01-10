@@ -30,7 +30,7 @@ used in production! See [Resources](#resources).
   - simpleSAMLphp
   - OpenConext
   - FrkoIdP
-- Currently ~800 NCLOC
+- Currently ~900 NCLOC
 
 # X.509
 
@@ -55,7 +55,6 @@ used in production! See [Resources](#resources).
 
 # Nice To Have
 
-- improve performance of XML metadata reader in case of eduGAIN ~ 40MB XML file
 - handle `NameID` value for `eduPersonTargetedId` properly (?)
 - SLO (respond to unsolicited LogoutRequest from IdPs)
 - support encrypted Assertions (saml2int)

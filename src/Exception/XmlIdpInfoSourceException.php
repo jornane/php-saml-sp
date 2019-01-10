@@ -22,36 +22,10 @@
  * SOFTWARE.
  */
 
-namespace fkooman\SAML\SP;
+namespace fkooman\SAML\SP\Exception;
 
-class ArrayIdpInfoSource implements IdpInfoSourceInterface
+use Exception;
+
+class XmlIdpInfoSourceException extends Exception
 {
-    /** @var array */
-    private $idpList;
-
-    public function __construct(array $idpList)
-    {
-        $this->idpList = $idpList;
-    }
-
-    /**
-     * @param string $entityId
-     *
-     * @return false|IdpInfo
-     */
-    public function get($entityId)
-    {
-        if (!\array_key_exists($entityId, $this->idpList)) {
-            return false;
-        }
-
-        $sloUrl = \array_key_exists('sloUrl', $this->idpList[$entityId]) ? $this->idpList[$entityId]['sloUrl'] : null;
-
-        return new IdpInfo(
-            $entityId,
-            $this->idpList[$entityId]['ssoUrl'],
-            $sloUrl,
-            $this->idpList[$entityId]['publicKeys']
-        );
-    }
 }

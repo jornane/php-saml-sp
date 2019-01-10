@@ -53,7 +53,7 @@ class LogoutResponse
      */
     public function verify($samlResponse, $relayState, $signature, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
-        Signer::verifyRedirect($samlResponse, $relayState, $signature, $idpInfo->getPublicKey());
+        Signer::verifyRedirect($samlResponse, $relayState, $signature, $idpInfo->getPublicKeys());
 
         $logoutResponseDocument = XmlDocument::fromString(\gzinflate(Base64::decode($samlResponse)));
         $logoutResponseElement = $logoutResponseDocument->getElement('/samlp:LogoutResponse');

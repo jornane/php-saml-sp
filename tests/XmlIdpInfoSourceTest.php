@@ -33,31 +33,35 @@ class XmlIdpInfoSourceTest extends TestCase
     {
         $pemCert = <<< EOF
 -----BEGIN CERTIFICATE-----
-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
+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
+8eGhfLDBaD7SQ/jVsw==
 -----END CERTIFICATE-----
 EOF;
-        $xmlIdpInfoSource = new XmlIdpInfoSource([__DIR__.'/data/idp.tuxed.net.xml']);
+        $xmlIdpInfoSource = new XmlIdpInfoSource(__DIR__.'/data/idp.tuxed.net.xml');
         $idpInfo = $xmlIdpInfoSource->get('https://idp.tuxed.net/metadata.php');
         $this->assertSame('https://idp.tuxed.net/metadata.php', $idpInfo->getEntityId());
         $this->assertSame('https://idp.tuxed.net/sso.php', $idpInfo->getSsoUrl());
         $this->assertSame('https://idp.tuxed.net/slo.php', $idpInfo->getSloUrl());
-        $this->assertSame($pemCert, $idpInfo->getPublicKey());
+        $this->assertSame($pemCert, $idpInfo->getPublicKeys()[0]);
     }
 }

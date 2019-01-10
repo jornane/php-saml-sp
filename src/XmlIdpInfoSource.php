@@ -24,18 +24,25 @@
 
 namespace fkooman\SAML\SP;
 
-use DOMDocument;
-use DOMXPath;
-use Exception;
+use fkooman\SAML\SP\Exception\XmlIdpInfoSourceException;
+use RuntimeException;
+use SimpleXMLElement;
 
 class XmlIdpInfoSource implements IdpInfoSourceInterface
 {
-    /** @var array<string> */
-    private $xmlFileList;
+    /** @var \SimpleXMLElement */
+    private $simpleXml;
 
-    public function __construct(array $xmlFileList)
+    /**
+     * @param string $metadataFile
+     */
+    public function __construct($metadataFile)
     {
-        $this->xmlFileList = $xmlFileList;
+        if (false === $this->simpleXml = \simplexml_load_file($metadataFile)) {
+            throw new RuntimeException(\sprintf('unable to read "%s"', $metadataFile));
+        }
+        $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
+        $this->simpleXml->registerXPathNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
     }
 
     /**
@@ -45,94 +52,86 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function get($entityId)
     {
-        foreach ($this->xmlFileList as $xmlFile) {
-            // before we directly used DOMDocument::load to load a file, but
-            // that didn't work reliably, sometimes it failed to load the XML,
-            // not sure what is going on there!
-            // now we load the XML in memory which is a BAD idea when using
-            // big XML files, e.g. eduGAIN
-            if (false === $xmlData = \file_get_contents($xmlFile)) {
-                throw new Exception(\sprintf('unable to read "%s"', $xmlFile));
-            }
-            $domDocument = new DOMDocument();
-            if (false === $domDocument->loadXML($xmlData, LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT)) {
-                throw new Exception(\sprintf('unable to load data from "%s"', $xmlFile));
-            }
-            $domXPath = new DOMXPath($domDocument);
-            $domXPath->registerNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-            $domXPath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
-
-            // check if the IdP is listed in the file
-            $queryResult = $domXPath->query(
-                \sprintf(
-                    '//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor',
-                    $entityId
-                )
+        $entityInfoResult = $this->simpleXml->xpath(\sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId));
+        if (0 !== \count($entityInfoResult)) {
+            // we simply return the first entity with this "entityID"
+            return new IdpInfo(
+                $entityId,
+                self::getSingleSignOnService($entityInfoResult[0]),
+                self::getSingleLogoutService($entityInfoResult[0]),
+                self::getPublicKey($entityInfoResult[0])
             );
-
-            if (1 !== $queryResult->length) {
-                // try next file
-                continue;
-            }
-
-            // extract *REQUIRED* HTTP-Redirect SingleSignOnService
-            $queryResult = $domXPath->query(
-                \sprintf(
-                    '//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor/md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]',
-                    $entityId
-                )
-            );
-            if (1 !== $queryResult->length) {
-                throw new Exception('no SingleSignOnService found with HTTP-Redirect binding');
-            }
-            $singleSignOnServiceLocation = $queryResult->item(0)->getAttribute('Location');
-
-            // extract *OPTIONAL* HTTP-Redirect SingleLogoutService
-            $singleLogoutServiceLocation = null;
-            $queryResult = $domXPath->query(
-                \sprintf(
-                    '//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor/md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]',
-                    $entityId
-                )
-            );
-            if (1 === $queryResult->length) {
-                $singleLogoutServiceLocation = $queryResult->item(0)->getAttribute('Location');
-            }
-
-            // extract *REQUIRED* X.509 "signing" certificate
-            $queryResult = $domXPath->query(
-                \sprintf(
-                    '//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor/md:KeyDescriptor[@use="signing"]/ds:KeyInfo/ds:X509Data/ds:X509Certificate',
-                    $entityId
-                )
-            );
-            if (1 !== $queryResult->length) {
-                // try without "use"
-                $queryResult = $domXPath->query(
-                    \sprintf(
-                        '//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor/md:KeyDescriptor/ds:KeyInfo/ds:X509Data/ds:X509Certificate',
-                        $entityId
-                    )
-                );
-            }
-            if (1 !== $queryResult->length) {
-                throw new Exception('no X509Certificate found');
-            }
-            $signingCertificate = self::removeWhitespaces($queryResult->item(0)->textContent);
-
-            return new IdpInfo($entityId, $singleSignOnServiceLocation, $singleLogoutServiceLocation, $signingCertificate);
         }
 
         return false;
     }
 
     /**
-     * @param string $str
+     * @return array<IdpInfo>
+     */
+    public function getAll()
+    {
+        $idpInfoList = [];
+        $entityInfoResult = $this->simpleXml->xpath('//md:EntityDescriptor/md:IDPSSODescriptor');
+        foreach ($entityInfoResult as $entityInfo) {
+            $entityId = (string) $entityInfo->xpath('..')[0]['entityID']; // <<< horribly XXX ugly!
+            $idpInfoList[] = new IdpInfo(
+                $entityId,
+                self::getSingleSignOnService($entityInfoResult[0]),
+                self::getSingleLogoutService($entityInfoResult[0]),
+                self::getPublicKey($entityInfoResult[0])
+            );
+        }
+
+        return $idpInfoList;
+    }
+
+    /**
+     * @param \SimpleXMLElement $idpSsoDescriptor
      *
      * @return string
      */
-    private static function removeWhitespaces($str)
+    private static function getSingleSignOnService(SimpleXMLElement $idpSsoDescriptor)
     {
-        return \str_replace([' ', "\t", "\n", "\r", "\0", "\x0b"], '', $str);
+        $queryResult = $idpSsoDescriptor->xpath('md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
+        if (0 === \count($queryResult)) {
+            throw new XmlIdpInfoSourceException('entry MUST have at least one SingleSignOnService');
+        }
+
+        return (string) $queryResult[0]['Location'];
+    }
+
+    /**
+     * @param \SimpleXMLElement $idpSsoDescriptor
+     *
+     * @return null|string
+     */
+    private static function getSingleLogoutService(SimpleXMLElement $idpSsoDescriptor)
+    {
+        $queryResult = $idpSsoDescriptor->xpath('md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
+        if (0 === \count($queryResult)) {
+            return null;
+        }
+
+        return (string) $queryResult[0]['Location'];
+    }
+
+    /**
+     * @param \SimpleXMLElement $idpSsoDescriptor
+     *
+     * @return array<string>
+     */
+    private static function getPublicKey(SimpleXMLElement $idpSsoDescriptor)
+    {
+        $publicKeys = [];
+        $queryResult = $idpSsoDescriptor->xpath('md:KeyDescriptor[not(@use) or @use="signing"]/ds:KeyInfo/ds:X509Data/ds:X509Certificate');
+        if (0 === \count($queryResult)) {
+            throw new XmlIdpInfoSourceException('entry MUST have at least one X509Certificate');
+        }
+        foreach ($queryResult as $publicKey) {
+            $publicKeys[] = \str_replace([' ', "\t", "\n", "\r", "\0", "\x0B"], '', (string) $publicKey);
+        }
+
+        return \array_unique($publicKeys);
     }
 }

@@ -51,7 +51,9 @@ class SPTest extends TestCase
                     'http://localhost:8080/metadata.php' => [
                         'ssoUrl' => 'http://localhost:8080/sso.php',
                         'sloUrl' => 'http://localhost:8080/slo.php',
-                        'publicKey' => \file_get_contents(__DIR__.'/data/FrkoIdP.crt'),
+                        'publicKeys' => [
+                            \file_get_contents(__DIR__.'/data/FrkoIdP.crt'),
+                        ],
                     ],
                 ]
             )

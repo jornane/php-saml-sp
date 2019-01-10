@@ -30,13 +30,13 @@ use ParagonIE\ConstantTime\Base64;
 class Signer
 {
     /**
-     * @param XmlDocument $xmlDocument
-     * @param string      $signatureRoot
-     * @param string      $publicKey
+     * @param XmlDocument   $xmlDocument
+     * @param string        $signatureRoot
+     * @param array<string> $publicKeys
      *
      * @return void
      */
-    public static function verifyPost(XmlDocument $xmlDocument, $signatureRoot, $publicKey)
+    public static function verifyPost(XmlDocument $xmlDocument, $signatureRoot, array $publicKeys)
     {
         $rootElement = $xmlDocument->getElement($signatureRoot);
         $rootElementId = $rootElement->getAttribute('ID');
@@ -65,18 +65,18 @@ class Signer
             throw new SignerException('unexpected digest');
         }
 
-        self::verifySignature($canonicalSignedInfo, Base64::decode($signatureValue), $publicKey);
+        self::verifySignature($canonicalSignedInfo, Base64::decode($signatureValue), $publicKeys);
     }
 
     /**
-     * @param string $samlResponse
-     * @param string $relayState
-     * @param string $signature
-     * @param string $publicKey
+     * @param string        $samlResponse
+     * @param string        $relayState
+     * @param string        $signature
+     * @param array<string> $publicKeys
      *
      * @return void
      */
-    public static function verifyRedirect($samlResponse, $relayState, $signature, $publicKey)
+    public static function verifyRedirect($samlResponse, $relayState, $signature, array $publicKeys)
     {
         $httpQuery = \http_build_query(
             [
@@ -86,7 +86,7 @@ class Signer
             ]
         );
 
-        self::verifySignature($httpQuery, Base64::decode($signature), $publicKey);
+        self::verifySignature($httpQuery, Base64::decode($signature), $publicKeys);
     }
 
     /**
@@ -105,16 +105,20 @@ class Signer
     }
 
     /**
-     * @param string $data
-     * @param string $signature
-     * @param string $publicKey
+     * @param string        $data
+     * @param string        $signature
+     * @param array<string> $publicKeys
      *
      * @return void
      */
-    private static function verifySignature($data, $signature, $publicKey)
+    private static function verifySignature($data, $signature, array $publicKeys)
     {
-        if (1 !== \openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256)) {
-            throw new SignerException('invalid signature');
+        foreach ($publicKeys as $publicKey) {
+            if (1 === \openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256)) {
+                return;
+            }
         }
+
+        throw new SignerException('invalid signature');
     }
 }
