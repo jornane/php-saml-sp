@@ -118,11 +118,21 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             if (1 !== $queryResult->length) {
                 throw new Exception('no X509Certificate found');
             }
-            $signingCertificate = \trim($queryResult->item(0)->textContent);
+            $signingCertificate = self::removeWhitespaces($queryResult->item(0)->textContent);
 
             return new IdpInfo($entityId, $singleSignOnServiceLocation, $singleLogoutServiceLocation, $signingCertificate);
         }
 
         return false;
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    private static function removeWhitespaces($str)
+    {
+        return \str_replace([' ', "\t", "\n", "\r", "\0", "\x0b"], '', $str);
     }
 }
