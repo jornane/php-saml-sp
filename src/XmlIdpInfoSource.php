@@ -38,9 +38,11 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function __construct($metadataFile)
     {
-        if (false === $this->simpleXml = \simplexml_load_file($metadataFile)) {
+        $entityLoader = \libxml_disable_entity_loader(false);
+        if (false === $this->simpleXml = \simplexml_load_file($metadataFile, 'SimpleXMLElement', LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT)) {
             throw new RuntimeException(\sprintf('unable to read "%s"', $metadataFile));
         }
+        \libxml_disable_entity_loader($entityLoader);
         $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
     }
 
