@@ -47,11 +47,12 @@ used in production! See [Resources](#resources).
 # TODO 
  
 - verify response status code
-- add mdui/contact/etc to metadata
-- Better Exceptions / Error handling
-- also write unit tests for `handleResponse()` and `handleLogout()`
 - add `<SessionIndex>` to `LogoutRequest`
-- make sure `RelayState` returned is the exact value we sent?
+- add mdui/etc to metadata
+- better Exception / Error handling
+- also write unit tests for `handleResponse()`, `handleLogout()` and 
+  `metadata()`
+- make sure `RelayState` returned is the exact value we sent through session?
 
 # Nice To Have
 
