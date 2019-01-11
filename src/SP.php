@@ -24,6 +24,7 @@
 
 namespace fkooman\SAML\SP;
 
+use DateInterval;
 use DateTime;
 use fkooman\SAML\SP\Exception\SpException;
 use ParagonIE\ConstantTime\Base64;
@@ -248,6 +249,25 @@ class SP
 
         /* @var Assertion */
         return $this->session->get('_saml_auth_assertion');
+    }
+
+    /**
+     * @return string
+     */
+    public function metadata()
+    {
+        $validUntil = \date_add(clone $this->dateTime, new DateInterval('PT36H'));
+
+        return $this->tpl->render(
+            'Metadata',
+            [
+                'validUntil' => $validUntil->format('Y-m-d\TH:i:s\Z'),
+                'entityID' => $this->spInfo->getEntityId(),
+                'X509Certificate' => $this->spInfo->getPublicKeyEncoded(),
+                'AssertionConsumerService' => $this->spInfo->getAcsUrl(),
+                'SingleLogoutService' => $this->spInfo->getSloUrl(),
+            ]
+        );
     }
 
     /**

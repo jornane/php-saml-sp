@@ -44,7 +44,8 @@ class SPTest extends TestCase
                 'http://localhost:8081/metadata.php',
                 'http://localhost:8081/acs.php',
                 'http://localhost:8081/logout.php',
-                \file_get_contents(__DIR__.'/data/sp.key')
+                \file_get_contents(__DIR__.'/data/sp.key'),
+                \file_get_contents(__DIR__.'/data/sp.crt')
             ),
             new ArrayIdpInfoSource(
                 [

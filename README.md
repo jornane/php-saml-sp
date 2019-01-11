@@ -61,6 +61,15 @@ used in production! See [Resources](#resources).
   - rsa-oaep-mgf1p
   - aes-256-gcm
 
+# simpleSAMLphp as IdP
+
+In `metadata/saml20-sp-remote.php` for the SP:
+
+  'validate.authnrequest' => true,
+  'saml20.sign.assertion' => true,
+  'sign.logout' => true,
+  'validate.logout' => true,
+
 # Resources
 
 * https://www.owasp.org/index.php/SAML_Security_Cheat_Sheet

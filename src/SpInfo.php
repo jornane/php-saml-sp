@@ -38,18 +38,23 @@ class SpInfo
     /** @var string */
     private $privateKey;
 
+    /** @var string */
+    private $publicKey;
+
     /**
      * @param string $entityId
      * @param string $acsUrl
      * @param string $sloUrl
      * @param string $privateKey
+     * @param string $publicKey
      */
-    public function __construct($entityId, $acsUrl, $sloUrl, $privateKey)
+    public function __construct($entityId, $acsUrl, $sloUrl, $privateKey, $publicKey)
     {
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
         $this->sloUrl = $sloUrl;
         $this->privateKey = $privateKey;
+        $this->publicKey = $publicKey;
     }
 
     /**
@@ -82,5 +87,29 @@ class SpInfo
     public function getPrivateKey()
     {
         return $this->privateKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPublicKey()
+    {
+        return $this->publicKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPublicKeyEncoded()
+    {
+        return \str_replace(
+            [' ', "\t", "\n", "\r", "\0", "\x0B"],
+            '',
+            \preg_replace(
+                '/.*-----BEGIN CERTIFICATE-----(.*)-----END CERTIFICATE-----.*/msU',
+                '$1',
+                $this->publicKey
+            )
+        );
     }
 }
