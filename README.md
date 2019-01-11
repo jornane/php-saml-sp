@@ -65,10 +65,10 @@ used in production! See [Resources](#resources).
 
 In `metadata/saml20-sp-remote.php` for the SP:
 
-  'validate.authnrequest' => true,
-  'saml20.sign.assertion' => true,
-  'sign.logout' => true,
-  'validate.logout' => true,
+    'validate.authnrequest' => true,
+    'saml20.sign.assertion' => true,
+    'sign.logout' => true,
+    'validate.logout' => true,
 
 # Resources
 
