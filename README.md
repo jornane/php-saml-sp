@@ -46,17 +46,20 @@ used in production! See [Resources](#resources).
 
 # TODO 
  
+## 1.0
+
 - verify response status code
 - add `<SessionIndex>` to `LogoutRequest`
-- add mdui/etc to metadata
+- add mdui/etc to generated metadata
 - better Exception / Error handling
 - also write unit tests for `handleResponse()`, `handleLogout()` and 
   `metadata()`
-- make sure `RelayState` returned is the exact value we sent through session?
+- make sure `RelayState` returned is the exact value we sent through session 
+  (?)
+- ability to get SP entityID from SP object (?)
 
-# Nice To Have
+# 2.0
 
-- handle `NameID` value for `eduPersonTargetedId` properly (?)
 - SLO (respond to unsolicited LogoutRequest from IdPs)
 - support encrypted Assertions (saml2int)
   - rsa-oaep-mgf1p
