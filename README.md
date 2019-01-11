@@ -47,7 +47,7 @@ used in production! See [Resources](#resources).
 # TODO 
  
 - verify response status code
-- Metadata Generator
+- add mdui/contact/etc to metadata
 - Better Exceptions / Error handling
 - also write unit tests for `handleResponse()` and `handleLogout()`
 - add `<SessionIndex>` to `LogoutRequest`
