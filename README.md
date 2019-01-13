@@ -48,6 +48,7 @@ used in production! See [Resources](#resources).
  
 ## 1.0
 
+- figure out if we need to handle "NotBefore" in SAML assertions
 - verify response status code
 - add `<SessionIndex>` to `LogoutRequest`
 - add mdui/etc to generated metadata
