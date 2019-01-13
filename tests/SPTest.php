@@ -176,7 +176,6 @@ EOF;
             ]
         );
         $testSession->set('_saml_auth_assertion', $samlAssertion);
-        $testSession->set('_saml_auth_idp', 'http://localhost:8080/metadata.php');
         $this->sp->setSession($testSession);
         $sloUrl = $this->sp->logout(
             'http://localhost:8080/app'
@@ -252,5 +251,27 @@ EOF;
             ],
             $samlAssertion->getAttributes()
         );
+    }
+
+    public function testHandleLogoutResponse()
+    {
+        $samlResponse = <<< EOF
+<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_1e60a9a613e672a64fabef086613452f95676962a7b54bc1e330182ba0c98ae5" Version="2.0" IssueInstant="2019-01-13T21:14:35Z" Destination="http://localhost:8081/logout.php" InResponseTo="_c82bae71c665cb8a1a804bc4b61593f6">
+    <saml:Issuer>http://localhost:8080/metadata.php</saml:Issuer>
+    <samlp:Status>
+        <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+    </samlp:Status>
+</samlp:LogoutResponse>
+
+EOF;
+        $session = new TestSession();
+        $session->set('_saml_auth_logout_id', '_c82bae71c665cb8a1a804bc4b61593f6');
+        $session->set('_saml_auth_logout_idp', 'http://localhost:8080/metadata.php');
+        $this->sp->setSession($session);
+
+        $this->sp->handleLogoutResponse(\base64_encode(\gzdeflate($samlResponse)), 'http://localhost:8081/index.php', 'H76WdCmVsHixVXKS3SnqaVJ7lQP7z9o7bp025T1KRcq+RLT3SSVkpzGkeeteSjeY3Yr2yrUHfJHOAL+bG2esKEgLMWW/rqAxzQS6cywHdKLNW4y/hFtxxMKoiGi38mpg6TTwLiF+IFtAHMTogZtSCFN6VKbFnD7yppxpgYaouxl/E8pkc82hK1nXtwYEVDQJ6UIFbxglWRkG53S8IEto1Hshrfshr/Zui5TAKSIyx58LZDZPU4Wj3an2s2NUtyuv9wRjqIH/GaATlkQf/3kf1eC0RR1Fg+ZO+KLhXgbZ9Vuc52yfL0vgEBcfe4QESX0l/zRCRQQr/yCi4BTn7G39swd7a+tQ8eWClDuw2s8cmdpz3DROZsNQZHVbOx35018V+6/t2CHk/84s1IpiFzMjs98KxzVQBW0U+TIgKLTFjuE4GX1KyZVX6nqtpQCUj4L47KCcn/iipUYK4SjCTLdyxlCnkyb81VVh3kyu5Gg2ebXOOwjNBWV+Jrc+u8YMbJNF');
+
+        $this->assertFalse($session->has('_saml_auth_logout_id'));
+        $this->assertFalse($session->has('_saml_auth_logout_idp'));
     }
 }
