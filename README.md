@@ -21,8 +21,10 @@ used in production! See [Resources](#resources).
 - Only SAML SP functionality
 - Only HTTP-Redirect binding for sending `AuthnRequest` to IdP
 - Only HTTP-POST binding for receiving `Assertion` from IdP
-- Only supports RSA with SHA256 for verifying signatures
+- Only supports RSA with SHA-256 for verifying signatures
+- Always signs `AuthnRequest` and `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
+- Requires `LogoutResponse` to be signed
 - Allow specifying `AuthnContextClassRef` and `ForceAuthn` as part of 
   Authentication Request
 - Validates XML schema(s)
@@ -30,7 +32,7 @@ used in production! See [Resources](#resources).
   - simpleSAMLphp
   - OpenConext
   - FrkoIdP
-- Currently ~900 NCLOC
+- Currently ~1000 NCLOC
 
 # X.509
 
@@ -55,7 +57,9 @@ used in production! See [Resources](#resources).
   (?)
 - ability to get SP entityID from SP object (?)
 - figure out if we need to verify "NotBefore" in SAML assertions
-- make sure we get a fresh session (authnInstant) when using ForceAuthn
+- make sure we get a fresh session (`AuthnInstant`) when using `ForceAuthn`
+- maybe implement some kind of `upgrade()` call where we can "upgrade" the 
+  LoA 
 
 # 2.0
 
@@ -63,6 +67,7 @@ used in production! See [Resources](#resources).
 - support encrypted Assertions (saml2int)
   - rsa-oaep-mgf1p
   - aes-256-gcm
+- Sign SAML metadata
 
 # simpleSAMLphp as IdP
 
