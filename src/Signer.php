@@ -29,6 +29,11 @@ use ParagonIE\ConstantTime\Base64;
 
 class Signer
 {
+    const SIGNER_OPENSSL_ALGO = OPENSSL_ALGO_SHA256;
+    const SIGNER_XML_SIG_ALGO = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256';
+    const SIGNER_XML_DIGEST_ALGO = 'http://www.w3.org/2001/04/xmlenc#sha256';
+    const SIGNER_HASH_ALGO = 'sha256';
+
     /**
      * @param XmlDocument   $xmlDocument
      * @param string        $signatureRoot
@@ -45,6 +50,15 @@ class Signer
             throw new SignerException('reference URI does not point to document ID');
         }
 
+        $digestMethod = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestMethod')->getAttribute('Algorithm');
+        if (self::SIGNER_XML_DIGEST_ALGO !== $digestMethod) {
+            throw new SignerException(\sprintf('digest method "%s" not supported', $digestMethod));
+        }
+        $signatureMethod = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:SignatureMethod')->getAttribute('Algorithm');
+        if (self::SIGNER_XML_SIG_ALGO !== $signatureMethod) {
+            throw new SignerException(\sprintf('digest method "%s" not supported', $signatureMethod));
+        }
+
         $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
         $digestValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue')->textContent;
 
@@ -54,7 +68,7 @@ class Signer
 
         $rootElementDigest = Base64::encode(
             \hash(
-                'sha256',
+                self::SIGNER_HASH_ALGO,
                 $rootElement->C14N(true, false),
                 true
             )
@@ -82,7 +96,7 @@ class Signer
             [
                 'SAMLResponse' => $samlResponse,
                 'RelayState' => $relayState,
-                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+                'SigAlg' => self::SIGNER_XML_SIG_ALGO,
             ]
         );
 
@@ -97,7 +111,7 @@ class Signer
      */
     public static function signRedirect($httpQuery, $privateKey)
     {
-        if (false === \openssl_sign($httpQuery, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+        if (false === \openssl_sign($httpQuery, $signature, $privateKey, self::SIGNER_OPENSSL_ALGO)) {
             throw new SignerException('unable to sign');
         }
 
@@ -114,7 +128,7 @@ class Signer
     private static function verifySignature($data, $signature, array $publicKeys)
     {
         foreach ($publicKeys as $publicKey) {
-            if (1 === \openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256)) {
+            if (1 === \openssl_verify($data, $signature, $publicKey, self::SIGNER_OPENSSL_ALGO)) {
                 return;
             }
         }
