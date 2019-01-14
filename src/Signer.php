@@ -56,7 +56,7 @@ class Signer
         }
         $signatureMethod = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:SignatureMethod')->getAttribute('Algorithm');
         if (self::SIGNER_XML_SIG_ALGO !== $signatureMethod) {
-            throw new SignerException(\sprintf('digest method "%s" not supported', $signatureMethod));
+            throw new SignerException(\sprintf('signature method "%s" not supported', $signatureMethod));
         }
 
         $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
