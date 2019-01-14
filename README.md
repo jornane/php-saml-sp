@@ -49,13 +49,13 @@ used in production! See [Resources](#resources).
 ## 1.0
 
 - verify response status code
-- add `<SessionIndex>` to `LogoutRequest`
 - add mdui/etc to generated metadata
 - better Exception / Error handling
 - make sure `RelayState` returned is the exact value we sent through session 
   (?)
 - ability to get SP entityID from SP object (?)
 - figure out if we need to verify "NotBefore" in SAML assertions
+- make sure we get a fresh session (authnInstant) when using ForceAuthn
 
 # 2.0
 

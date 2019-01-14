@@ -24,6 +24,8 @@
 
 namespace fkooman\SAML\SP;
 
+use DateTime;
+
 class Assertion
 {
     /** @var string */
@@ -35,19 +37,24 @@ class Assertion
     /** @var string */
     private $authnContextClassRef;
 
+    /** @var \DateTime */
+    private $authnInstant;
+
     /** @var array<string,array<string>> */
     private $attributeList;
 
     /**
      * @param string                      $issuer
      * @param string                      $nameId
+     * @param \DateTime                   $authnInstant
      * @param string                      $authnContextClassRef
      * @param array<string,array<string>> $attributeList
      */
-    public function __construct($issuer, $nameId, $authnContextClassRef, array $attributeList)
+    public function __construct($issuer, $nameId, DateTime $authnInstant, $authnContextClassRef, array $attributeList)
     {
         $this->issuer = $issuer;
         $this->nameId = $nameId;
+        $this->authnInstant = $authnInstant;
         $this->authnContextClassRef = $authnContextClassRef;
         $this->attributeList = $attributeList;
     }
@@ -66,6 +73,14 @@ class Assertion
     public function getNameId()
     {
         return $this->nameId;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getAuthnInstant()
+    {
+        return $this->authnInstant;
     }
 
     /**
