@@ -50,7 +50,6 @@ used in production! See [Resources](#resources).
  
 ## 1.0
 
-- verify response status code
 - add mdui/etc to generated metadata
 - better Exception / Error handling
 - make sure `RelayState` returned is the exact value we sent through session 
@@ -59,7 +58,7 @@ used in production! See [Resources](#resources).
 - figure out if we need to verify "NotBefore" in SAML assertions
 - make sure we get a fresh session (`AuthnInstant`) when using `ForceAuthn`
 - maybe implement some kind of `upgrade()` call where we can "upgrade" the 
-  LoA 
+  LoA, or maybe just a new login() with new LoA
 
 # 2.0
 

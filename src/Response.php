@@ -58,6 +58,12 @@ class Response
             ++$signerCount;
         }
 
+        // check the status code
+        $statusCode = $responseDocument->getElement('/samlp:Response/samlp:Status/samlp:StatusCode')->getAttribute('Value');
+        if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
+            throw new Exception(\sprintf('status error code: %s', $statusCode));
+        }
+
         // make sure we have exactly 1 assertion
         // XXX introduce count method?!
         $responseDocument->getElement('/samlp:Response/saml:Assertion');

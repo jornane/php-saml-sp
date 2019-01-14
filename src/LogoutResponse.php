@@ -75,5 +75,11 @@ class LogoutResponse
         if ($destination !== $expectedSloUrl) {
             throw new Exception('unexpected Destination');
         }
+
+        // check the status code
+        $statusCode = $logoutResponseDocument->getElement('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode')->getAttribute('Value');
+        if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
+            throw new Exception(\sprintf('status error code: %s', $statusCode));
+        }
     }
 }
