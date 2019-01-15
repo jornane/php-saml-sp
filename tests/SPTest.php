@@ -100,11 +100,7 @@ EOF;
         $ssoUrl = $this->sp->login(
             'http://localhost:8080/metadata.php',
             'http://localhost:8080/app',
-            [
-                'AuthnContextClassRef' => [
-                    'urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken',
-                ],
-            ]
+            ['urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken']
         );
 
         $samlRequest = <<< EOF
@@ -133,9 +129,8 @@ EOF;
         $ssoUrl = $this->sp->login(
             'http://localhost:8080/metadata.php',
             'http://localhost:8080/app',
-            [
-                'ForceAuthn' => true,
-            ]
+            [],
+            true
         );
 
         $samlRequest = <<< EOF

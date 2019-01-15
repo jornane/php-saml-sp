@@ -95,16 +95,16 @@ class SP
     }
 
     /**
-     * @param string $idpEntityId
-     * @param string $relayState
-     * @param array  $authOptions
+     * @param string        $idpEntityId
+     * @param string        $relayState
+     * @param array<string> $authnContextClassRef
+     * @param bool          $forceAuthn
      *
      * @return string
      */
-    public function login($idpEntityId, $relayState, array $authOptions = [])
+    public function login($idpEntityId, $relayState, array $authnContextClassRef = [], $forceAuthn = false)
     {
         $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
-        $authnContextClassRef = \array_key_exists('AuthnContextClassRef', $authOptions) ? $authOptions['AuthnContextClassRef'] : [];
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
@@ -116,7 +116,7 @@ class SP
                 'ID' => $requestId,
                 'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
                 'Destination' => $ssoUrl,
-                'ForceAuthn' => \array_key_exists('ForceAuthn', $authOptions) && $authOptions['ForceAuthn'],
+                'ForceAuthn' => $forceAuthn,
                 'AssertionConsumerServiceURL' => $this->spInfo->getAcsUrl(),
                 'Issuer' => $this->spInfo->getEntityId(),
                 'AuthnContextClassRef' => $authnContextClassRef,

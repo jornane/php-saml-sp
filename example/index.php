@@ -107,11 +107,7 @@ try {
                                 $sp->login(
                                     $idpEntityId,
                                     $relayState,
-                                    [
-                                        'AuthnContextClassRef' => [
-                                            $adminAuthnContext,
-                                        ],
-                                    ]
+                                    [$adminAuthnContext]
                                 )
                             )
                         );
