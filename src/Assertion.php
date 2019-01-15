@@ -34,9 +34,6 @@ class Assertion
     /** @var string */
     private $nameId;
 
-    /** @var string */
-    private $authnContextClassRef;
-
     /** @var \DateTime */
     private $authnInstant;
 
@@ -50,12 +47,11 @@ class Assertion
      * @param string                      $authnContextClassRef
      * @param array<string,array<string>> $attributeList
      */
-    public function __construct($issuer, $nameId, DateTime $authnInstant, $authnContextClassRef, array $attributeList)
+    public function __construct($issuer, $nameId, DateTime $authnInstant, array $attributeList)
     {
         $this->issuer = $issuer;
         $this->nameId = $nameId;
         $this->authnInstant = $authnInstant;
-        $this->authnContextClassRef = $authnContextClassRef;
         $this->attributeList = $attributeList;
     }
 
@@ -81,14 +77,6 @@ class Assertion
     public function getAuthnInstant()
     {
         return $this->authnInstant;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAuthnContextClassRef()
-    {
-        return $this->authnContextClassRef;
     }
 
     /**

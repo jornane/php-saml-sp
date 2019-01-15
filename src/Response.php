@@ -25,7 +25,7 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
-use Exception;
+use fkooman\SAML\SP\Exception\ResponseException;
 
 class Response
 {
@@ -41,14 +41,15 @@ class Response
     }
 
     /**
-     * @param string  $samlResponse
-     * @param string  $expectedInResponseTo
-     * @param string  $expectedAcsUrl
-     * @param IdpInfo $idpInfo
+     * @param string        $samlResponse
+     * @param string        $expectedInResponseTo
+     * @param string        $expectedAcsUrl
+     * @param array<string> $authnContext
+     * @param IdpInfo       $idpInfo
      *
      * @return Assertion
      */
-    public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, IdpInfo $idpInfo)
+    public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromString($samlResponse);
         $signerCount = 0;
@@ -61,7 +62,7 @@ class Response
         // check the status code
         $statusCode = $responseDocument->getElement('/samlp:Response/samlp:Status/samlp:StatusCode')->getAttribute('Value');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
-            throw new Exception(\sprintf('status error code: %s', $statusCode));
+            throw new ResponseException(\sprintf('status error code: %s', $statusCode));
         }
 
         // make sure we have exactly 1 assertion
@@ -75,34 +76,41 @@ class Response
         }
 
         if (0 === $signerCount) {
-            throw new Exception('neither the response, nor the assertion was signed');
+            throw new ResponseException('neither the response, nor the assertion was signed');
         }
 
         // the Assertion Issuer MUST be IdP entityId
         $issuerElement = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:Issuer');
         if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
-            throw new Exception('unexpected Issuer');
+            throw new ResponseException('unexpected Issuer');
         }
 
         $subjectConfirmationDataElement = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData');
         $notOnOrAfter = new DateTime($subjectConfirmationDataElement->getAttribute('NotOnOrAfter'));
         if ($this->dateTime >= $notOnOrAfter) {
-            throw new Exception('notOnOrAfter expired');
+            throw new ResponseException('notOnOrAfter expired');
         }
         if ($expectedAcsUrl !== $subjectConfirmationDataElement->getAttribute('Recipient')) {
-            throw new Exception('unexpected Recipient');
+            throw new ResponseException('unexpected Recipient');
         }
         if ($expectedInResponseTo !== $subjectConfirmationDataElement->getAttribute('InResponseTo')) {
-            throw new Exception('unexpected InResponseTo');
+            throw new ResponseException('unexpected InResponseTo');
         }
 
         $attributeList = self::extractAttributes($responseDocument);
         $authnContextClassRef = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef')->textContent;
 
+        if (0 !== \count($authnContext)) {
+            // we requested a particular authnContext, make sure we got it
+            if (!\in_array($authnContextClassRef, $authnContext, true)) {
+                throw new ResponseException(\sprintf('we wanted any of "%s"', \implode(', ', $authnContext)));
+            }
+        }
+
         $nameId = $responseDocument->getElementString('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
         $authnInstant = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext')->getAttribute('AuthnInstant');
 
-        return new Assertion($idpInfo->getEntityId(), $nameId, new DateTime($authnInstant), $authnContextClassRef, $attributeList);
+        return new Assertion($idpInfo->getEntityId(), $nameId, new DateTime($authnInstant), $attributeList);
     }
 
     /**

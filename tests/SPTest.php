@@ -164,7 +164,6 @@ EOF;
             'http://localhost:8080/metadata.php',
             '<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>',
             new DateTime('2019-01-02T20:05:33Z'),
-            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
             [
                 'urn:oid:0.9.2342.19200300.100.1.1' => [
                     'foo',
@@ -238,7 +237,6 @@ EOF;
         $samlAssertion = $session->get('_saml_auth_assertion');
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
         $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>', $samlAssertion->getNameId());
-        $this->assertSame('urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', $samlAssertion->getAuthnContextClassRef());
         $this->assertSame(
             [
                 'urn:oid:0.9.2342.19200300.100.1.1' => [
@@ -252,6 +250,22 @@ EOF;
             ],
             $samlAssertion->getAttributes()
         );
+    }
+
+    /**
+     * @expectedException \fkooman\SAML\SP\Exception\ResponseException
+     * @expectedExceptionMessage we wanted any of "urn:x-example:bar"
+     */
+    public function testHandleResponseWrongAuthnContext()
+    {
+        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
+
+        $session = new TestSession();
+        $session->set('_saml_auth_idp', 'http://localhost:8080/metadata.php');
+        $session->set('_saml_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
+        $session->set('_saml_auth_authn_context_class_ref', ['urn:x-example:bar']);
+        $this->sp->setSession($session);
+        $this->sp->handleResponse(\base64_encode($samlResponse));
     }
 
     public function testHandleLogoutResponse()

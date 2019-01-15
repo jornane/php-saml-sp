@@ -39,11 +39,11 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
+            [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/FrkoIdP.crt')])
         );
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
         $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>', $samlAssertion->getNameId());
-        $this->assertSame('urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport', $samlAssertion->getAuthnContextClassRef());
         $this->assertSame(
             [
                 'urn:oid:0.9.2342.19200300.100.1.1' => [
@@ -67,6 +67,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
+            [],
             new IdpInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/SURFconext.crt')])
         );
         $this->assertSame(
@@ -100,6 +101,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_b354c4367b3e379f940145868f28987e9520b1fb0b',
             'https://vpn.tuxed.net/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
+            [],
             new IdpInfo('https://vpn.tuxed.net/simplesaml/saml2/idp/metadata.php', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/simpleSAMLphp.crt')])
         );
         $this->assertSame(
@@ -128,6 +130,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
+            [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/FrkoIdP.crt')])
         );
     }
@@ -144,6 +147,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
+            [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/simpleSAMLphp.crt')])
         );
     }
@@ -160,12 +164,13 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
+            [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/FrkoIdP.crt')])
         );
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException \fkooman\SAML\SP\Exception\ResponseException
      * @expectedExceptionMessage neither the response, nor the assertion was signed
      */
     public function testNotSigned()
@@ -176,12 +181,13 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
+            [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/FrkoIdP.crt')])
         );
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException \fkooman\SAML\SP\Exception\XmlDocumentException
      * @expectedExceptionMessage expected 1 element for query "/samlp:Response/saml:Assertion", got 2 elements
      */
     public function testTwoAssertions()
@@ -192,6 +198,7 @@ class ResponseTest extends TestCase
             $samlResponse,
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
+            [],
             new IdpInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/SURFconext.crt')])
         );
     }

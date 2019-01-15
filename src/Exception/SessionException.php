@@ -24,8 +24,6 @@
 
 namespace fkooman\SAML\SP\Exception;
 
-use Exception;
-
-class SessionException extends Exception
+class SessionException extends SamlException
 {
 }

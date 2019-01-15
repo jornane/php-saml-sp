@@ -26,6 +26,7 @@ require_once \dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = \dirname(__DIR__);
 
 use fkooman\SAML\SP\ArrayIdpInfoSource;
+use fkooman\SAML\SP\Exception\SamlException;
 use fkooman\SAML\SP\SP;
 use fkooman\SAML\SP\SpInfo;
 
@@ -51,48 +52,76 @@ try {
 
     $idpEntityId = 'http://localhost:8080/metadata.php';
 //    $idpEntityId = 'https://vpn.tuxed.net/simplesaml/saml2/idp/metadata.php';
-    $relayState = 'http://localhost:8081/index.php';
+    $relayState = 'http://localhost:8081/';
     $spInfo = new SpInfo(
-        'http://localhost:8081/metadata.php',
-        'http://localhost:8081/acs.php',
-        'http://localhost:8081/logout.php',
+        'http://localhost:8081/metadata',
+        'http://localhost:8081/acs',
+        'http://localhost:8081/slo',
         \file_get_contents('sp.key'),
         \file_get_contents('sp.crt')
     );
 
     $sp = new SP($spInfo, $idpInfoSource);
-    if (false === $samlAssertion = $sp->getAssertion()) {
-        if (\array_key_exists('login', $_GET)) {
+
+    $pathInfo = \array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '/';
+
+    switch ($pathInfo) {
+        case '/':
+            if (false === $samlAssertion = $sp->getAssertion()) {
+                // not logged in, show login button
+                echo '<a href="login"><button>Login</button></a>';
+            } else {
+                echo '<pre>';
+                echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
+                foreach ($samlAssertion->getAttributes() as $k => $v) {
+                    echo $k.': '.\implode(',', $v).PHP_EOL;
+                }
+                echo '</pre>';
+                echo '<a href="upgrade"><button>Upgrade</button></a><br>';
+                echo '<a href="logout"><button>Logout</button></a>';
+            }
+            break;
+
+        case '/login':
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState, [])));       // XXX optional params? limit them to actual parameters, not an array?!
+            break;
+
+        case '/upgrade':
             $authOptions = [
-        //        'AuthnContextClassRef' => [
-        //            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
-        //        ],
-        //        'ForceAuthn' => true,
+                'AuthnContextClassRef' => [
+                    'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransportZ',
+                ],
+//                'ForceAuthn' => true,
             ];
             \http_response_code(302);
             \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState, $authOptions)));
-            exit(0);
-        }
+            break;
 
-        // not logged in, show login button
-        echo '<a href="?login">Login</a>';
-        exit(0);
-    }
+        case '/logout':
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $sp->logout($relayState)));
+            break;
 
-    if (\array_key_exists('logout', $_GET)) {
-        // logout requested
-        \http_response_code(302);
-        \header(\sprintf('Location: %s', $sp->logout($relayState)));
-        exit(0);
-    }
+        case '/acs':
+            // listen only for POST HTTP request
+            $samlResponse = $_POST['SAMLResponse'];
+            $sp->handleResponse($samlResponse);
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $_POST['RelayState']));
+            break;
 
-    echo '<pre>';
-    echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
-    foreach ($samlAssertion->getAttributes() as $k => $v) {
-        echo $k.': '.\implode(',', $v).PHP_EOL;
+        case '/slo':
+            $sp->handleLogoutResponse($_GET['SAMLResponse'], $_GET['RelayState'], $_GET['Signature']);
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $_GET['RelayState']));
+            break;
+
+        case '/metadata':
+            \header('Content-Type: application/samlmetadata+xml');
+            echo $sp->metadata();
+            break;
     }
-    echo '</pre>';
-    echo '<a href="?logout">Logout</a>';
-} catch (Exception $e) {
+} catch (SamlException $e) {
     echo 'Error: '.$e->getMessage().PHP_EOL;
 }

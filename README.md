@@ -46,19 +46,17 @@ used in production! See [Resources](#resources).
         -out "sp.crt" \
         -days 3600
 
-# TODO 
+# TODO
  
 ## 1.0
 
 - add mdui/etc to generated metadata
-- better Exception / Error handling
 - make sure `RelayState` returned is the exact value we sent through session 
   (?)
 - ability to get SP entityID from SP object (?)
 - figure out if we need to verify "NotBefore" in SAML assertions
 - make sure we get a fresh session (`AuthnInstant`) when using `ForceAuthn`
-- maybe implement some kind of `upgrade()` call where we can "upgrade" the 
-  LoA, or maybe just a new login() with new LoA
+- fix issue with NameID when LoA upgrade fails
 
 # 2.0
 

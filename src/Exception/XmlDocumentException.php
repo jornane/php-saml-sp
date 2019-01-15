@@ -24,8 +24,6 @@
 
 namespace fkooman\SAML\SP\Exception;
 
-use Exception;
-
-class XmlDocumentException extends Exception
+class XmlDocumentException extends SamlException
 {
 }

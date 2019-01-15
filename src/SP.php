@@ -142,21 +142,17 @@ class SP
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
 
+        /** @var array<string> */
+        $authnContextClassRef = $this->session->get('_saml_auth_authn_context_class_ref');
+
         $response = new Response($this->dateTime);
         $samlAssertion = $response->verify(
             Base64::decode($samlResponse),
             $this->session->get('_saml_auth_id'),
             $this->spInfo->getAcsUrl(),
+            $authnContextClassRef,
             $idpInfo
         );
-
-        // make sure we get any of the requested AuthnContextClassRef
-        // XXX move this to Response?!
-        if (0 !== \count($this->session->get('_saml_auth_authn_context_class_ref'))) {
-            if (!\in_array($samlAssertion->getAuthnContextClassRef(), $this->session->get('_saml_auth_authn_context_class_ref'), true)) {
-                throw new \Exception(\sprintf('we wanted any of "%s"', \implode(', ', $this->session->get('_saml_auth_authn_context_class_ref'))));
-            }
-        }
 
         $this->session->delete('_saml_auth_id');
         $this->session->delete('_saml_auth_idp');

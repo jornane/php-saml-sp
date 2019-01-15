@@ -22,27 +22,8 @@
  * SOFTWARE.
  */
 
-require_once \dirname(__DIR__).'/vendor/autoload.php';
-$baseDir = \dirname(__DIR__);
+namespace fkooman\SAML\SP\Exception;
 
-use fkooman\SAML\SP\ArrayIdpInfoSource;
-use fkooman\SAML\SP\SP;
-use fkooman\SAML\SP\SpInfo;
-
-try {
-    $idpInfoSource = new ArrayIdpInfoSource([]);
-
-    $spInfo = new SpInfo(
-        'http://localhost:8081/metadata.php',
-        'http://localhost:8081/acs.php',
-        'http://localhost:8081/logout.php',
-        \file_get_contents('sp.key'),
-        \file_get_contents('sp.crt')
-    );
-
-    $sp = new SP($spInfo, $idpInfoSource);
-    \header('Content-Type: application/samlmetadata+xml');
-    echo $sp->metadata();
-} catch (Exception $e) {
-    echo 'Error: '.$e->getMessage().PHP_EOL;
+class ResponseException extends SamlException
+{
 }

@@ -25,7 +25,7 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
-use Exception;
+use fkooman\SAML\SP\Exception\ResponseException;
 use ParagonIE\ConstantTime\Base64;
 
 class LogoutResponse
@@ -62,24 +62,24 @@ class LogoutResponse
         // the LogoutResponse Issuer MUST be IdP entityId
         $issuerElement = $logoutResponseDocument->getElement('/samlp:LogoutResponse/saml:Issuer');
         if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
-            throw new Exception('unexpected Issuer');
+            throw new ResponseException('unexpected Issuer');
         }
 
         // XXX do not accept old logout responses
 
         if ($inResponseTo !== $expectedInResponseTo) {
-            throw new Exception('unexpected InResponseTo');
+            throw new ResponseException('unexpected InResponseTo');
         }
 
         $destination = $logoutResponseElement->getAttribute('Destination');
         if ($destination !== $expectedSloUrl) {
-            throw new Exception('unexpected Destination');
+            throw new ResponseException('unexpected Destination');
         }
 
         // check the status code
         $statusCode = $logoutResponseDocument->getElement('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode')->getAttribute('Value');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
-            throw new Exception(\sprintf('status error code: %s', $statusCode));
+            throw new ResponseException(\sprintf('status error code: %s', $statusCode));
         }
     }
 }
