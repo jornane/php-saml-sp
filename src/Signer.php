@@ -111,7 +111,10 @@ class Signer
      */
     public static function signRedirect($httpQuery, $privateKey)
     {
-        if (false === \openssl_sign($httpQuery, $signature, $privateKey, self::SIGNER_OPENSSL_ALGO)) {
+        if (false === $privateKeyResource = \openssl_pkey_get_private($privateKey)) {
+            throw new SignerException('invalid private key');
+        }
+        if (false === \openssl_sign($httpQuery, $signature, $privateKeyResource, self::SIGNER_OPENSSL_ALGO)) {
             throw new SignerException('unable to sign');
         }
 
@@ -128,7 +131,10 @@ class Signer
     private static function verifySignature($data, $signature, array $publicKeys)
     {
         foreach ($publicKeys as $publicKey) {
-            if (1 === \openssl_verify($data, $signature, $publicKey, self::SIGNER_OPENSSL_ALGO)) {
+            if (false === $publicKeyResource = \openssl_pkey_get_public($publicKey)) {
+                throw new SignerException('invalid public key');
+            }
+            if (1 === \openssl_verify($data, $signature, $publicKeyResource, self::SIGNER_OPENSSL_ALGO)) {
                 return;
             }
         }
