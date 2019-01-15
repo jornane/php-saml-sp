@@ -110,7 +110,7 @@ class Response
         $nameId = $responseDocument->getElementString('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
         $authnInstant = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext')->getAttribute('AuthnInstant');
 
-        return new Assertion($idpInfo->getEntityId(), $nameId, new DateTime($authnInstant), $attributeList);
+        return new Assertion($idpInfo->getEntityId(), $nameId, new DateTime($authnInstant), $authnContextClassRef, $attributeList);
     }
 
     /**

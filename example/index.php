@@ -23,86 +23,111 @@
  */
 
 require_once \dirname(__DIR__).'/vendor/autoload.php';
-$baseDir = \dirname(__DIR__);
 
-use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\Exception\SamlException;
 use fkooman\SAML\SP\SP;
 use fkooman\SAML\SP\SpInfo;
+use fkooman\SAML\SP\XmlIdpInfoSource;
 
 try {
     \session_name('SID');
     \session_start();
 
-    $idpInfoSource = new ArrayIdpInfoSource(
-        [
-            'http://localhost:8080/metadata.php' => [
-                'ssoUrl' => 'http://localhost:8080/sso.php',
-                'sloUrl' => 'http://localhost:8080/slo.php',
-                'publicKeys' => ['MIIEBzCCAm+gAwIBAgIUcIRtCxY3eLWX+LdiAYSN3wfotb0wDQYJKoZIhvcNAQELBQAwEzERMA8GA1UEAwwIU0FNTCBJZFAwHhcNMTgxMjI2MDkzMzQ2WhcNMjgxMTAzMDkzMzQ2WjATMREwDwYDVQQDDAhTQU1MIElkUDCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAMCKe4GcjMlArsLJLz6JoNQtMre/ENnUnzVldTpbg4IN0fdZNzXtru+pn8WNugNgK2Xip8eePf2CFwf4jKqnPdIV46VnuumMQxnXuv5ZgoWrIa2Siz8r8GiLWxOU14BFReaR49kYGTfM5S85bSp+c6aQg0R79uCDzMTo47+W5/UIObpJy9BSDPORgSB0Z/QWTv7G1sk3ETP4LBTu98cfFEL9vIbA8p9ZJI5mP35/vCT57EODoQLpbaOUmEyZP0P9eIX83KFoQd/FH6n3gScTHjTd5KQ4Mx0fAyPuWEHL3THaAPNAhy0ZyhceWFDxDjakXDgbpchDvvlesbHxnAHx57wAYeceyJZrjGj+fzCtbrXXdFYE7lUp4Y2GoBAhUrzXwqcW+zougwBhPTuWy3KBnFUrCYmGwqKMAdqKbXtoMz0e50boxeIn/t9vwRZVHvSLHtW/6VCjWR69vcUcBsjcBDTpj0L6++8Xd+c7AFLFkY0LKTEIdYIa0SuNH1ekjJiKJQIDAQABo1MwUTAdBgNVHQ4EFgQUlLVXzf5MmAQkld7/gbis0isR8skwHwYDVR0jBBgwFoAUlLVXzf5MmAQkld7/gbis0isR8skwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAYEARJIbFgB3XuBoK9k6EzUuce1Q7IvhnorjVrfKUM7rL2plQ6p24Eagqzh2O8S4O2AHaHo5fc/FItQ0XSWAQeOBpYR5fs994ZAknVT0NZV0We20Dn7JcIBf9EgRvCJGKjfxUlQOQfJ6B1EbsouGaF17FOfUKb03UqmB5kyTX2b9HJj96rW/nXzxQ5OsqJ7PlDXLxz6GVf5urpvs66mUIPR67qKTIOXNUz9rgOVZ80MiifdXOB60u2a9QraC1++g8ZSEn+ROm+pGzPMSXAVmnehDoquA7w/1FPz4OachJEuvajGqENjQX+lDjWTkeozkAFOw0C51unjOCNwfaFxzBH9YulLcpMKNEoXawIXc8RZhyMktL2zZ3y0QDKY/qkDhCE+Nf1mLiK5byyUM5dlXw9JVKcu9EGvYfm04ONZVV1g/idAVJ3WxnNtE5ednATZTI4EzomnYzfvZevqViX4SBVast2396LqpxJgWQ8VYCAwYUssqQe/ZWSIhhwzb61QIqg5N'],
-            ],
-
-            'https://vpn.tuxed.net/simplesaml/saml2/idp/metadata.php' => [
-                'ssoUrl' => 'https://vpn.tuxed.net/simplesaml/saml2/idp/SSOService.php',
-                'sloUrl' => 'https://vpn.tuxed.net/simplesaml/saml2/idp/SingleLogoutService.php',
-                'publicKeys' => ['MIIDVzCCAj+gAwIBAgIJAJnLmzXGE2RnMA0GCSqGSIb3DQEBCwUAMEIxCzAJBgNVBAYTAlhYMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0RlZmF1bHQgQ29tcGFueSBMdGQwHhcNMTkwMTAyMjIxMzE4WhcNMjkwMTAxMjIxMzE4WjBCMQswCQYDVQQGEwJYWDEVMBMGA1UEBwwMRGVmYXVsdCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8IVa3PHdZS22uycpiQejtlCV9ZZMALq70MLbrRXZuVPmRIT6+04ZeL3dZeF/jiqz/Lh3V8Kcuxin2ytVX9k+2+n8/PZivF3+jRuQp855oNP9MPTvL9aLIQMfzj7ldGnzRTfhVgSlL/OmwO/okoadbGzppteYgYxGxyF6QVCEmFegKsbznMKDnUwZ22jW572UP0yKBmXLl7WHO2Pz5D17NPDUbO5cVrPzXtaVDvVJ6ZHipq7WI1x6I9Erdys9R+0sEtsGt1+GFdyvnv943HK9IIjykLJaO9ByoJfD3yXoLQysTf6Yb0dfQR58cyHbXv89KPF3bRJGr0tpA2bpCTFIBQIDAQABo1AwTjAdBgNVHQ4EFgQUnmfNpVU35yfya2SMM69IoBqIGs4wHwYDVR0jBBgwFoAUnmfNpVU35yfya2SMM69IoBqIGs4wDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAAyoj4qVhbQQRn3C0aslZJf/GziSVOWrYze4nxGsw2AUtbwDFq38Ohb4dsKWVk7LM7pxsrflfpCgIHr8bNxZ1xQiRsotQLqGHX3CAbFeTWjqZuxbv1wyILYb85/EUUGx76u+DK8NjDwfimaXKJuZwVh0+STygi1TgX9e947I4eHu2/SwXX/clj2fg0z6UZ6NpyTj9ViLe6S9uJtp86eHwPiMUYqb8L6SuiHAmSCSXKpzidSeUTHvyzh8k2rZDxvV2iE5eC20E9yaHwqb2EUD9nkzq2PEg8AZ5GQ6Dv+t2jD/I5xY6IDWgaJdaiGtu/2l3BINxINGqOM7hIbEjyUcdmA=='],
-            ],
-        ]
-    );
-
+    // load the IdP metadata from XML file
+    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/localhost.xml');
+    // we skip the "discovery" and directly configure the entityID of the IdP
     $idpEntityId = 'http://localhost:8080/metadata.php';
-//    $idpEntityId = 'https://vpn.tuxed.net/simplesaml/saml2/idp/metadata.php';
+
+    // the eduPersonEntitlement required for access to the "admin"
+    $entitlementAttribute = 'urn:oid:1.3.6.1.4.1.5923.1.1.1.7';
+    $adminEntitlement = 'urn:example:admin';
+//    $adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken';
+    $adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport';
+
+    // after authentication, we want to come back here...
     $relayState = 'http://localhost:8081/';
+    // this is us
     $spInfo = new SpInfo(
         'http://localhost:8081/metadata',
         'http://localhost:8081/acs',
         'http://localhost:8081/slo',
-        \file_get_contents('sp.key'),
-        \file_get_contents('sp.crt')
+        \file_get_contents('sp.key'), // used to sign AuthnRequest/LogoutRequest
+        \file_get_contents('sp.crt')  // used to provide in metadata
     );
 
     $sp = new SP($spInfo, $idpInfoSource);
 
     $pathInfo = \array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '/';
-
     switch ($pathInfo) {
+        // landing page
         case '/':
             if (false === $samlAssertion = $sp->getAssertion()) {
                 // not logged in, show login button
                 echo '<a href="login"><button>Login</button></a>';
             } else {
-                echo '<pre>';
                 echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
+                echo '<pre>';
                 foreach ($samlAssertion->getAttributes() as $k => $v) {
                     echo $k.': '.\implode(',', $v).PHP_EOL;
                 }
                 echo '</pre>';
-                echo '<a href="upgrade"><button>Upgrade</button></a><br>';
-                echo '<a href="logout"><button>Logout</button></a>';
+                echo '<a href="admin"><button>Admin</button></a><a href="logout"><button>Logout</button></a>';
             }
             break;
 
+        // user triggers "login"
         case '/login':
             \http_response_code(302);
-            \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState, [])));       // XXX optional params? limit them to actual parameters, not an array?!
+            \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState)));
             break;
 
-        case '/upgrade':
-            $authOptions = [
-                'AuthnContextClassRef' => [
-                    'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransportZ',
-                ],
-//                'ForceAuthn' => true,
-            ];
-            \http_response_code(302);
-            \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState, $authOptions)));
+        // in order to access the admin, the user needs to have a certain
+        // "entitlement" *AND* be authenticated using a "TimeSyncToken
+        case '/admin':
+            if (false === $samlAssertion = $sp->getAssertion()) {
+                // not logged in, show login button
+                echo '<a href="login"><button>Login</button></a>';
+            } else {
+                $samlAttributes = $samlAssertion->getAttributes();
+                if (!\array_key_exists($entitlementAttribute, $samlAttributes)) {
+                    \http_response_code(403);
+                    echo \sprintf('[403] required attribute "%s" not available from IdP', $entitlementAttribute);
+                } elseif (!\in_array($adminEntitlement, $samlAttributes[$entitlementAttribute], true)) {
+                    \http_response_code(403);
+                    echo \sprintf('[403] required attribute value "%s" not available for this user', $adminEntitlement);
+                } else {
+                    // make sure we have the correct AuthnContext?
+                    if ($adminAuthnContext !== $samlAssertion->getAuthnContext()) {
+                        \http_response_code(302);
+                        \header(
+                            \sprintf(
+                                'Location: %s',
+                                $sp->login(
+                                    $idpEntityId,
+                                    $relayState,
+                                    [
+                                        'AuthnContextClassRef' => [
+                                            $adminAuthnContext,
+                                        ],
+                                    ]
+                                )
+                            )
+                        );
+                    }
+                    // all conditions fulfilled!
+                    echo 'Welcome Admin!';
+                    echo '<a href="logout"><button>Logout</button></a>';
+                }
+            }
             break;
 
+        // user triggers "logout"
         case '/logout':
             \http_response_code(302);
             \header(\sprintf('Location: %s', $sp->logout($relayState)));
             break;
 
+        // callback from IdP containing the SAML "Response"
         case '/acs':
             // listen only for POST HTTP request
             $samlResponse = $_POST['SAMLResponse'];
@@ -111,12 +136,14 @@ try {
             \header(\sprintf('Location: %s', $_POST['RelayState']));
             break;
 
+        // callback from IdP containing the SAML "LogoutResponse"
         case '/slo':
             $sp->handleLogoutResponse($_GET['SAMLResponse'], $_GET['RelayState'], $_GET['Signature']);
             \http_response_code(302);
             \header(\sprintf('Location: %s', $_GET['RelayState']));
             break;
 
+        // exposes the SP metadata
         case '/metadata':
             \header('Content-Type: application/samlmetadata+xml');
             echo $sp->metadata();

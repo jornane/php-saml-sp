@@ -164,6 +164,7 @@ EOF;
             'http://localhost:8080/metadata.php',
             '<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>',
             new DateTime('2019-01-02T20:05:33Z'),
+            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
             [
                 'urn:oid:0.9.2342.19200300.100.1.1' => [
                     'foo',
