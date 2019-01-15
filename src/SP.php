@@ -104,7 +104,7 @@ class SP
      */
     public function login($idpEntityId, $relayState, array $authnContextClassRef = [], $forceAuthn = false)
     {
-        $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
+        $requestId = \sprintf('_%s', Hex::encode($this->random->requestId()));
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
@@ -186,7 +186,7 @@ class SP
             return $relayState;
         }
 
-        $requestId = \sprintf('_%s', Hex::encode($this->random->get(16)));
+        $requestId = \sprintf('_%s', Hex::encode($this->random->requestId()));
         $logoutRequest = $this->tpl->render(
             'LogoutRequest',
             [

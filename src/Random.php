@@ -27,12 +27,10 @@ namespace fkooman\SAML\SP;
 class Random implements RandomInterface
 {
     /**
-     * @param int $length
-     *
      * @return string
      */
-    public static function get($length)
+    public static function requestId()
     {
-        return \random_bytes($length);
+        return \random_bytes(16);
     }
 }

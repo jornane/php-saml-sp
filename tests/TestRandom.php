@@ -29,11 +29,9 @@ use fkooman\SAML\SP\RandomInterface;
 class TestRandom implements RandomInterface
 {
     /**
-     * @param int $length
-     *
      * @return string
      */
-    public static function get($length)
+    public static function requestId()
     {
         return '0123456789abcdef';
     }

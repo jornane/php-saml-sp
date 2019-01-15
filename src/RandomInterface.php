@@ -27,9 +27,7 @@ namespace fkooman\SAML\SP;
 interface RandomInterface
 {
     /**
-     * @param int $length
-     *
      * @return string
      */
-    public static function get($length);
+    public static function requestId();
 }
