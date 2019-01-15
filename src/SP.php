@@ -243,7 +243,6 @@ class SP
             return false;
         }
 
-        /* @var Assertion */
         return $this->session->get('_saml_auth_assertion');
     }
 
