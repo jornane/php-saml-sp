@@ -58,6 +58,8 @@ try {
     $sp = new SP($spInfo, $idpInfoSource);
 
     $pathInfo = \array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '/';
+    $requestMethod = $_SERVER['REQUEST_METHOD'];
+
     switch ($pathInfo) {
         // landing page
         case '/':
@@ -129,11 +131,16 @@ try {
 
         // callback from IdP containing the SAML "Response"
         case '/acs':
-            // listen only for POST HTTP request
-            $samlResponse = $_POST['SAMLResponse'];
-            $sp->handleResponse($samlResponse);
-            \http_response_code(302);
-            \header(\sprintf('Location: %s', $_POST['RelayState']));
+            if ('POST' === $requestMethod) {
+                // listen only for POST HTTP request
+                $samlResponse = $_POST['SAMLResponse'];
+                $sp->handleResponse($samlResponse);
+                \http_response_code(302);
+                \header(\sprintf('Location: %s', $_POST['RelayState']));
+            } else {
+                \http_response_code(405);
+                echo '[405] only POST allowed on ACS';
+            }
             break;
 
         // callback from IdP containing the SAML "LogoutResponse"
