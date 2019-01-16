@@ -1,32 +1,33 @@
 # Introduction
 
 This library allows adding SAML Service Provider (SP) support to your PHP web
-application.
+application and interface with SAML Identity Providers (IdPs).
 
-**NOTE**: because this library contains its own minimal implemention of 
-"XML Signature Verification" it **really** requires an audit before it can be 
-used in production! See [Resources](#resources).
+**NOTE**: this library did NOT receive a security audit. Do **NOT** use it in
+production until there is a 1.0 release!
 
 # Why
 
-- simpleSAMLphp is the "swiss army knife", we want only SAML 2.0, and only SP 
-  functionality and no extensive list of features/dependencies;
-- more flexibility dealing with `AuthnContext`;
-- mod_auth_mellon depends on Apache;
-- small code base, no dependencies, easy to audit;
+We want to have a minimal implementation of a SAML SP library. Exiting (PHP) 
+software either has a much larger scope, or tries to conform fully to the SAML 
+specification. This library only tries to implement the minimum amount to work 
+in [SAML2int](https://kantarainitiative.github.io/SAMLprofiles/saml2int.html) 
+scenarios and be secure at the same time. It will never implement unsafe 
+algorithms like SHA1.
 
 # Features
 
 - Only SAML SP functionality
 - Only HTTP-Redirect binding for sending `AuthnRequest` to IdP
 - Only HTTP-POST binding for receiving `Assertion` from IdP
-- Only supports RSA with SHA-256 for verifying signatures
+- Only supports RSA with SHA256 for signing/verifying signatures
 - Always signs `AuthnRequest` and `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
 - Requires `LogoutResponse` to be signed
-- Allow specifying `AuthnContextClassRef` and `ForceAuthn` as part of 
+- Allow specifying `AuthnContextClassRef` and `ForceAuthn` as part of the
   Authentication Request
-- Validates XML schema(s)
+- No dependency on `robrichards/xmlseclibs`
+- Validates XML schema(s) when processing messages
 - Tested with IdPs:
   - simpleSAMLphp
   - OpenConext
@@ -34,6 +35,9 @@ used in production! See [Resources](#resources).
 - Currently ~1000 NCLOC
 
 # X.509
+
+Use the following command to create a self-signed certificate for use with the
+SP library.
 
     $ openssl req \
         -nodes \
@@ -56,29 +60,10 @@ With your browser you can then go to
 SP metadata can be found here: 
 [http://localhost:8081/metadata](http://localhost:8081/metadata).
 
-# TODO
- 
-## 1.0
-
-- add mdui/etc to generated metadata
-- make sure `RelayState` returned is the exact value we sent through session 
-  (?)
-- ability to get SP entityID from SP object (?)
-- figure out if we need to verify "NotBefore" in SAML assertions
-- make sure we get a fresh session (`AuthnInstant`) when using `ForceAuthn`
-- fix issue with NameID when LoA upgrade fails
-
-# 2.0
-
-- SLO (respond to unsolicited LogoutRequest from IdPs)
-- support encrypted Assertions (saml2int)
-  - rsa-oaep-mgf1p
-  - aes-256-gcm
-- Sign SAML metadata
-
 # simpleSAMLphp as IdP
 
-In `metadata/saml20-sp-remote.php` for the SP:
+In your simpleSAMLphp's `metadata/saml20-sp-remote.php`, configure this for 
+this SP library:
 
     'validate.authnrequest' => true,
     'saml20.sign.assertion' => true,
