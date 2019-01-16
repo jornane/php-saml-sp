@@ -208,8 +208,8 @@ EOF;
         </ds:X509Data>
       </ds:KeyInfo>
     </KeyDescriptor>
-    <AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs.php"/>
     <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/logout.php"/>
+    <AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs.php"/>
   </SPSSODescriptor>
 </EntityDescriptor>
 EOF;
