@@ -9,6 +9,7 @@
 - figure out if we need to verify "NotBefore" in SAML assertions
 - make sure we get a fresh session (`AuthnInstant`) when using `ForceAuthn`
 - fix issue with NameID when LoA upgrade fails
+- `SatusCode` can also be 'wrapped' or something, strange!
 
 # 2.0
 
