@@ -11,8 +11,7 @@ used in production! See [Resources](#resources).
 
 - simpleSAMLphp is the "swiss army knife", we want only SAML 2.0, and only SP 
   functionality and no extensive list of features/dependencies;
-- we want to support "at runtime" `AuthnContext` switches, i.e. upgrade to a
-  higher LoA with MFA;
+- more flexibility dealing with `AuthnContext`;
 - mod_auth_mellon depends on Apache;
 - small code base, no dependencies, easy to audit;
 
