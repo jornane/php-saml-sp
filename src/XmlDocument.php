@@ -62,7 +62,9 @@ class XmlDocument
 
         // validate the document against the SAML schema
         $schemaFile = __DIR__.'/schema/saml-schema-protocol-2.0.xsd';
+        $entityLoader = \libxml_disable_entity_loader(false);
         $validateResult = $domDocument->schemaValidate($schemaFile);
+        \libxml_disable_entity_loader($entityLoader);
         if (false === $validateResult) {
             throw new XmlDocumentException(\sprintf('schema validation against "%s" failed', $schemaFile));
         }

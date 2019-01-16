@@ -105,7 +105,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     /**
      * @param \SimpleXMLElement $idpSsoDescriptor
      *
-     * @return null|string
+     * @return string|null
      */
     private static function getSingleLogoutService(SimpleXMLElement $idpSsoDescriptor)
     {

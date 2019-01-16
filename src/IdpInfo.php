@@ -32,7 +32,7 @@ class IdpInfo
     /** @var string */
     private $ssoUrl;
 
-    /** @var null|string */
+    /** @var string|null */
     private $sloUrl;
 
     /** @var array<string> */
@@ -41,7 +41,7 @@ class IdpInfo
     /**
      * @param string        $entityId
      * @param string        $ssoUrl
-     * @param null|string   $sloUrl
+     * @param string|null   $sloUrl
      * @param array<string> $publicKeys
      */
     public function __construct($entityId, $ssoUrl, $sloUrl, array $publicKeys)
@@ -71,7 +71,7 @@ class IdpInfo
     }
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getSloUrl()
     {
