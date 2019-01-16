@@ -41,12 +41,12 @@ try {
     // the eduPersonEntitlement required for access to the "admin"
     $entitlementAttribute = 'urn:oid:1.3.6.1.4.1.5923.1.1.1.7';
     $adminEntitlement = 'urn:example:admin';
-//    $adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken';
     $adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport';
-
+    //$adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken';
     // after authentication, we want to come back here...
     $relayState = 'http://localhost:8081/';
-    // this is us
+
+    // configure the SP
     $spInfo = new SpInfo(
         'http://localhost:8081/metadata',
         'http://localhost:8081/acs',
@@ -54,7 +54,6 @@ try {
         \file_get_contents('sp.key'), // used to sign AuthnRequest/LogoutRequest
         \file_get_contents('sp.crt')  // used to provide in metadata
     );
-
     $sp = new SP($spInfo, $idpInfoSource);
 
     $pathInfo = \array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '/';

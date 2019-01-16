@@ -45,6 +45,17 @@ used in production! See [Resources](#resources).
         -out "sp.crt" \
         -days 3600
 
+# Testing
+
+Modify `example/index.php` and point it to your (test) IdP.
+
+    $ php -S localhost:8081 -t example
+
+With your browser you can then go to 
+[http://localhost:8081/](http://localhost:8081/) and trigger the login. The 
+SP metadata can be found here: 
+[http://localhost:8081/metadata](http://localhost:8081/metadata).
+
 # TODO
  
 ## 1.0
