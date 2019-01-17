@@ -49,16 +49,37 @@ SP library.
         -out "sp.crt" \
         -days 3650
 
-# Testing
+# Example
 
-Modify `example/index.php` and point it to your (test) IdP.
+Two examples are provided in the `example/` directory. In order test them:
 
     $ php -S localhost:8081 -t example
 
+## Simple
+
+The `simple.php` example performs authentication and shows the attributes 
+received from the IdP. It does not support logout at the IdP, but instead 
+performs a "local" logout only.
+
 With your browser you can then go to 
-[http://localhost:8081/](http://localhost:8081/) and trigger the login. The 
-SP metadata can be found here: 
-[http://localhost:8081/metadata](http://localhost:8081/metadata).
+[http://localhost:8081/simple.php](http://localhost:8081/simple.php). The 
+example will redirect immediately to the IdP.
+
+The metadata of the SP can be found at this URL: 
+`http://localhost:8081/simple.php/metadata`
+
+## Full
+
+The `full.php` example also supports logout at the IdP and has an example on
+how to do "entilement" based authorization, as well as "AuthnContext" 
+authorization, for example in MFA deployments.
+
+With your browser you can then go to 
+[http://localhost:8081/full.php](http://localhost:8081/full.php). The example
+will show a "Login" button that will trigger the authentication at the IdP.
+
+The metadata of the SP can be found at this URL: 
+`http://localhost:8081/full.php/metadata`
 
 # simpleSAMLphp as IdP
 
