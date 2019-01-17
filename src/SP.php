@@ -176,13 +176,18 @@ class SP
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
-        $sloUrl = $idpInfo->getSloUrl();
+        $idpSloUrl = $idpInfo->getSloUrl();
 
         // delete the assertion, so we are no longer authenticated
         $this->session->delete('_saml_auth_assertion');
 
-        if (null === $sloUrl) {
+        if (null === $idpSloUrl) {
             // IdP does not support SLO, nothing we can do about it
+            return $relayState;
+        }
+
+        if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
+            // SP does not support SLO, do not redirect to IdP
             return $relayState;
         }
 
@@ -192,7 +197,7 @@ class SP
             [
                 'ID' => $requestId,
                 'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
-                'Destination' => $sloUrl,
+                'Destination' => $idpSloUrl,
                 'Issuer' => $this->spInfo->getEntityId(),
                 // we need the _exact_ (XML) NameID we got during
                 // authentication for the LogoutRequest
@@ -203,7 +208,7 @@ class SP
         $this->session->set('_saml_auth_logout_id', $requestId);
         $this->session->set('_saml_auth_logout_idp', $idpEntityId);
 
-        return self::prepareRequestUrl($sloUrl, $logoutRequest, $relayState, $this->spInfo->getPrivateKey());
+        return self::prepareRequestUrl($idpSloUrl, $logoutRequest, $relayState, $this->spInfo->getPrivateKey());
     }
 
     /**
@@ -215,6 +220,11 @@ class SP
      */
     public function handleLogoutResponse($samlResponse, $relayState, $signature)
     {
+        if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
+            // SP does not support SLO, nothing we can do here...
+            return;
+        }
+
         $idpEntityId = $this->session->get('_saml_auth_logout_idp');
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
@@ -226,7 +236,7 @@ class SP
             $relayState,
             $signature,
             $this->session->get('_saml_auth_logout_id'),
-            $this->spInfo->getSloUrl(),
+            $spSloUrl,
             $idpInfo
         );
 

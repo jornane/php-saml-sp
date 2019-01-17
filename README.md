@@ -47,7 +47,7 @@ SP library.
         -newkey rsa:3072 \
         -keyout "sp.key" \
         -out "sp.crt" \
-        -days 3600
+        -days 3650
 
 # Testing
 

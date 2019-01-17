@@ -33,24 +33,23 @@ try {
     \session_name('SID');
     \session_start();
 
-    // load the IdP metadata from XML file
-    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/localhost.xml');
-    // we skip the "discovery" and directly configure the entityID of the IdP
-    $idpEntityId = 'http://localhost:8080/metadata.php';
+    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/idp.xml');
+    $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
+    //$idpEntityId = 'http://localhost:8080/metadata.php';
+
+    $relayState = 'http://localhost:8081/simple.php';
 
     // the eduPersonEntitlement required for access to the "admin"
     $entitlementAttribute = 'urn:oid:1.3.6.1.4.1.5923.1.1.1.7';
     $adminEntitlement = 'urn:example:admin';
     $adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport';
     //$adminAuthnContext = 'urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken';
-    // after authentication, we want to come back here...
-    $relayState = 'http://localhost:8081/';
 
     // configure the SP
     $spInfo = new SpInfo(
-        'http://localhost:8081/metadata',
-        'http://localhost:8081/acs',
-        'http://localhost:8081/slo',
+        'http://localhost:8081/full.php/metadata',
+        'http://localhost:8081/full.php/acs',
+        'http://localhost:8081/full.php/slo',
         \file_get_contents('sp.key'), // used to sign AuthnRequest/LogoutRequest
         \file_get_contents('sp.crt')  // used to provide in metadata
     );
@@ -60,19 +59,18 @@ try {
     $requestMethod = $_SERVER['REQUEST_METHOD'];
 
     switch ($pathInfo) {
-        // landing page
         case '/':
             if (false === $samlAssertion = $sp->getAssertion()) {
                 // not logged in, show login button
-                echo '<a href="login"><button>Login</button></a>';
+                echo '<a href="full.php/login"><button>Login</button></a>';
             } else {
-                echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
                 echo '<pre>';
+                echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
                 foreach ($samlAssertion->getAttributes() as $k => $v) {
                     echo $k.': '.\implode(',', $v).PHP_EOL;
                 }
                 echo '</pre>';
-                echo '<a href="admin"><button>Admin</button></a><a href="logout"><button>Logout</button></a>';
+                echo '<a href="full.php/admin"><button>Admin</button></a><a href="full.php/logout"><button>Logout</button></a>';
             }
             break;
 
@@ -83,7 +81,7 @@ try {
             break;
 
         // in order to access the admin, the user needs to have a certain
-        // "entitlement" *AND* be authenticated using a "TimeSyncToken
+        // "entitlement" *AND* be authenticated using a certain "AuthnContext"
         case '/admin':
             if (false === $samlAssertion = $sp->getAssertion()) {
                 // not logged in, show login button

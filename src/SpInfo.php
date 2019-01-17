@@ -32,7 +32,7 @@ class SpInfo
     /** @var string */
     private $acsUrl;
 
-    /** @var string */
+    /** @var string|null */
     private $sloUrl;
 
     /** @var string */
@@ -42,11 +42,11 @@ class SpInfo
     private $publicKey;
 
     /**
-     * @param string $entityId
-     * @param string $acsUrl
-     * @param string $sloUrl
-     * @param string $privateKey
-     * @param string $publicKey
+     * @param string      $entityId
+     * @param string      $acsUrl
+     * @param string|null $sloUrl
+     * @param string      $privateKey
+     * @param string      $publicKey
      */
     public function __construct($entityId, $acsUrl, $sloUrl, $privateKey, $publicKey)
     {
@@ -74,7 +74,7 @@ class SpInfo
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getSloUrl()
     {
