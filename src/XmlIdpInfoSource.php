@@ -42,8 +42,8 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         if (false === $this->simpleXml = \simplexml_load_file($metadataFile, 'SimpleXMLElement', LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT)) {
             throw new RuntimeException(\sprintf('unable to read "%s"', $metadataFile));
         }
-        \libxml_disable_entity_loader($entityLoader);
         $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
+        \libxml_disable_entity_loader($entityLoader);
     }
 
     /**
@@ -53,6 +53,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function get($entityId)
     {
+        $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
         $entityInfoResult = $this->simpleXml->xpath(\sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId));
         if (0 !== \count($entityInfoResult)) {
             // we simply return the first entity with this "entityID"
@@ -94,6 +95,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     private static function getSingleSignOnService(SimpleXMLElement $idpSsoDescriptor)
     {
+        $idpSsoDescriptor->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
         $queryResult = $idpSsoDescriptor->xpath('md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
         if (0 === \count($queryResult)) {
             throw new XmlIdpInfoSourceException('entry MUST have at least one SingleSignOnService');
@@ -109,6 +111,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     private static function getSingleLogoutService(SimpleXMLElement $idpSsoDescriptor)
     {
+        $idpSsoDescriptor->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
         $queryResult = $idpSsoDescriptor->xpath('md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
         if (0 === \count($queryResult)) {
             return null;

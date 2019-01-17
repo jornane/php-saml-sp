@@ -64,4 +64,12 @@ EOF;
         $this->assertSame('https://idp.tuxed.net/slo.php', $idpInfo->getSloUrl());
         $this->assertSame($pemCert, $idpInfo->getPublicKeys()[0]);
     }
+
+    public function testNoNsPrefix()
+    {
+        $xmlIdpInfoSource = new XmlIdpInfoSource(__DIR__.'/data/x509idp.moonshot.utr.surfcloud.nl_metadata.xml');
+        $idpInfo = $xmlIdpInfoSource->get('https://x509idp.moonshot.utr.surfcloud.nl/metadata');
+        $this->assertSame('https://x509idp.moonshot.utr.surfcloud.nl/metadata', $idpInfo->getEntityId());
+        $this->assertSame('https://x509idp.moonshot.utr.surfcloud.nl/sso', $idpInfo->getSsoUrl());
+    }
 }

@@ -202,4 +202,21 @@ class ResponseTest extends TestCase
             new IdpInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', null, [\file_get_contents(__DIR__.'/data/SURFconext.crt')])
         );
     }
+
+    /**
+     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedExceptionMessage digest method "http://www.w3.org/2000/09/xmldsig#sha1" not supported
+     */
+    public function testSha1()
+    {
+        $response = new Response(new DateTime('2019-01-16T23:47:31Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/x509idp.moonshot.utr.surfcloud.nl.xml');
+        $response->verify(
+            $samlResponse,
+            '_3c35f56a7156b0805fbccb717cc15194',
+            'http://localhost:8081/acs',
+            [],
+            new IdpInfo('https://x509idp.moonshot.utr.surfcloud.nl/metadata', 'https://x509idp.moonshot.utr.surfcloud.nl/sso', null, [\file_get_contents(__DIR__.'/data/x509idp.moonshot.utr.surfcloud.nl.crt')])
+        );
+    }
 }

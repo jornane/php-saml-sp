@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_6588f18792b10e95de2cd3d77af8586bef4d1c4ae0" InResponseTo="_3c35f56a7156b0805fbccb717cc15194" Version="2.0" IssueInstant="2019-01-16T23:47:31Z" Destination="http://localhost:8081/acs">
+ <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">https://x509idp.moonshot.utr.surfcloud.nl/metadata</saml:Issuer>
+ <samlp:Status xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+  <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+ </samlp:Status>
+ <saml:Assertion Version="2.0" ID="pfx098bcf47-56bb-383b-d68a-2a738b72d697" IssueInstant="2019-01-16T23:47:31Z">
+  <saml:Issuer>https://x509idp.moonshot.utr.surfcloud.nl/metadata</saml:Issuer>
+   <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+  <ds:Reference URI="#pfx098bcf47-56bb-383b-d68a-2a738b72d697"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>UqC7nZG/DhvrMYioVv5HOWDjVU4=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>sYizapNbFGcm+JQeBCY2uzrKyyB2K+qzkcqIXwpDXYndUEAO9CN2WuOdDxz8zx1EXCdy8ZhRZ7/YvaoqrtoQrUszwvXObk1134dnoplecy5gqyLwYeEG3SJ7b75lkckGO+QmbRhaNtlj8ECriRZ5KqMZQm1zl7AhgB2fHnc0qqpKq8jR2mvyDvrpYpUhcbzD3CHiUOJUp62OHRDvrSRG1LYqqrDJSonyWivq/u9FH+1n/eMAvYyrQJv+kMYt6PYUXuRQykoYuMZ0eTHkXw3rW9mUcrB6VRLLN6BmvRiQu8PoWtQ1qau6FfIV1aLpiGarPtDA1AsopeXCbxTvPZjkRQ==</ds:SignatureValue>
+<ds:KeyInfo><ds:X509Data><ds:X509Certificate>MIIDATCCAemgAwIBAgIJAJOVmIlUjnucMA0GCSqGSIb3DQEBCwUAMBcxFTATBgNVBAMMDFNBTUwgc2lnbmluZzAeFw0xNzA0MDYxNTA3NDlaFw0yNzA0MDQxNTA3NDlaMBcxFTATBgNVBAMMDFNBTUwgc2lnbmluZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMUyn5y9afBZXyl42NEcHr/xM3ULf4FQp6Wp9xNtE60bAt/tHaT2JzdzvDeqMWx1vcL64zeHejDi1wdUIFB5AJqufD4eyn34BF/2CPNMymZ7jL2bJCCzA0PK6e2agxiB9GGvoAnxd4pd48+0B08Y3dM+uxz+88Ncpu0WzZBGXEUf1Fe3I9yQEad5NmkWQdxEMXxZ68O/Ub8Z1TLpuALmJEfzeTWF7Odnks51WSDLmH1ntd+hqkQVKpebJgnQDIs9fCn2fs25t4yGR91G7HP4BI3YlZmhgdA7F0fDPQGHSs3PeKGyYW4TOdH6kot14lq0OESzeAXHiEGWF/+4oRimLV8CAwEAAaNQME4wHQYDVR0OBBYEFI2nv4PPG/+B3PmzPwPit1V3xck6MB8GA1UdIwQYMBaAFI2nv4PPG/+B3PmzPwPit1V3xck6MAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAKgvuAM2qSGPBmO8IVo8m4REg4kG68FWNLxFawZJMURE/aNgd295aU3i2d6zu1bpb0L3xtSg+z6rvo8YBA8gXUSh009GhCzHS+x4tnMxxzT3QytVfzEQaiT8bCZS1h/mTyRU3K8RyCT0XL24F/Hasfd7253fCV8oeZTbIAK6A+OZEFt6Sk5UDGXVbr9Gp58gpk2UzxetIkcIMwhbIYHu8nXjyBOvxpm1+DsjfyHcXHeICX9fffictfwwQpDD28qLjefLF2OmGi9ghx8fBkrNXWIL4qO6cPonEh95WFCJM75ppXpzWXlI2ebafhUsZ3rGWQJopfUsaOF3FRGnA+46tvo=</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml:Subject>
+    <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName">CN=test</saml:NameID>
+    <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+     <saml:SubjectConfirmationData NotOnOrAfter="2019-01-16T23:52:31Z" InResponseTo="_3c35f56a7156b0805fbccb717cc15194" Recipient="http://localhost:8081/acs"/></saml:SubjectConfirmation>
+   </saml:Subject>
+   <saml:Conditions NotBefore="2019-01-16T23:47:01Z" NotOnOrAfter="2019-01-16T23:52:31Z">
+    <saml:AudienceRestriction>
+     <saml:Audience>http://localhost:8081/metadata</saml:Audience>
+    </saml:AudienceRestriction>
+   </saml:Conditions>
+
+  <saml:AuthnStatement AuthnInstant="2019-01-16T23:47:31Z" SessionIndex="1">
+   <saml:AuthnContext>
+    <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:X509</saml:AuthnContextClassRef>
+   </saml:AuthnContext>
+  </saml:AuthnStatement>
+
+  <saml:AttributeStatement>
+     <saml:Attribute Name="CN">
+    <saml:AttributeValue>test</saml:AttributeValue>
+   </saml:Attribute>
+    </saml:AttributeStatement>
+
+ </saml:Assertion>
+</samlp:Response>
