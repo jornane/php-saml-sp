@@ -73,56 +73,18 @@ class XmlDocument
     }
 
     /**
-     * @param string $xPathQuery
-     *
-     * @return bool
+     * @return \DOMXPath
      */
-    public function hasElement($xPathQuery)
+    public function getDomXPath()
     {
-        $queryResult = $this->domXPath->query($xPathQuery);
-
-        return 1 === $queryResult->length;
+        return $this->domXPath;
     }
 
     /**
-     * @param string $xPathQuery
-     *
-     * @return \DOMElement
+     * @return \DOMDocument
      */
-    public function getElement($xPathQuery)
+    public function getDomDocument()
     {
-        $queryResult = $this->domXPath->query($xPathQuery);
-        if (1 !== $queryResult->length) {
-            throw new XmlDocumentException(\sprintf('expected 1 element for query "%s", got %d elements', $xPathQuery, $queryResult->length));
-        }
-
-        $resultElement = $queryResult->item(0);
-        if (!($resultElement instanceof \DOMElement)) {
-            throw new XmlDocumentException('expected DOMElement');
-        }
-
-        return $resultElement;
-    }
-
-    /**
-     * Extract a portion of an XML document as string.
-     *
-     * @param string $xPathQuery
-     *
-     * @return string
-     */
-    public function getElementString($xPathQuery)
-    {
-        return $this->domDocument->saveXML($this->getElement($xPathQuery));
-    }
-
-    /**
-     * @param string $xPathQuery
-     *
-     * @return \DOMNodeList
-     */
-    public function getElements($xPathQuery)
-    {
-        return $this->domXPath->query($xPathQuery);
+        return $this->domDocument;
     }
 }

@@ -54,32 +54,31 @@ class LogoutResponse
     public function verify($samlResponse, $relayState, $signature, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
         Signer::verifyRedirect($samlResponse, $relayState, $signature, $idpInfo->getPublicKeys());
-
         $logoutResponseDocument = XmlDocument::fromString(\gzinflate(Base64::decode($samlResponse)));
-        $logoutResponseElement = $logoutResponseDocument->getElement('/samlp:LogoutResponse');
-        $inResponseTo = $logoutResponseElement->getAttribute('InResponseTo');
+        $domXPath = $logoutResponseDocument->getDomXPath();
 
         // the LogoutResponse Issuer MUST be IdP entityId
-        $issuerElement = $logoutResponseDocument->getElement('/samlp:LogoutResponse/saml:Issuer');
-        if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
+        $issuer = $domXPath->evaluate('string(/samlp:LogoutResponse/saml:Issuer)');
+        if ($idpInfo->getEntityId() !== $issuer) {
             throw new ResponseException('unexpected Issuer');
         }
 
-        // XXX do not accept old logout responses
-
+        $inResponseTo = $domXPath->evaluate('string(/samlp:LogoutResponse/@InResponseTo)');
         if ($inResponseTo !== $expectedInResponseTo) {
             throw new ResponseException('unexpected InResponseTo');
         }
 
-        $destination = $logoutResponseElement->getAttribute('Destination');
+        $destination = $domXPath->evaluate('string(/samlp:LogoutResponse/@Destination)');
         if ($destination !== $expectedSloUrl) {
             throw new ResponseException('unexpected Destination');
         }
 
         // check the status code
-        $statusCode = $logoutResponseDocument->getElement('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode')->getAttribute('Value');
+        $statusCode = $domXPath->evaluate('string(/samlp:LogoutResponse/samlp:Status/samlp:StatusCode/@Value)');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
             throw new ResponseException(\sprintf('status error code: %s', $statusCode));
         }
+
+        // XXX do not accept old logout responses
     }
 }

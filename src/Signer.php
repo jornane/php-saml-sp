@@ -24,6 +24,8 @@
 
 namespace fkooman\SAML\SP;
 
+use DOMElement;
+use DOMXPath;
 use fkooman\SAML\SP\Exception\SignerException;
 use ParagonIE\ConstantTime\Base64;
 
@@ -35,41 +37,43 @@ class Signer
     const SIGNER_HASH_ALGO = 'sha256';
 
     /**
-     * @param XmlDocument   $xmlDocument
-     * @param string        $signatureRoot
+     * @param \DOMXPath     $domXPath
+     * @param \DOMElement   $domElement
      * @param array<string> $publicKeys
      *
      * @return void
      */
-    public static function verifyPost(XmlDocument $xmlDocument, $signatureRoot, array $publicKeys)
+    public static function verifyPost(DOMXPath $domXPath, DOMElement $domElement, array $publicKeys)
     {
-        $rootElement = $xmlDocument->getElement($signatureRoot);
-        $rootElementId = $rootElement->getAttribute('ID');
-        $referenceUri = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference')->getAttribute('URI');
+        $rootElementId = $domXPath->evaluate('string(self::node()/@ID)', $domElement);
+        $referenceUri = $domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/@URI)', $domElement);
         if (\sprintf('#%s', $rootElementId) !== $referenceUri) {
             throw new SignerException('reference URI does not point to document ID');
         }
 
-        $digestMethod = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestMethod')->getAttribute('Algorithm');
+        $digestMethod = $domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestMethod/@Algorithm)', $domElement);
         if (self::SIGNER_XML_DIGEST_ALGO !== $digestMethod) {
             throw new SignerException(\sprintf('digest method "%s" not supported', $digestMethod));
         }
-        $signatureMethod = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:SignatureMethod')->getAttribute('Algorithm');
+
+        $signatureMethod = $domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:SignatureMethod/@Algorithm)', $domElement);
         if (self::SIGNER_XML_SIG_ALGO !== $signatureMethod) {
             throw new SignerException(\sprintf('signature method "%s" not supported', $signatureMethod));
         }
 
-        $signatureValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignatureValue')->textContent;
-        $digestValue = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue')->textContent;
-
-        $canonicalSignedInfo = $xmlDocument->getElement($signatureRoot.'/ds:Signature/ds:SignedInfo')->C14N(true, false);
-        $signatureElement = $xmlDocument->getElement($signatureRoot.'/ds:Signature');
-        $rootElement->removeChild($signatureElement);
+        $signatureValue = $domXPath->evaluate('string(ds:Signature/ds:SignatureValue)', $domElement);
+        $digestValue = $domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue)', $domElement);
+        $signedInfoElementList = $domXPath->query('ds:Signature/ds:SignedInfo', $domElement);
+        // XXX make sure there is one
+        $canonicalSignedInfo = $signedInfoElementList->item(0)->C14N(true, false);
+        $signatureElementList = $domXPath->query('ds:Signature', $domElement);
+        // XXX make sure there is one
+        $domElement->removeChild($signatureElementList->item(0));
 
         $rootElementDigest = Base64::encode(
             \hash(
                 self::SIGNER_HASH_ALGO,
-                $rootElement->C14N(true, false),
+                $domElement->C14N(true, false),
                 true
             )
         );

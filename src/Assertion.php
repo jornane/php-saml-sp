@@ -31,7 +31,7 @@ class Assertion
     /** @var string */
     private $issuer;
 
-    /** @var string */
+    /** @var string|null */
     private $nameId;
 
     /** @var \DateTime */
@@ -45,7 +45,7 @@ class Assertion
 
     /**
      * @param string                      $issuer
-     * @param string                      $nameId
+     * @param string|null                 $nameId
      * @param \DateTime                   $authnInstant
      * @param string                      $authnContext
      * @param string                      $authnContextClassRef
@@ -69,7 +69,7 @@ class Assertion
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getNameId()
     {

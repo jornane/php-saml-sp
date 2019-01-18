@@ -171,7 +171,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage neither the response, nor the assertion was signed
+     * @expectedExceptionMessage neither the samlp:Response, nor the saml:Assertion was signed
      */
     public function testNotSigned()
     {
@@ -187,8 +187,8 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \fkooman\SAML\SP\Exception\XmlDocumentException
-     * @expectedExceptionMessage expected 1 element for query "/samlp:Response/saml:Assertion", got 2 elements
+     * @expectedException \fkooman\SAML\SP\Exception\ResponseException
+     * @expectedExceptionMessage we only support 1 assertion in the samlp:Response
      */
     public function testTwoAssertions()
     {
@@ -239,6 +239,6 @@ class ResponseTest extends TestCase
             ],
             $samlAssertion->getAttributes()
         );
-        $this->assertSame('<NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">WrlwOmM5zcufWzakxkurPqQnZtvlDoxJt6kwJvf950M=</NameID>', $samlAssertion->getNameId());
+        $this->assertSame('<saml:NameID xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">WrlwOmM5zcufWzakxkurPqQnZtvlDoxJt6kwJvf950M=</saml:NameID>', $samlAssertion->getNameId());
     }
 }

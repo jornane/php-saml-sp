@@ -25,6 +25,7 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
+use DOMXpath;
 use fkooman\SAML\SP\Exception\ResponseException;
 
 class Response
@@ -52,75 +53,91 @@ class Response
     public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromString($samlResponse);
+        $domXPath = $responseDocument->getDomXPath();
+        $domDocument = $responseDocument->getDomDocument();
+
         $signerCount = 0;
-        if ($responseDocument->hasElement('/samlp:Response/ds:Signature')) {
+
+        if (1 === (int) $domXPath->evaluate('count(/samlp:Response/ds:Signature)')) {
+            $responseElement = $domXPath->query('/samlp:Response')->item(0);
             // samlp:Response is signed
-            Signer::verifyPost($responseDocument, '/samlp:Response', $idpInfo->getPublicKeys());
+            Signer::verifyPost($domXPath, $responseElement, $idpInfo->getPublicKeys());
             ++$signerCount;
         }
 
         // check the status code
-        $statusCode = $responseDocument->getElement('/samlp:Response/samlp:Status/samlp:StatusCode')->getAttribute('Value');
+        $statusCode = $domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/@Value)');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
             throw new ResponseException(\sprintf('status error code: %s', $statusCode));
         }
 
-        // make sure we have exactly 1 assertion
-        // XXX introduce count method?!
-        $responseDocument->getElement('/samlp:Response/saml:Assertion');
+        // make sure there is only 1 saml:Assertion
+        if (1 !== (int) $domXPath->evaluate('count(/samlp:Response/saml:Assertion)')) {
+            throw new ResponseException('we only support 1 assertion in the samlp:Response');
+        }
 
-        if ($responseDocument->hasElement('/samlp:Response/saml:Assertion/ds:Signature')) {
+        if (1 === (int) $domXPath->evaluate('count(/samlp:Response/saml:Assertion/ds:Signature)')) {
             // saml:Assertion is signed
-            Signer::verifyPost($responseDocument, '/samlp:Response/saml:Assertion', $idpInfo->getPublicKeys());
+            $assertionElement = $domXPath->query('/samlp:Response/saml:Assertion')->item(0);
+            Signer::verifyPost($domXPath, $assertionElement, $idpInfo->getPublicKeys());
             ++$signerCount;
         }
 
         if (0 === $signerCount) {
-            throw new ResponseException('neither the response, nor the assertion was signed');
+            throw new ResponseException('neither the samlp:Response, nor the saml:Assertion was signed');
         }
 
-        // the Assertion Issuer MUST be IdP entityId
-        $issuerElement = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:Issuer');
-        if ($idpInfo->getEntityId() !== $issuerElement->textContent) {
+        // the saml:Assertion Issuer MUST be IdP entityId
+        $issuerElement = $domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Issuer)');
+        if ($idpInfo->getEntityId() !== $issuerElement) {
             throw new ResponseException('unexpected Issuer');
         }
 
-        $subjectConfirmationDataElement = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData');
-        $notOnOrAfter = new DateTime($subjectConfirmationDataElement->getAttribute('NotOnOrAfter'));
+        $notOnOrAfter = new DateTime($domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)'));
         if ($this->dateTime >= $notOnOrAfter) {
             throw new ResponseException('notOnOrAfter expired');
         }
-        if ($expectedAcsUrl !== $subjectConfirmationDataElement->getAttribute('Recipient')) {
+        $recipient = $domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@Recipient)');
+        if ($expectedAcsUrl !== $recipient) {
             throw new ResponseException('unexpected Recipient');
         }
-        if ($expectedInResponseTo !== $subjectConfirmationDataElement->getAttribute('InResponseTo')) {
+        $inResponseTo = $domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@InResponseTo)');
+        if ($expectedInResponseTo !== $inResponseTo) {
             throw new ResponseException('unexpected InResponseTo');
         }
 
-        $attributeList = self::extractAttributes($responseDocument);
-        $authnContextClassRef = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef')->textContent;
+        $authnInstant = new DateTime($domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/@AuthnInstant)'));
 
+        $authnContextClassRef = $domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef)');
         if (0 !== \count($authnContext)) {
-            // we requested a particular authnContext, make sure we got it
+            // we requested a particular AuthnContext, make sure we got it
             if (!\in_array($authnContextClassRef, $authnContext, true)) {
                 throw new ResponseException(\sprintf('we wanted any of "%s"', \implode(', ', $authnContext)));
             }
         }
 
-        $nameId = $responseDocument->getElementString('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
-        $authnInstant = $responseDocument->getElement('/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext')->getAttribute('AuthnInstant');
+        $nameId = null;
+        $domNodeList = $domXPath->query('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
+        if (null !== $nameIdElement = $domNodeList->item(0)) {
+            // we got a NameID
+            // set the "prefix" to "saml" as that is what we use in LogoutRequests
+            $nameIdElement->prefix = 'saml';
+            $nameId = $domDocument->saveXML($nameIdElement);
+        }
 
-        return new Assertion($idpInfo->getEntityId(), $nameId, new DateTime($authnInstant), $authnContextClassRef, $attributeList);
+        $attributeList = self::extractAttributes($domXPath);
+
+        return new Assertion($idpInfo->getEntityId(), $nameId, $authnInstant, $authnContextClassRef, $attributeList);
     }
 
     /**
-     * @param XmlDocument $xmlDocument
+     * @param \DOMXPath $domXPath
      *
      * @return array<string,array<string>>
      */
-    private static function extractAttributes(XmlDocument $xmlDocument)
+    private static function extractAttributes(DOMXPath $domXPath)
     {
-        $attributeValueElements = $xmlDocument->getElements(
+        $attributeValueElements = $domXPath->query(
             '/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute/saml:AttributeValue'
         );
         $attributeList = [];
