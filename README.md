@@ -10,10 +10,9 @@ production until there is a 1.0 release!
 
 We want to have a minimal implementation of a SAML SP library. Exiting (PHP) 
 software either has a much larger scope, or tries to conform fully to the SAML 
-specification. This library only tries to implement the minimum amount to work 
-in [SAML2int](https://kantarainitiative.github.io/SAMLprofiles/saml2int.html) 
-scenarios and be secure at the same time. It will never implement unsafe 
-algorithms like SHA1.
+specification. This library only tries to implement the minimum amount to work
+with deployed IdPs and be secure at all times. It will never support insecure
+algorithms like (RSA)-SHA1.
 
 # Features
 
@@ -21,18 +20,17 @@ algorithms like SHA1.
 - Only HTTP-Redirect binding for sending `AuthnRequest` to IdP
 - Only HTTP-POST binding for receiving `Assertion` from IdP
 - Only supports RSA with SHA256 for signing/verifying signatures
-- Always signs `AuthnRequest` and `LogoutRequest`
+- Always signs `AuthnRequest`
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
-- Requires `LogoutResponse` to be signed
 - Allow specifying `AuthnContextClassRef` and `ForceAuthn` as part of the
-  Authentication Request
+  `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
-- Validates XML schema(s) when processing messages
+- Validates XML schema(s) when processing XML messages
 - Tested with IdPs:
   - simpleSAMLphp
   - OpenConext
   - FrkoIdP
-- Currently ~1000 NCLOC
+- Currently less than 1000 NCLOC
 
 # X.509
 
@@ -61,25 +59,12 @@ The `simple.php` example performs authentication and shows the attributes
 received from the IdP. It does not support logout at the IdP, but instead 
 performs a "local" logout only.
 
-With your browser you can then go to 
+With your browser you can go to 
 [http://localhost:8081/simple.php](http://localhost:8081/simple.php). The 
 example will redirect immediately to the IdP.
 
 The metadata of the SP can be found at this URL: 
 `http://localhost:8081/simple.php/metadata`
-
-## Full
-
-The `full.php` example also supports logout at the IdP and has an example on
-how to do "entilement" based authorization, as well as "AuthnContext" 
-authorization, for example in MFA deployments.
-
-With your browser you can then go to 
-[http://localhost:8081/full.php](http://localhost:8081/full.php). The example
-will show a "Login" button that will trigger the authentication at the IdP.
-
-The metadata of the SP can be found at this URL: 
-`http://localhost:8081/full.php/metadata`
 
 # simpleSAMLphp as IdP
 
@@ -88,8 +73,6 @@ this SP library:
 
     'validate.authnrequest' => true,
     'saml20.sign.assertion' => true,
-    'sign.logout' => true,
-    'validate.logout' => true,
 
 # Resources
 
