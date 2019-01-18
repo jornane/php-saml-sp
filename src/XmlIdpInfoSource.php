@@ -60,7 +60,6 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             return new IdpInfo(
                 $entityId,
                 self::getSingleSignOnService($entityInfoResult[0]),
-                self::getSingleLogoutService($entityInfoResult[0]),
                 self::getPublicKey($entityInfoResult[0])
             );
         }
@@ -80,7 +79,6 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             $idpInfoList[] = new IdpInfo(
                 $entityId,
                 self::getSingleSignOnService($entityInfoResult[0]),
-                self::getSingleLogoutService($entityInfoResult[0]),
                 self::getPublicKey($entityInfoResult[0])
             );
         }
@@ -99,22 +97,6 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         $queryResult = $idpSsoDescriptor->xpath('md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
         if (0 === \count($queryResult)) {
             throw new XmlIdpInfoSourceException('entry MUST have at least one SingleSignOnService');
-        }
-
-        return (string) $queryResult[0]['Location'];
-    }
-
-    /**
-     * @param \SimpleXMLElement $idpSsoDescriptor
-     *
-     * @return string|null
-     */
-    private static function getSingleLogoutService(SimpleXMLElement $idpSsoDescriptor)
-    {
-        $idpSsoDescriptor->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-        $queryResult = $idpSsoDescriptor->xpath('md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
-        if (0 === \count($queryResult)) {
-            return null;
         }
 
         return (string) $queryResult[0]['Location'];

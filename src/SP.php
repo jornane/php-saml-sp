@@ -172,76 +172,10 @@ class SP
             return $relayState;
         }
 
-        $idpEntityId = $samlAssertion->getIssuer();
-        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
-            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
-        }
-        $idpSloUrl = $idpInfo->getSloUrl();
-
         // delete the assertion, so we are no longer authenticated
         $this->session->delete('_saml_auth_assertion');
 
-        if (null === $idpSloUrl) {
-            // IdP does not support SLO, nothing we can do about it
-            return $relayState;
-        }
-
-        if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
-            // SP does not support SLO, do not redirect to IdP
-            return $relayState;
-        }
-
-        $requestId = \sprintf('_%s', Hex::encode($this->random->requestId()));
-        $logoutRequest = $this->tpl->render(
-            'LogoutRequest',
-            [
-                'ID' => $requestId,
-                'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
-                'Destination' => $idpSloUrl,
-                'Issuer' => $this->spInfo->getEntityId(),
-                // we need the _exact_ (XML) NameID we got during
-                // authentication for the LogoutRequest
-                'NameID' => $samlAssertion->getNameId(),
-            ]
-        );
-
-        $this->session->set('_saml_auth_logout_id', $requestId);
-        $this->session->set('_saml_auth_logout_idp', $idpEntityId);
-
-        return self::prepareRequestUrl($idpSloUrl, $logoutRequest, $relayState, $this->spInfo->getPrivateKey());
-    }
-
-    /**
-     * @param string $samlResponse
-     * @param string $relayState
-     * @param string $signature
-     *
-     * @return void
-     */
-    public function handleLogoutResponse($samlResponse, $relayState, $signature)
-    {
-        if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
-            // SP does not support SLO, nothing we can do here...
-            return;
-        }
-
-        $idpEntityId = $this->session->get('_saml_auth_logout_idp');
-        if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
-            throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
-        }
-
-        $logoutResponse = new LogoutResponse($this->dateTime);
-        $logoutResponse->verify(
-            $samlResponse,
-            $relayState,
-            $signature,
-            $this->session->get('_saml_auth_logout_id'),
-            $spSloUrl,
-            $idpInfo
-        );
-
-        $this->session->delete('_saml_auth_logout_id');
-        $this->session->delete('_saml_auth_logout_idp');
+        return $relayState;
     }
 
     /**
@@ -270,7 +204,6 @@ class SP
                 'entityID' => $this->spInfo->getEntityId(),
                 'X509Certificate' => $this->spInfo->getPublicKeyEncoded(),
                 'AssertionConsumerService' => $this->spInfo->getAcsUrl(),
-                'SingleLogoutService' => $this->spInfo->getSloUrl(),
             ]
         );
     }

@@ -48,7 +48,6 @@ class Assertion
      * @param string|null                 $nameId
      * @param \DateTime                   $authnInstant
      * @param string                      $authnContext
-     * @param string                      $authnContextClassRef
      * @param array<string,array<string>> $attributeList
      */
     public function __construct($issuer, $nameId, DateTime $authnInstant, $authnContext, array $attributeList)

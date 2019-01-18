@@ -87,27 +87,6 @@ class Signer
     }
 
     /**
-     * @param string        $samlResponse
-     * @param string        $relayState
-     * @param string        $signature
-     * @param array<string> $publicKeys
-     *
-     * @return void
-     */
-    public static function verifyRedirect($samlResponse, $relayState, $signature, array $publicKeys)
-    {
-        $httpQuery = \http_build_query(
-            [
-                'SAMLResponse' => $samlResponse,
-                'RelayState' => $relayState,
-                'SigAlg' => self::SIGNER_XML_SIG_ALGO,
-            ]
-        );
-
-        self::verifySignature($httpQuery, Base64::decode($signature), $publicKeys);
-    }
-
-    /**
      * @param string $httpQuery
      * @param string $privateKey
      *

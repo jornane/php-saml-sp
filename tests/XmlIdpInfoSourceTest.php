@@ -61,7 +61,6 @@ EOF;
         $idpInfo = $xmlIdpInfoSource->get('https://idp.tuxed.net/metadata.php');
         $this->assertSame('https://idp.tuxed.net/metadata.php', $idpInfo->getEntityId());
         $this->assertSame('https://idp.tuxed.net/sso.php', $idpInfo->getSsoUrl());
-        $this->assertSame('https://idp.tuxed.net/slo.php', $idpInfo->getSloUrl());
         $this->assertSame($pemCert, $idpInfo->getPublicKeys()[0]);
     }
 

@@ -43,7 +43,6 @@ try {
     $spInfo = new SpInfo(
         'http://localhost:8081/simple.php/metadata',
         'http://localhost:8081/simple.php/acs',
-        null, // no SingleLogout
         \file_get_contents('sp.key'), // used to sign AuthnRequest/LogoutRequest
         \file_get_contents('sp.crt')  // used to provide in metadata
     );

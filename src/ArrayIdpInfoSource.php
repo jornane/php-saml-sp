@@ -45,12 +45,9 @@ class ArrayIdpInfoSource implements IdpInfoSourceInterface
             return false;
         }
 
-        $sloUrl = \array_key_exists('sloUrl', $this->idpList[$entityId]) ? $this->idpList[$entityId]['sloUrl'] : null;
-
         return new IdpInfo(
             $entityId,
             $this->idpList[$entityId]['ssoUrl'],
-            $sloUrl,
             $this->idpList[$entityId]['publicKeys']
         );
     }
