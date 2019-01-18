@@ -33,11 +33,9 @@ try {
     \session_name('SID');
     \session_start();
 
-    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/adfs.xml');
-//    $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
+    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/idp.xml');
+    $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
     //$idpEntityId = 'http://localhost:8080/metadata.php';
-
-    $idpEntityId = 'http://fs.tuxed.example/adfs/services/trust';
 
     $relayState = 'http://localhost:8081/simple.php';
 

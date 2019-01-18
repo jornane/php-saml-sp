@@ -241,4 +241,21 @@ class ResponseTest extends TestCase
         );
         $this->assertSame('<saml:NameID xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">WrlwOmM5zcufWzakxkurPqQnZtvlDoxJt6kwJvf950M=</saml:NameID>', $samlAssertion->getNameId());
     }
+
+    /**
+     * @expectedException \fkooman\SAML\SP\Exception\ResponseException
+     * @expectedExceptionMessage status error code: urn:oasis:names:tc:SAML:2.0:status:Responder,urn:oasis:names:tc:SAML:2.0:status:NoAuthnContext
+     */
+    public function testErrorResponse()
+    {
+        $response = new Response(new DateTime('2019-01-16T23:47:31Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/SURFsecureID_error.xml');
+        $response->verify(
+            $samlResponse,
+            '_6a31edbaec0922414f9a96e5fdb5493e',
+            'https://kluitje.eduvpn.nl/portal/_saml/acs',
+            [],
+            new IdpInfo('https://sa-gw.test.surfconext.nl/authentication/metadata', 'SSO', null, [''])
+        );
+    }
 }

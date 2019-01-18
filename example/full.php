@@ -34,10 +34,10 @@ try {
     \session_start();
 
     $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/idp.xml');
-    $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
-    //$idpEntityId = 'http://localhost:8080/metadata.php';
+    //$idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
+    $idpEntityId = 'http://localhost:8080/metadata.php';
 
-    $relayState = 'http://localhost:8081/simple.php';
+    $relayState = 'http://localhost:8081/full.php';
 
     // the eduPersonEntitlement required for access to the "admin"
     $entitlementAttribute = 'urn:oid:1.3.6.1.4.1.5923.1.1.1.7';

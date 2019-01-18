@@ -68,7 +68,11 @@ class Response
         // check the status code
         $statusCode = $domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/@Value)');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
-            throw new ResponseException(\sprintf('status error code: %s', $statusCode));
+            $statusCodes = [$statusCode];
+            // check if we have an additional status code
+            $statusCodes[] = $domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/samlp:StatusCode/@Value)');
+
+            throw new ResponseException(\sprintf('status error code: %s', \implode(',', $statusCodes)));
         }
 
         // make sure there is only 1 saml:Assertion
