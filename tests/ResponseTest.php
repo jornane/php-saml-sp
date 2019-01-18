@@ -219,4 +219,26 @@ class ResponseTest extends TestCase
             new IdpInfo('https://x509idp.moonshot.utr.surfcloud.nl/metadata', 'https://x509idp.moonshot.utr.surfcloud.nl/sso', null, [\file_get_contents(__DIR__.'/data/x509idp.moonshot.utr.surfcloud.nl.crt')])
         );
     }
+
+    public function testAdfs()
+    {
+        $response = new Response(new DateTime('2019-01-16T23:47:31Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/adfs_idp_response.xml');
+        $samlAssertion = $response->verify(
+            $samlResponse,
+            '_cf4383b97e07821f6b9a07e57b3d4557',
+            'https://vpn.tuxed.net/php-saml-sp/example/full.php/acs',
+            [],
+            new IdpInfo('http://fs.tuxed.example/adfs/services/trust', 'SSO', null, [\file_get_contents(__DIR__.'/data/adfs_idp_response.crt')])
+        );
+        $this->assertSame(
+            [
+                'http://schemas.xmlsoap.org/claims/CommonName' => [
+                    'François Kooman',
+                ],
+            ],
+            $samlAssertion->getAttributes()
+        );
+        $this->assertSame('<NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">WrlwOmM5zcufWzakxkurPqQnZtvlDoxJt6kwJvf950M=</NameID>', $samlAssertion->getNameId());
+    }
 }
