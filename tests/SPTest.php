@@ -87,9 +87,9 @@ EOF;
         );
         $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
-        $this->assertSame('http://localhost:8080/metadata.php', $session->get('_saml_auth_idp'));
-        $this->assertSame('_30313233343536373839616263646566', $session->get('_saml_auth_id'));
-        $this->assertSame([], $session->get('_saml_auth_authn_context_class_ref'));
+        $this->assertSame('http://localhost:8080/metadata.php', $session->get('_fkooman_saml_sp_auth_idp'));
+        $this->assertSame('_30313233343536373839616263646566', $session->get('_fkooman_saml_sp_auth_id'));
+        $this->assertSame([], $session->get('_fkooman_saml_sp_auth_acr'));
     }
 
     public function testAuthnContextClassRef()
@@ -149,12 +149,12 @@ EOF;
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
 
         $session = new TestSession();
-        $session->set('_saml_auth_idp', 'http://localhost:8080/metadata.php');
-        $session->set('_saml_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
-        $session->set('_saml_auth_authn_context_class_ref', []);
+        $session->set('_fkooman_saml_sp_auth_idp', 'http://localhost:8080/metadata.php');
+        $session->set('_fkooman_saml_sp_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
+        $session->set('_fkooman_saml_sp_auth_acr', []);
         $this->sp->setSession($session);
         $this->sp->handleResponse(\base64_encode($samlResponse));
-        $samlAssertion = $session->get('_saml_auth_assertion');
+        $samlAssertion = $session->get('_fkooman_saml_sp_auth_assertion');
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
         $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>', $samlAssertion->getNameId());
         $this->assertSame(
@@ -181,9 +181,9 @@ EOF;
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
 
         $session = new TestSession();
-        $session->set('_saml_auth_idp', 'http://localhost:8080/metadata.php');
-        $session->set('_saml_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
-        $session->set('_saml_auth_authn_context_class_ref', ['urn:x-example:bar']);
+        $session->set('_fkooman_saml_sp_auth_idp', 'http://localhost:8080/metadata.php');
+        $session->set('_fkooman_saml_sp_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
+        $session->set('_fkooman_saml_sp_auth_acr', ['urn:x-example:bar']);
         $this->sp->setSession($session);
         $this->sp->handleResponse(\base64_encode($samlResponse));
     }

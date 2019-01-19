@@ -121,9 +121,9 @@ class SP
             ]
         );
 
-        $this->session->set('_saml_auth_id', $requestId);
-        $this->session->set('_saml_auth_idp', $idpEntityId);
-        $this->session->set('_saml_auth_authn_context_class_ref', $authnContextClassRef);
+        $this->session->set('_fkooman_saml_sp_auth_id', $requestId);
+        $this->session->set('_fkooman_saml_sp_auth_idp', $idpEntityId);
+        $this->session->set('_fkooman_saml_sp_auth_acr', $authnContextClassRef);
 
         return self::prepareRequestUrl($ssoUrl, $authnRequest, $relayState, $this->spInfo->getPrivateKey());
     }
@@ -135,27 +135,27 @@ class SP
      */
     public function handleResponse($samlResponse)
     {
-        $idpEntityId = $this->session->get('_saml_auth_idp');
+        $idpEntityId = $this->session->get('_fkooman_saml_sp_auth_idp');
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
 
         /** @var array<string> */
-        $authnContextClassRef = $this->session->get('_saml_auth_authn_context_class_ref');
+        $authnContextClassRef = $this->session->get('_fkooman_saml_sp_auth_acr');
 
         $response = new Response($this->dateTime);
         $samlAssertion = $response->verify(
             Base64::decode($samlResponse),
-            $this->session->get('_saml_auth_id'),
+            $this->session->get('_fkooman_saml_sp_auth_id'),
             $this->spInfo->getAcsUrl(),
             $authnContextClassRef,
             $idpInfo
         );
 
-        $this->session->delete('_saml_auth_id');
-        $this->session->delete('_saml_auth_idp');
-        $this->session->delete('_saml_auth_authn_context_class_ref');
-        $this->session->set('_saml_auth_assertion', $samlAssertion);
+        $this->session->delete('_fkooman_saml_sp_auth_id');
+        $this->session->delete('_fkooman_saml_sp_auth_idp');
+        $this->session->delete('_fkooman_saml_sp_auth_acr');
+        $this->session->set('_fkooman_saml_sp_auth_assertion', $samlAssertion);
     }
 
     /**
@@ -171,7 +171,7 @@ class SP
         }
 
         // delete the assertion, so we are no longer authenticated
-        $this->session->delete('_saml_auth_assertion');
+        $this->session->delete('_fkooman_saml_sp_auth_assertion');
 
         return $relayState;
     }
@@ -181,11 +181,11 @@ class SP
      */
     public function getAssertion()
     {
-        if (!$this->session->has('_saml_auth_assertion')) {
+        if (!$this->session->has('_fkooman_saml_sp_auth_assertion')) {
             return false;
         }
 
-        return $this->session->get('_saml_auth_assertion');
+        return $this->session->get('_fkooman_saml_sp_auth_assertion');
     }
 
     /**
