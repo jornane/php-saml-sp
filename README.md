@@ -22,8 +22,7 @@ algorithms like (RSA)-SHA1.
 - Only supports RSA with SHA256 for signing/verifying signatures
 - Always signs `AuthnRequest`
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
-- Allow specifying `AuthnContextClassRef` and `ForceAuthn` as part of the
-  `AuthnRequest`
+- Allow specifying `AuthnContextClassRef` as part of the `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
 - Validates XML schema(s) when processing XML messages
 - Tested with IdPs:

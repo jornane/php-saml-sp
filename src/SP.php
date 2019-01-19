@@ -98,11 +98,10 @@ class SP
      * @param string        $idpEntityId
      * @param string        $relayState
      * @param array<string> $authnContextClassRef
-     * @param bool          $forceAuthn
      *
      * @return string
      */
-    public function login($idpEntityId, $relayState, array $authnContextClassRef = [], $forceAuthn = false)
+    public function login($idpEntityId, $relayState, array $authnContextClassRef = [])
     {
         $requestId = \sprintf('_%s', Hex::encode($this->random->requestId()));
         if (false === $idpInfo = $this->idpInfoSource->get($idpEntityId)) {
@@ -116,7 +115,6 @@ class SP
                 'ID' => $requestId,
                 'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
                 'Destination' => $ssoUrl,
-                'ForceAuthn' => $forceAuthn,
                 'AssertionConsumerServiceURL' => $this->spInfo->getAcsUrl(),
                 'Issuer' => $this->spInfo->getEntityId(),
                 'AuthnContextClassRef' => $authnContextClassRef,

@@ -121,34 +121,6 @@ EOF;
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 
-    public function testForceAuthn()
-    {
-        $ssoUrl = $this->sp->login(
-            'http://localhost:8080/metadata.php',
-            'http://localhost:8080/app',
-            [],
-            true
-        );
-
-        $samlRequest = <<< EOF
-<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/sso.php" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="true" IsPassive="false" AssertionConsumerServiceURL="http://localhost:8081/acs.php">
-  <saml:Issuer>http://localhost:8081/metadata.php</saml:Issuer>
-</samlp:AuthnRequest>
-EOF;
-
-        $relayState = 'http://localhost:8080/app';
-        $httpQuery = \http_build_query(
-            [
-                'SAMLRequest' => \base64_encode(\gzdeflate($samlRequest)),
-                'RelayState' => $relayState,
-                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
-            ]
-        );
-
-        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
-        $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
-    }
-
     public function testMetadata()
     {
         $metadataResponse = <<< EOF

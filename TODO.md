@@ -7,7 +7,6 @@
   (?)
 - ability to get SP entityID from SP object (?)
 - figure out if we need to verify "NotBefore" in SAML assertions
-- make sure we get a fresh session (`AuthnInstant`) when using `ForceAuthn`
 - fix issue with NameID when LoA upgrade fails, this is actually at the IdP?
 - deal with receiving NameID without prefix, we have to 'normalize' this 
   somehow?
