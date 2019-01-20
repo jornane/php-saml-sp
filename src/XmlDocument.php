@@ -30,11 +30,14 @@ use fkooman\SAML\SP\Exception\XmlDocumentException;
 
 class XmlDocument
 {
+    /** @var string */
+    const SCHEMA_DIR = __DIR__.'/schema';
+
     /** @var \DOMDocument */
-    private $domDocument;
+    public $domDocument;
 
     /** @var \DOMXPath */
-    private $domXPath;
+    public $domXPath;
 
     private function __construct(DOMDocument $domDocument)
     {
@@ -42,15 +45,37 @@ class XmlDocument
         $this->domXPath = new DOMXPath($domDocument);
         $this->domXPath->registerNamespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
         $this->domXPath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+        $this->domXPath->registerNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
         $this->domXPath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
     }
 
     /**
-     * @param string $xmlStr
+     * @param string $protocolMessageStr
      *
      * @return self
      */
-    public static function fromString($xmlStr)
+    public static function fromProtocolMessage($protocolMessageStr)
+    {
+        return self::loadStr($protocolMessageStr, 'saml-schema-protocol-2.0.xsd');
+    }
+
+    /**
+     * @param string $metadataStr
+     *
+     * @return self
+     */
+    public static function fromMetadata($metadataStr)
+    {
+        return self::loadStr($metadataStr, 'saml-schema-metadata-2.0.xsd');
+    }
+
+    /**
+     * @param string $xmlStr
+     * @param string $schemaFile
+     *
+     * @return self
+     */
+    private static function loadStr($xmlStr, $schemaFile)
     {
         $domDocument = new DOMDocument();
         $entityLoader = \libxml_disable_entity_loader(true);
@@ -59,32 +84,14 @@ class XmlDocument
         if (false === $loadResult) {
             throw new XmlDocumentException('unable to load XML document');
         }
-
-        // validate the document against the SAML schema
-        $schemaFile = __DIR__.'/schema/saml-schema-protocol-2.0.xsd';
+        $schemaFilePath = self::SCHEMA_DIR.'/'.$schemaFile;
         $entityLoader = \libxml_disable_entity_loader(false);
-        $validateResult = $domDocument->schemaValidate($schemaFile);
+        $validateResult = $domDocument->schemaValidate($schemaFilePath);
         \libxml_disable_entity_loader($entityLoader);
         if (false === $validateResult) {
             throw new XmlDocumentException(\sprintf('schema validation against "%s" failed', $schemaFile));
         }
 
         return new self($domDocument);
-    }
-
-    /**
-     * @return \DOMXPath
-     */
-    public function getDomXPath()
-    {
-        return $this->domXPath;
-    }
-
-    /**
-     * @return \DOMDocument
-     */
-    public function getDomDocument()
-    {
-        return $this->domDocument;
     }
 }

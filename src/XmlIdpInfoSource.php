@@ -24,26 +24,21 @@
 
 namespace fkooman\SAML\SP;
 
+use DOMElement;
 use fkooman\SAML\SP\Exception\XmlIdpInfoSourceException;
-use RuntimeException;
-use SimpleXMLElement;
 
 class XmlIdpInfoSource implements IdpInfoSourceInterface
 {
-    /** @var \SimpleXMLElement */
-    private $simpleXml;
+    /** @var XmlDocument */
+    private $xmlDocument;
 
     /**
      * @param string $metadataFile
      */
     public function __construct($metadataFile)
     {
-        $entityLoader = \libxml_disable_entity_loader(false);
-        if (false === $this->simpleXml = \simplexml_load_file($metadataFile, 'SimpleXMLElement', LIBXML_NONET | LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_COMPACT)) {
-            throw new RuntimeException(\sprintf('unable to read "%s"', $metadataFile));
-        }
-        $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-        \libxml_disable_entity_loader($entityLoader);
+        // XXX make sure we can read the file
+        $this->xmlDocument = XmlDocument::fromMetadata(\file_get_contents($metadataFile));
     }
 
     /**
@@ -53,14 +48,13 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function get($entityId)
     {
-        $this->simpleXml->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-        $entityInfoResult = $this->simpleXml->xpath(\sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId));
-        if (0 !== \count($entityInfoResult)) {
+        $domNodeList = $this->xmlDocument->domXPath->query(\sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId));
+        if (0 !== $domNodeList->length) {
             // we simply return the first entity with this "entityID"
             return new IdpInfo(
                 $entityId,
-                self::getSingleSignOnService($entityInfoResult[0]),
-                self::getPublicKey($entityInfoResult[0])
+                $this->getSingleSignOnService($domNodeList->item(0)),
+                $this->getPublicKey($domNodeList->item(0))
             );
         }
 
@@ -68,55 +62,30 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     }
 
     /**
-     * @return array<IdpInfo>
-     */
-    public function getAll()
-    {
-        $idpInfoList = [];
-        $entityInfoResult = $this->simpleXml->xpath('//md:EntityDescriptor/md:IDPSSODescriptor');
-        foreach ($entityInfoResult as $entityInfo) {
-            $entityId = (string) $entityInfo->xpath('..')[0]['entityID']; // <<< horribly XXX ugly!
-            $idpInfoList[] = new IdpInfo(
-                $entityId,
-                self::getSingleSignOnService($entityInfoResult[0]),
-                self::getPublicKey($entityInfoResult[0])
-            );
-        }
-
-        return $idpInfoList;
-    }
-
-    /**
-     * @param \SimpleXMLElement $idpSsoDescriptor
+     * @param \DOMElement $domElement
      *
      * @return string
      */
-    private static function getSingleSignOnService(SimpleXMLElement $idpSsoDescriptor)
+    private function getSingleSignOnService(DOMElement $domElement)
     {
-        $idpSsoDescriptor->registerXPathNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-        $queryResult = $idpSsoDescriptor->xpath('md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location');
-        if (0 === \count($queryResult)) {
-            throw new XmlIdpInfoSourceException('entry MUST have at least one SingleSignOnService');
-        }
-
-        return (string) $queryResult[0]['Location'];
+        // XXX what if there is more than one result?!
+        return $this->xmlDocument->domXPath->evaluate('string(md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location)', $domElement);
     }
 
     /**
-     * @param \SimpleXMLElement $idpSsoDescriptor
+     * @param \DOMElement $domElement
      *
      * @return array<string>
      */
-    private static function getPublicKey(SimpleXMLElement $idpSsoDescriptor)
+    private function getPublicKey(DOMElement $domElement)
     {
         $publicKeys = [];
-        $idpSsoDescriptor->registerXPathNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
-        $queryResult = $idpSsoDescriptor->xpath('md:KeyDescriptor[not(@use) or @use="signing"]/ds:KeyInfo/ds:X509Data/ds:X509Certificate');
-        if (0 === \count($queryResult)) {
+        $domNodeList = $this->xmlDocument->domXPath->query('md:KeyDescriptor[not(@use) or @use="signing"]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $domElement);
+        if (0 === $domNodeList->length) {
             throw new XmlIdpInfoSourceException('entry MUST have at least one X509Certificate');
         }
-        foreach ($queryResult as $publicKey) {
-            $publicKeys[] = \str_replace([' ', "\t", "\n", "\r", "\0", "\x0B"], '', (string) $publicKey);
+        for ($i = 0; $i < $domNodeList->length; ++$i) {
+            $publicKeys[] = \str_replace([' ', "\t", "\n", "\r", "\0", "\x0B"], '', $domNodeList->item($i)->textContent);
         }
 
         return \array_unique($publicKeys);

@@ -73,6 +73,19 @@ this SP library:
     'validate.authnrequest' => true,
     'saml20.sign.assertion' => true,
 
+# XML Schema Validation
+
+Source of XSD files in `src/schema`:
+
+    $ curl -O https://docs.oasis-open.org/security/saml/v2.0/saml-schema-protocol-2.0.xsd
+    $ curl -O https://docs.oasis-open.org/security/saml/v2.0/saml-schema-assertion-2.0.xsd
+    $ curl -O https://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd
+    $ curl -O https://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd
+    $ curl -O https://www.w3.org/TR/2002/REC-xmlenc-core-20021210/xenc-schema.xsd
+
+All occurrences of `schemaLocation` in the XSD files were modified to point to
+the local files instead of the remote resources.
+
 # Resources
 
 * https://www.owasp.org/index.php/SAML_Security_Cheat_Sheet

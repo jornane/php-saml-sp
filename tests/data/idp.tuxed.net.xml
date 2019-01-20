@@ -16,9 +16,9 @@
                 </ds:X509Data>
             </ds:KeyInfo>
         </md:KeyDescriptor>
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.tuxed.net/slo.php"/>
         <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
         <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.tuxed.net/sso.php"/>
-        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.tuxed.net/slo.php"/>
     </md:IDPSSODescriptor>
     <md:ContactPerson contactType="technical">
       <md:EmailAddress>fkooman@tuxed.net</md:EmailAddress>

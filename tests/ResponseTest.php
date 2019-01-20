@@ -171,7 +171,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage neither the samlp:Response, nor the saml:Assertion was signed
+     * @expectedExceptionMessage samlp:Response and/or saml:Assertion MUST be signed
      */
     public function testNotSigned()
     {
@@ -188,7 +188,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage we only support 1 assertion in the samlp:Response
+     * @expectedExceptionMessage samlp:Response MUST contain exactly 1 saml:Assertion
      */
     public function testTwoAssertions()
     {
