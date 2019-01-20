@@ -5,9 +5,7 @@
 - Verify `NotBefore` in `Response`? 
 - Add `mdui` to generated metadata
 - API function to extract SP entity ID from SP object?
-- Use `XmlDocument` also for `XmlIdpInfoSource`
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
-- Validate schema when reading SAML metadata (`XmlIdpInfoSource`)
 - Validate `RelayState` on return?
 
 # 2.0
