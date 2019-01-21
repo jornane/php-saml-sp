@@ -38,7 +38,11 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     public function __construct($metadataFile)
     {
         // XXX make sure we can read the file
-        $this->xmlDocument = XmlDocument::fromMetadata(\file_get_contents($metadataFile));
+        $this->xmlDocument = XmlDocument::fromMetadata(
+            \file_get_contents($metadataFile),
+            // do not validate the schema
+            false
+        );
     }
 
     /**

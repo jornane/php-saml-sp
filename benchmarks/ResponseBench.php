@@ -30,6 +30,8 @@ class ResponseBench
     /**
      * @Revs(1000)
      * @Iterations(5)
+     *
+     * @return void
      */
     public function benchHandleResponse()
     {

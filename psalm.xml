@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <psalm totallyTyped="false" useDocblockTypes="true">
   <projectFiles>
+    <directory name="benchmarks"/>
     <directory name="src"/>
     <directory name="example"/>
     <ignoreFiles>

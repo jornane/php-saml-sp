@@ -29,16 +29,21 @@ class XmlIdpInfoSourceBench
     /**
      * @Revs(1000)
      * @Iterations(5)
+     *
+     * @return void
      */
     public function benchFromMetadataNoSchemaValidate()
     {
         $xmlDocument = XmlDocument::fromMetadata(
-            \file_get_contents(\dirname(__DIR__).'/tests/data/localhost.xml')
+            \file_get_contents(\dirname(__DIR__).'/tests/data/localhost.xml'),
+            false
         );
     }
 
     /**
      * @Revs(100)
+     *
+     * @return void
      */
     public function benchFromMetadataSchemaValidate()
     {

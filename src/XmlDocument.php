@@ -30,9 +30,6 @@ use fkooman\SAML\SP\Exception\XmlDocumentException;
 
 class XmlDocument
 {
-    /** @var string */
-    const SCHEMA_DIR = __DIR__.'/schema';
-
     /** @var \DOMDocument */
     public $domDocument;
 
@@ -68,7 +65,7 @@ class XmlDocument
      *
      * @return self
      */
-    public static function fromMetadata($metadataStr, $validateSchema = false)
+    public static function fromMetadata($metadataStr, $validateSchema)
     {
         return self::loadStr(
             $metadataStr,
@@ -92,7 +89,7 @@ class XmlDocument
             throw new XmlDocumentException('unable to load XML document');
         }
         foreach ($schemaFiles as $schemaFile) {
-            $schemaFilePath = self::SCHEMA_DIR.'/'.$schemaFile;
+            $schemaFilePath = __DIR__.'/schema/'.$schemaFile;
             $entityLoader = \libxml_disable_entity_loader(false);
             $validateResult = $domDocument->schemaValidate($schemaFilePath);
             \libxml_disable_entity_loader($entityLoader);
