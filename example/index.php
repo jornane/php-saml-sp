@@ -33,10 +33,8 @@ try {
     \session_name('SID');
     \session_start();
 
-    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/idp.xml');
+    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/x509idp.moonshot.utr.surfcloud.nl.xml');
     $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
-    //$idpEntityId = 'http://localhost:8080/metadata.php';
-
     $relayState = 'http://localhost:8081/';
 
     // configure the SP
@@ -64,7 +62,7 @@ try {
                     echo $k.': '.\implode(',', $v).PHP_EOL;
                 }
                 echo '</pre>';
-                echo '<a href="logout"><button>Local Logout</button></a>';
+                echo '<a href="logout"><button>Logout</button></a>';
             }
             break;
 

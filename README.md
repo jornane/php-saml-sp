@@ -26,10 +26,11 @@ algorithms like (RSA)-SHA1.
 - No dependency on `robrichards/xmlseclibs`
 - Validates XML schema(s) when processing XML messages
 - Tested with IdPs:
-  - simpleSAMLphp
-  - OpenConext
-  - FrkoIdP
-- Currently less than 1000 NCLOC
+  - [simpleSAMLphp](https://simplesamlphp.org/)
+  - [OpenConext](https://openconext.org/)
+  - [FrkoIdP](https://github.com/fkooman/php-saml-idp/)
+  - [AD FS](https://en.wikipedia.org/wiki/Active_Directory_Federation_Services)
+- Currently ~1000 NCLOC
 
 # X.509
 
@@ -52,26 +53,21 @@ Two examples are provided in the `example/` directory. In order test them:
 
     $ php -S localhost:8081 -t example
 
-## Simple
-
-The `simple.php` example performs authentication and shows the attributes 
-received from the IdP. It does not support logout at the IdP, but instead 
-performs a "local" logout only.
+The example performs authentication and shows the attributes received from the 
+IdP. It does not support logout at the IdP, but instead performs a "local" 
+logout (and then redirects again to the IdP).
 
 With your browser you can go to 
-[http://localhost:8081/simple.php](http://localhost:8081/simple.php). The 
-example will redirect immediately to the IdP.
+[http://localhost:8081/](http://localhost:8081/). The example will redirect 
+immediately to the IdP. The metadata of the SP can be found at this URL: 
+`http://localhost:8081/metadata`
 
-The metadata of the SP can be found at this URL: 
-`http://localhost:8081/simple.php/metadata`
+# IdP Configuration
 
-# simpleSAMLphp as IdP
+Make sure the IdP signs the `saml:Assertion` and/or `samlp:Response` it sends 
+back the the SP.
 
-In your simpleSAMLphp's `metadata/saml20-sp-remote.php`, configure this for 
-this SP library:
-
-    'validate.authnrequest' => true,
-    'saml20.sign.assertion' => true,
+Optionally the IdP can verify the `samlp:AuthnRequest` as sent by the IdP.
 
 # XML Schema Validation
 
