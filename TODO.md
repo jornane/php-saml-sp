@@ -2,11 +2,13 @@
  
 ## 1.0
 
+- Wrap keys in `PublicKey` and `PrivateKey` objects and make sure they are of
+  type RSA and have sufficient length
 - Verify `NotBefore` in `Response`? 
 - Add `mdui` to generated metadata
-- API function to extract SP entity ID from SP object?
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
-- Validate `RelayState` on return?
+- Validate `RelayState` on return from IdP?
+- API function to extract SP entity ID from SP object?
 
 # 2.0
 

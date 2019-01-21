@@ -211,26 +211,23 @@ class SP
      */
     private static function prepareRequestUrl($requestUrl, $requestXml, $relayState, $privateKey)
     {
-        $samlRequest = Base64::encode(\gzdeflate($requestXml));
-        $httpQuery = \http_build_query(
-            [
-                'SAMLRequest' => $samlRequest,
-                'RelayState' => $relayState,
-                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
-            ]
-        );
-        $signatureQuery = \http_build_query(
-            [
-                'Signature' => Signer::signRedirect($httpQuery, $privateKey),
-            ]
+        $httpQueryParameters = [
+            'SAMLRequest' => Base64::encode(\gzdeflate($requestXml)),
+            'RelayState' => $relayState,
+            'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+        ];
+
+        // add the Signature key/value to the HTTP query
+        $httpQueryParameters['Signature'] = Signer::signRedirect(
+            \http_build_query($httpQueryParameters),
+            $privateKey
         );
 
         return \sprintf(
-            '%s%s%s&%s',
+            '%s%s%s',
             $requestUrl,
             false === \strpos($requestUrl, '?') ? '?' : '&',
-            $httpQuery,
-            $signatureQuery
+            \http_build_query($httpQueryParameters)
         );
     }
 }
