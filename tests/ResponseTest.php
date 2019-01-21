@@ -188,7 +188,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage samlp:Response MUST contain exactly 1 saml:Assertion
+     * @expectedExceptionMessage element "/samlp:Response/saml:Assertion" found more than once
      */
     public function testTwoAssertions()
     {

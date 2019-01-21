@@ -40,7 +40,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         // XXX make sure we can read the file
         $this->xmlDocument = XmlDocument::fromMetadata(
             \file_get_contents($metadataFile),
-            // do not validate the schema
+            // do NOT validate the schema
             false
         );
     }
@@ -52,17 +52,26 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function get($entityId)
     {
-        $domNodeList = $this->xmlDocument->domXPath->query(\sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId));
-        if (0 !== $domNodeList->length) {
-            // we simply return the first entity with this "entityID"
-            return new IdpInfo(
-                $entityId,
-                $this->getSingleSignOnService($domNodeList->item(0)),
-                $this->getPublicKey($domNodeList->item(0))
-            );
+        $xPathQuery = \sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId);
+        $domNodeList = $this->xmlDocument->domXPath->query($xPathQuery);
+        if (0 === $domNodeList->length) {
+            // IdP not found
+            return false;
+        }
+        if (1 !== $domNodeList->length) {
+            // IdP found more than once?
+            throw new XmlIdpInfoSourceException(\sprintf('IdP "%s" found more than once', $entityId));
+        }
+        $domElement = $domNodeList->item(0);
+        if (!($domElement instanceof DOMElement)) {
+            throw new XmlIdpInfoSourceException(\sprintf('element "%s" is not an element', $xPathQuery));
         }
 
-        return false;
+        return new IdpInfo(
+            $entityId,
+            $this->getSingleSignOnService($domElement),
+            $this->getPublicKey($domElement)
+        );
     }
 
     /**
@@ -72,7 +81,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     private function getSingleSignOnService(DOMElement $domElement)
     {
-        // XXX what if there is more than one result?!
+        // what happens if there is more than one element that matches this?
         return $this->xmlDocument->domXPath->evaluate('string(md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location)', $domElement);
     }
 
@@ -89,7 +98,10 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             throw new XmlIdpInfoSourceException('entry MUST have at least one X509Certificate');
         }
         for ($i = 0; $i < $domNodeList->length; ++$i) {
-            $publicKeys[] = \str_replace([' ', "\t", "\n", "\r", "\0", "\x0B"], '', $domNodeList->item($i)->textContent);
+            $certificateNode = $domNodeList->item($i);
+            if (null !== $certificateNode) {
+                $publicKeys[] = \str_replace([' ', "\t", "\n", "\r", "\0", "\x0B"], '', $certificateNode->textContent);
+            }
         }
 
         return \array_unique($publicKeys);

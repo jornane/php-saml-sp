@@ -25,6 +25,7 @@
 namespace fkooman\SAML\SP;
 
 use DOMElement;
+use DOMNode;
 use fkooman\SAML\SP\Exception\SignerException;
 use ParagonIE\ConstantTime\Base64;
 
@@ -62,12 +63,11 @@ class Signer
 
         $signatureValue = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignatureValue)', $domElement);
         $digestValue = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue)', $domElement);
-        $signedInfoElementList = $xmlDocument->domXPath->query('ds:Signature/ds:SignedInfo', $domElement);
-        // XXX make sure there is one
-        $canonicalSignedInfo = $signedInfoElementList->item(0)->C14N(true, false);
-        $signatureElementList = $xmlDocument->domXPath->query('ds:Signature', $domElement);
-        // XXX make sure there is one
-        $domElement->removeChild($signatureElementList->item(0));
+
+        $signedInfoElement = self::getOneElement($xmlDocument, 'ds:Signature/ds:SignedInfo', $domElement);
+        $canonicalSignedInfo = $signedInfoElement->C14N(true, false);
+        $signatureElement = self::getOneElement($xmlDocument, 'ds:Signature', $domElement);
+        $domElement->removeChild($signatureElement);
 
         $rootElementDigest = Base64::encode(
             \hash(
@@ -122,5 +122,29 @@ class Signer
         }
 
         throw new SignerException('invalid signature');
+    }
+
+    /**
+     * @param XmlDocument $xmlDocument
+     * @param string      $xPathQuery
+     * @param \DOMNode    $contextNode
+     *
+     * @return \DOMElement
+     */
+    private static function getOneElement(XmlDocument $xmlDocument, $xPathQuery, DOMNode $contextNode)
+    {
+        $domNodeList = $xmlDocument->domXPath->query($xPathQuery, $contextNode);
+        if (0 === $domNodeList->length) {
+            throw new SignerException(\sprintf('element "%s" not found', $xPathQuery));
+        }
+        if (1 !== $domNodeList->length) {
+            throw new SignerException(\sprintf('element "%s" found more than once', $xPathQuery));
+        }
+        $domElement = $domNodeList->item(0);
+        if (!($domElement instanceof DOMElement)) {
+            throw new SignerException(\sprintf('element "%s" is not an element', $xPathQuery));
+        }
+
+        return $domElement;
     }
 }

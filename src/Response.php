@@ -25,6 +25,7 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
+use DOMElement;
 use DOMXpath;
 use fkooman\SAML\SP\Exception\ResponseException;
 
@@ -53,11 +54,7 @@ class Response
     public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromProtocolMessage($samlResponse);
-        $domNodeList = $responseDocument->domXPath->query('/samlp:Response');
-        if (1 !== $domNodeList->length) {
-            throw new ResponseException('not a samlp:Response document');
-        }
-        $responseElement = $domNodeList->item(0);
+        $responseElement = $this->getOneElement($responseDocument, '/samlp:Response');
 
         // check the status code
         $statusCode = $responseDocument->domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/@Value)');
@@ -77,12 +74,7 @@ class Response
             $responseSigned = true;
         }
 
-        $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion');
-        if (1 !== $domNodeList->length) {
-            throw new ResponseException('samlp:Response MUST contain exactly 1 saml:Assertion');
-        }
-        $assertionElement = $domNodeList->item(0);
-
+        $assertionElement = $this->getOneElement($responseDocument, '/samlp:Response/saml:Assertion');
         $assertionSigned = false;
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/ds:Signature');
         if (1 === $domNodeList->length) {
@@ -159,5 +151,27 @@ class Response
         }
 
         return $attributeList;
+    }
+
+    /**
+     * @param string $xPathQuery
+     *
+     * @return \DOMElement
+     */
+    private static function getOneElement(XmlDocument $xmlDocument, $xPathQuery)
+    {
+        $domNodeList = $xmlDocument->domXPath->query($xPathQuery);
+        if (0 === $domNodeList->length) {
+            throw new ResponseException(\sprintf('element "%s" not found', $xPathQuery));
+        }
+        if (1 !== $domNodeList->length) {
+            throw new ResponseException(\sprintf('element "%s" found more than once', $xPathQuery));
+        }
+        $domElement = $domNodeList->item(0);
+        if (!($domElement instanceof DOMElement)) {
+            throw new ResponseException(\sprintf('element "%s" is not an element', $xPathQuery));
+        }
+
+        return $domElement;
     }
 }
