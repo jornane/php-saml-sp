@@ -165,11 +165,6 @@ class SP
      */
     public function logout($relayState)
     {
-        if (false === $samlAssertion = $this->getAssertion()) {
-            // no session available
-            return $relayState;
-        }
-
         // delete the assertion, so we are no longer authenticated
         $this->session->delete('_fkooman_saml_sp_auth_assertion');
 
