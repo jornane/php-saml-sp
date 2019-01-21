@@ -37,12 +37,12 @@ try {
     $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
     //$idpEntityId = 'http://localhost:8080/metadata.php';
 
-    $relayState = 'http://localhost:8081/simple.php';
+    $relayState = 'http://localhost:8081/';
 
     // configure the SP
     $spInfo = new SpInfo(
-        'http://localhost:8081/simple.php/metadata',
-        'http://localhost:8081/simple.php/acs',
+        'http://localhost:8081/metadata',
+        'http://localhost:8081/acs',
         \file_get_contents('sp.key'), // used to sign AuthnRequest/LogoutRequest
         \file_get_contents('sp.crt')  // used to provide in metadata
     );
@@ -64,7 +64,7 @@ try {
                     echo $k.': '.\implode(',', $v).PHP_EOL;
                 }
                 echo '</pre>';
-                echo '<a href="simple.php/logout"><button>Local Logout</button></a>';
+                echo '<a href="logout"><button>Local Logout</button></a>';
             }
             break;
 
