@@ -22,33 +22,25 @@
  * SOFTWARE.
  */
 
-namespace fkooman\SAML\SP;
+use fkooman\SAML\SP\IdpInfo;
+use fkooman\SAML\SP\Response;
 
-class ArrayIdpInfoSource implements IdpInfoSourceInterface
+class ResponseBench
 {
-    /** @var array */
-    private $idpList;
-
-    public function __construct(array $idpList)
-    {
-        $this->idpList = $idpList;
-    }
-
     /**
-     * @param string $entityId
-     *
-     * @return false|IdpInfo
+     * @Revs(1000)
+     * @Iterations(5)
      */
-    public function get($entityId)
+    public function benchHandleResponse()
     {
-        if (!\array_key_exists($entityId, $this->idpList)) {
-            return false;
-        }
-
-        return new IdpInfo(
-            $entityId,
-            $this->idpList[$entityId]['ssoUrl'],
-            $this->idpList[$entityId]['publicKeys']
+        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
+        $samlResponse = \file_get_contents(\dirname(__DIR__).'/tests/data/FrkoIdP.xml');
+        $samlAssertion = $response->verify(
+            $samlResponse,
+            '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
+            'http://localhost:8081/acs.php',
+            [],
+            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', [\file_get_contents(\dirname(__DIR__).'/tests/data/FrkoIdP.crt')])
         );
     }
 }

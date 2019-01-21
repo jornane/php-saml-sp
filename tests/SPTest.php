@@ -25,10 +25,10 @@
 namespace fkooman\SAML\SP\Tests;
 
 use DateTime;
-use fkooman\SAML\SP\ArrayIdpInfoSource;
 use fkooman\SAML\SP\Signer;
 use fkooman\SAML\SP\SP;
 use fkooman\SAML\SP\SpInfo;
+use fkooman\SAML\SP\XmlIdpInfoSource;
 use PHPUnit\Framework\TestCase;
 
 class SPTest extends TestCase
@@ -45,16 +45,18 @@ class SPTest extends TestCase
                 \file_get_contents(__DIR__.'/data/sp.key'),
                 \file_get_contents(__DIR__.'/data/sp.crt')
             ),
-            new ArrayIdpInfoSource(
-                [
-                    'http://localhost:8080/metadata.php' => [
-                        'ssoUrl' => 'http://localhost:8080/sso.php',
-                        'publicKeys' => [
-                            \file_get_contents(__DIR__.'/data/FrkoIdP.crt'),
-                        ],
-                    ],
-                ]
-            )
+            new XmlIdpInfoSource(__DIR__.'/data/localhost.xml')
+
+//            new ArrayIdpInfoSource(
+//                [
+//                    'http://localhost:8080/metadata.php' => [
+//                        'ssoUrl' => 'http://localhost:8080/sso.php',
+//                        'publicKeys' => [
+//                            \file_get_contents(__DIR__.'/data/FrkoIdP.crt'),
+//                        ],
+//                    ],
+//                ]
+//            )
         );
         $this->sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
         $this->sp->setSession(new TestSession());

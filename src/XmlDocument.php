@@ -64,12 +64,16 @@ class XmlDocument
 
     /**
      * @param string $metadataStr
+     * @param bool   $validateSchema
      *
      * @return self
      */
-    public static function fromMetadata($metadataStr)
+    public static function fromMetadata($metadataStr, $validateSchema = false)
     {
-        return self::loadStr($metadataStr, ['saml-schema-metadata-2.0.xsd', 'sstc-saml-metadata-ui-v1.0.xsd']);
+        return self::loadStr(
+            $metadataStr,
+            $validateSchema ? ['saml-schema-metadata-2.0.xsd', 'sstc-saml-metadata-ui-v1.0.xsd'] : []
+        );
     }
 
     /**
