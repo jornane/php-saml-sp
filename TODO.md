@@ -10,8 +10,14 @@
 - Validate `RelayState` on return from IdP?
 - Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`
 
+## 1.1
+
+- support `<shibm:Scope>` to restrict scopes for e.d. `eduPersonPrincipalName`
+
 # 2.0
 
+- support auto update of IdP metadata? This may be something best left to 
+  php-saml-ds?
 - `ForceAuthn` in `AuthnRequest` (is anyone actually using this?)
 - Implement unsolicited `Response`, "IdP initiated"
 - Implement SLO

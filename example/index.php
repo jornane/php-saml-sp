@@ -57,11 +57,13 @@ try {
                 \header(\sprintf('Location: %s', $sp->login($idpEntityId, $relayState)));
             } else {
                 echo '<pre>';
-                echo 'IdP: '.$samlAssertion->getIssuer().PHP_EOL;
+                echo 'Issuer      : '.$samlAssertion->getIssuer().PHP_EOL;
+                echo 'NameID      : '.\htmlentities($samlAssertion->getNameId()).PHP_EOL;
+                echo 'AuthnTime   : '.$samlAssertion->getAuthnInstant()->format(DateTime::ATOM).PHP_EOL;
+                echo 'AuthnContext: '.$samlAssertion->getAuthnContext().PHP_EOL;
                 foreach ($samlAssertion->getAttributes() as $k => $v) {
                     echo $k.': '.\implode(',', $v).PHP_EOL;
                 }
-                echo '</pre>';
                 echo '<a href="logout"><button>Logout</button></a>';
             }
             break;
