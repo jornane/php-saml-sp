@@ -8,6 +8,7 @@
 - Add `mdui` to generated metadata
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
 - Validate `RelayState` on return from IdP?
+- Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`
 
 # 2.0
 
