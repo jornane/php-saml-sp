@@ -8,7 +8,6 @@
 - Add `mdui` to generated metadata
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
 - Validate `RelayState` on return from IdP?
-- API function to extract SP entity ID from SP object?
 
 # 2.0
 

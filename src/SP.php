@@ -65,6 +65,14 @@ class SP
     }
 
     /**
+     * @return SpInfo
+     */
+    public function getSpInfo()
+    {
+        return $this->spInfo;
+    }
+
+    /**
      * @param \DateTime $dateTime
      *
      * @return void
