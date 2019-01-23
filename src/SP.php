@@ -154,6 +154,7 @@ class SP
         $response = new Response($this->dateTime);
         $samlAssertion = $response->verify(
             Base64::decode($samlResponse),
+            $this->spInfo->getEntityId(),
             $this->session->get('_fkooman_saml_sp_auth_id'),
             $this->spInfo->getAcsUrl(),
             $authnContextClassRef,

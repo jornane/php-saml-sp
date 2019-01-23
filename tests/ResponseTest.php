@@ -37,6 +37,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
@@ -65,6 +66,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
+            'https://labrat.eduvpn.nl/saml',
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
             [],
@@ -99,6 +101,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/simpleSAMLphp.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
+            'https://vpn.tuxed.net/simplesaml/module.php/saml/sp/metadata.php/default-sp',
             '_b354c4367b3e379f940145868f28987e9520b1fb0b',
             'https://vpn.tuxed.net/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
             [],
@@ -128,6 +131,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_digest.xml');
         $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
@@ -145,6 +149,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
         $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
@@ -162,6 +167,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_invalid_signature.xml');
         $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
@@ -179,6 +185,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP_not_signed.xml');
         $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
@@ -196,6 +203,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFconext_two_assertions.xml');
         $response->verify(
             $samlResponse,
+            'https://labrat.eduvpn.nl/saml',
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
             [],
@@ -213,6 +221,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/x509idp.moonshot.utr.surfcloud.nl.xml');
         $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_3c35f56a7156b0805fbccb717cc15194',
             'http://localhost:8081/acs',
             [],
@@ -226,6 +235,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/adfs_idp_response.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
+            'https://vpn.tuxed.net/php-saml-sp/example/full.php/metadata',
             '_cf4383b97e07821f6b9a07e57b3d4557',
             'https://vpn.tuxed.net/php-saml-sp/example/full.php/acs',
             [],
@@ -252,6 +262,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/SURFsecureID_error.xml');
         $response->verify(
             $samlResponse,
+            'https://kluitje.eduvpn.nl/saml',
             '_6a31edbaec0922414f9a96e5fdb5493e',
             'https://kluitje.eduvpn.nl/portal/_saml/acs',
             [],

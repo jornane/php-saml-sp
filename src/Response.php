@@ -44,6 +44,7 @@ class Response
 
     /**
      * @param string        $samlResponse
+     * @param string        $spEntityId
      * @param string        $expectedInResponseTo
      * @param string        $expectedAcsUrl
      * @param array<string> $authnContext
@@ -51,7 +52,7 @@ class Response
      *
      * @return Assertion
      */
-    public function verify($samlResponse, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
+    public function verify($samlResponse, $spEntityId, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromProtocolMessage($samlResponse);
         $responseElement = $this->getOneElement($responseDocument, '/samlp:Response');
@@ -91,6 +92,12 @@ class Response
         $issuerElement = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Issuer)');
         if ($idpInfo->getEntityId() !== $issuerElement) {
             throw new ResponseException('unexpected Issuer');
+        }
+
+        // the saml:Conditions/saml:AudienceRestriction MUST be us
+        $audienceElement = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience)');
+        if ($audienceElement !== $spEntityId) {
+            throw new ResponseException(\sprintf('expected saml:Audience "%s", got "%s"', $spEntityId, $audienceElement));
         }
 
         $notOnOrAfter = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)'));

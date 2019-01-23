@@ -39,6 +39,7 @@ class ResponseBench
         $samlResponse = \file_get_contents(\dirname(__DIR__).'/tests/data/FrkoIdP.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
+            'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
