@@ -9,6 +9,7 @@
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
 - Validate `RelayState` on return from IdP?
 - Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`
+- support eduPersonTargetedId in "string" format as documented here: https://wiki.geant.org/display/eduGAIN/IDP+Attribute+Profile+and+Recommended+Attributes
 
 ## 1.1
 
