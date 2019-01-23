@@ -176,7 +176,7 @@ EOF;
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage we wanted any of "urn:x-example:bar"
+     * @expectedExceptionMessage expected AuthnContext containing any of [urn:x-example:bar], got "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport"
      */
     public function testHandleResponseWrongAuthnContext()
     {

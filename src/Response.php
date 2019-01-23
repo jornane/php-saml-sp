@@ -63,7 +63,7 @@ class Response
             $statusCodes = [$statusCode];
             // check if we have an additional status code
             $statusCodes[] = $responseDocument->domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/samlp:StatusCode/@Value)');
-
+            // XXX better error, this is useless...
             throw new ResponseException(\sprintf('status error code: %s', \implode(',', $statusCodes)));
         }
 
@@ -91,7 +91,7 @@ class Response
         // the saml:Assertion Issuer MUST be IdP entityId
         $issuerElement = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Issuer)');
         if ($idpInfo->getEntityId() !== $issuerElement) {
-            throw new ResponseException('unexpected Issuer');
+            throw new ResponseException(\sprintf('expected saml:Issuer "%s", got "%s"', $idpInfo->getEntityId(), $issuerElement));
         }
 
         // the saml:Conditions/saml:AudienceRestriction MUST be us
@@ -102,15 +102,17 @@ class Response
 
         $notOnOrAfter = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)'));
         if ($this->dateTime >= $notOnOrAfter) {
-            throw new ResponseException('notOnOrAfter expired');
+            throw new ResponseException('saml:Assertion no longer valid (NotOnOrAfter)');
         }
+
         $recipient = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@Recipient)');
         if ($expectedAcsUrl !== $recipient) {
-            throw new ResponseException('unexpected Recipient');
+            throw new ResponseException(\sprintf('expected Recipient "%s", got "%s"', $expectedAcsUrl, $recipient));
         }
+
         $inResponseTo = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@InResponseTo)');
         if ($expectedInResponseTo !== $inResponseTo) {
-            throw new ResponseException('unexpected InResponseTo');
+            throw new ResponseException(\sprintf('expected InResponseTo "%s", got "%s"', $expectedInResponseTo, $inResponseTo));
         }
 
         $authnInstant = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/@AuthnInstant)'));
@@ -119,7 +121,7 @@ class Response
         if (0 !== \count($authnContext)) {
             // we requested a particular AuthnContext, make sure we got it
             if (!\in_array($authnContextClassRef, $authnContext, true)) {
-                throw new ResponseException(\sprintf('we wanted any of "%s"', \implode(', ', $authnContext)));
+                throw new ResponseException(\sprintf('expected AuthnContext containing any of [%s], got "%s"', \implode(',', $authnContext), $authnContextClassRef));
             }
         }
 
