@@ -88,7 +88,7 @@ class ResponseTest extends TestCase
                     'c7ab9096f240ea83747f351c6fcb17d1f57f56f2',
                 ],
                 'urn:oid:1.3.6.1.4.1.5923.1.1.1.10' => [
-                    'c7ab9096f240ea83747f351c6fcb17d1f57f56f2',
+                    'https://idp.surfnet.nl!https://labrat.eduvpn.nl/saml!c7ab9096f240ea83747f351c6fcb17d1f57f56f2',
                 ],
             ],
             $samlAssertion->getAttributes()

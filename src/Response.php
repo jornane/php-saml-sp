@@ -135,17 +135,19 @@ class Response
             $nameId = $responseDocument->domDocument->saveXML($nameIdElement);
         }
 
-        $attributeList = self::extractAttributes($responseDocument->domXPath);
+        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spEntityId, $responseDocument->domXPath);
 
         return new Assertion($idpInfo->getEntityId(), $nameId, $authnInstant, $authnContextClassRef, $attributeList);
     }
 
     /**
+     * @param string    $idpEntityId
+     * @param string    $spEntityId
      * @param \DOMXPath $domXPath
      *
      * @return array<string,array<string>>
      */
-    private static function extractAttributes(DOMXPath $domXPath)
+    private static function extractAttributes($idpEntityId, $spEntityId, DOMXPath $domXPath)
     {
         $attributeValueElements = $domXPath->query(
             '/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute/saml:AttributeValue'
@@ -156,7 +158,16 @@ class Response
             if (!\array_key_exists($attributeName, $attributeList)) {
                 $attributeList[$attributeName] = [];
             }
-            $attributeList[$attributeName][] = $attributeValueElement->textContent;
+            // XXX we MUST validate that the NameID's NameQualifier and
+            // SPNameQualifier match the IdP and SP entityIDs!
+            if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
+                // eduPersonTargetedId, serialize this accordingly
+                $attributeValue = \sprintf('%s!%s!%s', $idpEntityId, $spEntityId, $attributeValueElement->textContent);
+            } else {
+                $attributeValue = $attributeValueElement->textContent;
+            }
+
+            $attributeList[$attributeName][] = $attributeValue;
         }
 
         return $attributeList;
