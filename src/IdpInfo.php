@@ -32,21 +32,19 @@ class IdpInfo
     /** @var string */
     private $ssoUrl;
 
-    /** @var array<string> */
+    /** @var array<PublicKey> */
     private $publicKeys = [];
 
     /**
-     * @param string        $entityId
-     * @param string        $ssoUrl
-     * @param array<string> $publicKeys
+     * @param string           $entityId
+     * @param string           $ssoUrl
+     * @param array<PublicKey> $publicKeys
      */
     public function __construct($entityId, $ssoUrl, array $publicKeys)
     {
         $this->entityId = $entityId;
         $this->ssoUrl = $ssoUrl;
-        foreach ($publicKeys as $publicKey) {
-            $this->publicKeys[] = "-----BEGIN CERTIFICATE-----\n".\chunk_split($publicKey, 64, "\n").'-----END CERTIFICATE-----';
-        }
+        $this->publicKeys = $publicKeys;
     }
 
     /**
@@ -66,7 +64,7 @@ class IdpInfo
     }
 
     /**
-     * @return array<string>
+     * @return array<PublicKey>
      */
     public function getPublicKeys()
     {

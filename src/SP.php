@@ -204,21 +204,21 @@ class SP
             [
                 'validUntil' => $validUntil->format('Y-m-d\TH:i:s\Z'),
                 'entityID' => $this->spInfo->getEntityId(),
-                'X509Certificate' => $this->spInfo->getPublicKeyEncoded(),
+                'X509Certificate' => $this->spInfo->getPublicKey()->toEncodedString(),
                 'AssertionConsumerService' => $this->spInfo->getAcsUrl(),
             ]
         );
     }
 
     /**
-     * @param string $requestUrl
-     * @param string $requestXml
-     * @param string $relayState
-     * @param string $privateKey
+     * @param string     $requestUrl
+     * @param string     $requestXml
+     * @param string     $relayState
+     * @param PrivateKey $privateKey
      *
      * @return string
      */
-    private static function prepareRequestUrl($requestUrl, $requestXml, $relayState, $privateKey)
+    private static function prepareRequestUrl($requestUrl, $requestXml, $relayState, PrivateKey $privateKey)
     {
         $httpQueryParameters = [
             'SAMLRequest' => Base64::encode(\gzdeflate($requestXml)),

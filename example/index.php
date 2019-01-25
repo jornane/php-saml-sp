@@ -25,6 +25,8 @@
 require_once \dirname(__DIR__).'/vendor/autoload.php';
 
 use fkooman\SAML\SP\Exception\SamlException;
+use fkooman\SAML\SP\PrivateKey;
+use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\SP;
 use fkooman\SAML\SP\SpInfo;
 use fkooman\SAML\SP\XmlIdpInfoSource;
@@ -41,8 +43,8 @@ try {
     $spInfo = new SpInfo(
         'http://localhost:8081/metadata',
         'http://localhost:8081/acs',
-        \file_get_contents('sp.key'), // used to sign AuthnRequest/LogoutRequest
-        \file_get_contents('sp.crt')  // used to provide in metadata
+        PrivateKey::fromFile('sp.key'), // used to sign AuthnRequest/LogoutRequest
+        PublicKey::fromFile('sp.crt')  // used to provide in metadata
     );
     $sp = new SP($spInfo, $idpInfoSource);
 

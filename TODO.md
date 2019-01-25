@@ -2,19 +2,18 @@
  
 ## 1.0
 
-- Wrap keys in `PublicKey` and `PrivateKey` objects and make sure they are of
-  type RSA and have sufficient length
 - Verify `NotBefore` in `Response`? 
 - Add `mdui` to generated metadata
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
 - Validate `RelayState` on return from IdP?
-- Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`
-- verify the `NameQualifier` and `SPNameQualifier` in the NameID (ePTID) match
-  the IdP entityID and SP entityID
 
 ## 1.1
 
 - support `<shibm:Scope>` to restrict scopes for e.d. `eduPersonPrincipalName`
+- verify the `NameQualifier` and `SPNameQualifier` in the NameID (ePTID) match
+  the IdP entityID and SP entityID, now the verified IdP entityID and SP 
+  entityID from the assertion are taken.
+- Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
 
 # 2.0
 

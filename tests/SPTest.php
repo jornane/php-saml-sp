@@ -25,6 +25,8 @@
 namespace fkooman\SAML\SP\Tests;
 
 use DateTime;
+use fkooman\SAML\SP\PrivateKey;
+use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\Signer;
 use fkooman\SAML\SP\SP;
 use fkooman\SAML\SP\SpInfo;
@@ -42,21 +44,10 @@ class SPTest extends TestCase
             new SpInfo(
                 'http://localhost:8081/metadata.php',
                 'http://localhost:8081/acs.php',
-                \file_get_contents(__DIR__.'/data/sp.key'),
-                \file_get_contents(__DIR__.'/data/sp.crt')
+                PrivateKey::fromFile(__DIR__.'/data/sp.key'),
+                PublicKey::fromFile(__DIR__.'/data/sp.crt')
             ),
             new XmlIdpInfoSource(__DIR__.'/data/localhost.xml')
-
-//            new ArrayIdpInfoSource(
-//                [
-//                    'http://localhost:8080/metadata.php' => [
-//                        'ssoUrl' => 'http://localhost:8080/sso.php',
-//                        'publicKeys' => [
-//                            \file_get_contents(__DIR__.'/data/FrkoIdP.crt'),
-//                        ],
-//                    ],
-//                ]
-//            )
         );
         $this->sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
         $this->sp->setSession(new TestSession());
@@ -87,7 +78,7 @@ EOF;
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
         $this->assertSame('http://localhost:8080/metadata.php', $session->get('_fkooman_saml_sp_auth_idp'));
         $this->assertSame('_30313233343536373839616263646566', $session->get('_fkooman_saml_sp_auth_id'));
@@ -119,7 +110,7 @@ EOF;
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, \file_get_contents(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 

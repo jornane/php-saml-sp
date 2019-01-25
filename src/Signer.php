@@ -37,9 +37,9 @@ class Signer
     const SIGNER_HASH_ALGO = 'sha256';
 
     /**
-     * @param XmlDocument   $xmlDocument
-     * @param \DOMElement   $domElement
-     * @param array<string> $publicKeys
+     * @param XmlDocument      $xmlDocument
+     * @param \DOMElement      $domElement
+     * @param array<PublicKey> $publicKeys
      *
      * @return void
      */
@@ -86,17 +86,14 @@ class Signer
     }
 
     /**
-     * @param string $httpQuery
-     * @param string $privateKey
+     * @param string     $httpQuery
+     * @param PrivateKey $privateKey
      *
      * @return string
      */
-    public static function signRedirect($httpQuery, $privateKey)
+    public static function signRedirect($httpQuery, PrivateKey $privateKey)
     {
-        if (false === $privateKeyResource = \openssl_pkey_get_private($privateKey)) {
-            throw new SignerException('invalid private key');
-        }
-        if (false === \openssl_sign($httpQuery, $signature, $privateKeyResource, self::SIGNER_OPENSSL_ALGO)) {
+        if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGNER_OPENSSL_ALGO)) {
             throw new SignerException('unable to sign');
         }
 
@@ -104,19 +101,16 @@ class Signer
     }
 
     /**
-     * @param string        $data
-     * @param string        $signature
-     * @param array<string> $publicKeys
+     * @param string           $data
+     * @param string           $signature
+     * @param array<PublicKey> $publicKeys
      *
      * @return void
      */
     private static function verifySignature($data, $signature, array $publicKeys)
     {
         foreach ($publicKeys as $publicKey) {
-            if (false === $publicKeyResource = \openssl_pkey_get_public($publicKey)) {
-                throw new SignerException('invalid public key');
-            }
-            if (1 === \openssl_verify($data, $signature, $publicKeyResource, self::SIGNER_OPENSSL_ALGO)) {
+            if (1 === \openssl_verify($data, $signature, $publicKey->raw(), self::SIGNER_OPENSSL_ALGO)) {
                 return;
             }
         }

@@ -88,7 +88,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     /**
      * @param \DOMElement $domElement
      *
-     * @return array<string>
+     * @return array<PublicKey>
      */
     private function getPublicKey(DOMElement $domElement)
     {
@@ -100,10 +100,10 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         for ($i = 0; $i < $domNodeList->length; ++$i) {
             $certificateNode = $domNodeList->item($i);
             if (null !== $certificateNode) {
-                $publicKeys[] = \str_replace([' ', "\t", "\n", "\r", "\0", "\x0B"], '', $certificateNode->textContent);
+                $publicKeys[] = PublicKey::fromEncodedString($certificateNode->textContent);
             }
         }
 
-        return \array_unique($publicKeys);
+        return $publicKeys;
     }
 }

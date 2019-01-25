@@ -22,65 +22,8 @@
  * SOFTWARE.
  */
 
-namespace fkooman\SAML\SP;
+namespace fkooman\SAML\SP\Exception;
 
-class SpInfo
+class KeyException extends SamlException
 {
-    /** @var string */
-    private $entityId;
-
-    /** @var string */
-    private $acsUrl;
-
-    /** @var PrivateKey */
-    private $privateKey;
-
-    /** @var PublicKey */
-    private $publicKey;
-
-    /**
-     * @param string     $entityId
-     * @param string     $acsUrl
-     * @param PrivateKey $privateKey
-     * @param PublicKey  $publicKey
-     */
-    public function __construct($entityId, $acsUrl, PrivateKey $privateKey, PublicKey $publicKey)
-    {
-        $this->entityId = $entityId;
-        $this->acsUrl = $acsUrl;
-        $this->privateKey = $privateKey;
-        $this->publicKey = $publicKey;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEntityId()
-    {
-        return $this->entityId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAcsUrl()
-    {
-        return $this->acsUrl;
-    }
-
-    /**
-     * @return PrivateKey
-     */
-    public function getPrivateKey()
-    {
-        return $this->privateKey;
-    }
-
-    /**
-     * @return PublicKey
-     */
-    public function getPublicKey()
-    {
-        return $this->publicKey;
-    }
 }
