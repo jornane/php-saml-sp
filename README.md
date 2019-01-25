@@ -31,6 +31,7 @@ algorithms like (RSA)-SHA1.
   - [FrkoIdP](https://github.com/fkooman/php-saml-idp/)
   - [AD FS](https://en.wikipedia.org/wiki/Active_Directory_Federation_Services)
 - Currently ~1000 NCLOC
+- Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId`
 
 # X.509
 
