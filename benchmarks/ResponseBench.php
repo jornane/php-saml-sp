@@ -23,8 +23,8 @@
  */
 
 use fkooman\SAML\SP\IdpInfo;
-use fkooman\SAML\SP\Response;
 use fkooman\SAML\SP\PublicKey;
+use fkooman\SAML\SP\Response;
 
 class ResponseBench
 {

@@ -26,6 +26,7 @@ namespace fkooman\SAML\SP;
 
 use DOMElement;
 use fkooman\SAML\SP\Exception\XmlIdpInfoSourceException;
+use RuntimeException;
 
 class XmlIdpInfoSource implements IdpInfoSourceInterface
 {
@@ -37,10 +38,14 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function __construct($metadataFile)
     {
-        // XXX make sure we can read the file
+        if (false === $xmlData = \file_get_contents($metadataFile)) {
+            throw new RuntimeException(\sprintf('unable to read file "%s"', $metadataFile));
+        }
+
         $this->xmlDocument = XmlDocument::fromMetadata(
-            \file_get_contents($metadataFile),
-            // do NOT validate the schema
+            $xmlData,
+            // do NOT validate the schema, we assume the XML is validated and
+            // trusted...
             false
         );
     }
