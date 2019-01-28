@@ -47,7 +47,7 @@ class SPTest extends TestCase
                 PrivateKey::fromFile(__DIR__.'/data/sp.key'),
                 PublicKey::fromFile(__DIR__.'/data/sp.crt')
             ),
-            new XmlIdpInfoSource(__DIR__.'/data/localhost.xml')
+            new XmlIdpInfoSource(__DIR__.'/data/metadata/localhost.xml')
         );
         $this->sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
         $this->sp->setSession(new TestSession());
@@ -139,7 +139,7 @@ EOF;
 
     public function testHandleResponse()
     {
-        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
+        $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP.xml');
 
         $session = new TestSession();
         $session->set('_fkooman_saml_sp_auth_idp', 'http://localhost:8080/metadata.php');
@@ -171,7 +171,7 @@ EOF;
      */
     public function testHandleResponseWrongAuthnContext()
     {
-        $samlResponse = \file_get_contents(__DIR__.'/data/FrkoIdP.xml');
+        $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP.xml');
 
         $session = new TestSession();
         $session->set('_fkooman_saml_sp_auth_idp', 'http://localhost:8080/metadata.php');
