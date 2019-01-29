@@ -146,6 +146,7 @@ EOF;
         $session->set('_fkooman_saml_sp_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
         $session->set('_fkooman_saml_sp_auth_acr', []);
         $this->sp->setSession($session);
+        $this->sp->setDateTime(new DateTime('2019-01-02T20:02:34Z'));
         $this->sp->handleResponse(\base64_encode($samlResponse));
         $samlAssertion = $session->get('_fkooman_saml_sp_auth_assertion');
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
@@ -178,6 +179,7 @@ EOF;
         $session->set('_fkooman_saml_sp_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
         $session->set('_fkooman_saml_sp_auth_acr', ['urn:x-example:bar']);
         $this->sp->setSession($session);
+        $this->sp->setDateTime(new DateTime('2019-01-02T20:02:34Z'));
         $this->sp->handleResponse(\base64_encode($samlResponse));
     }
 }

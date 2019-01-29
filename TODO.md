@@ -2,10 +2,11 @@
  
 ## 1.0
 
-- Verify `NotBefore` in `Response`? 
+- Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
 - Add `mdui` to generated metadata
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
 - Validate `RelayState` on return from IdP?
+- be a bit more lenient with the dateTime matching
 
 ## 1.1
 
