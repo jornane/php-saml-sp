@@ -52,6 +52,7 @@ SP library.
 
 Two examples are provided in the `example/` directory. In order test them:
 
+    $ composer install
     $ php -S localhost:8081 -t example
 
 The example performs authentication and shows the attributes received from the 
@@ -69,6 +70,13 @@ Make sure the IdP signs the `saml:Assertion` and/or `samlp:Response` it sends
 back the the SP.
 
 Optionally the IdP can verify the `samlp:AuthnRequest` as sent by the IdP.
+
+# Tests
+
+In order to run the tests:
+
+    $ composer install
+    $ vendor/bin/phpunit
 
 # XML Schema Validation
 
