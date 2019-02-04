@@ -71,6 +71,8 @@ back the the SP.
 
 Optionally the IdP can verify the `samlp:AuthnRequest` as sent by the IdP.
 
+Encryption is **NOT** currently supported.
+
 # Tests
 
 In order to run the tests:
