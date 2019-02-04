@@ -24,6 +24,7 @@ algorithms like (RSA)-SHA1.
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
 - Allow specifying `AuthnContextClassRef` as part of the `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
+- Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId`
 - Validates XML schema(s) when processing XML messages
 - Tested with IdPs:
   - [simpleSAMLphp](https://simplesamlphp.org/)
@@ -31,7 +32,6 @@ algorithms like (RSA)-SHA1.
   - [FrkoIdP](https://github.com/fkooman/php-saml-idp/)
   - [AD FS](https://en.wikipedia.org/wiki/Active_Directory_Federation_Services)
 - Currently ~1000 NCLOC
-- Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId`
 
 # X.509
 
