@@ -18,6 +18,8 @@
 
 # 2.0
 
+- remove PHP 5 support
+  - only support PHP >= 7.2 (CentOS 8, Debian 10)
 - support auto update of IdP metadata? This may be something best left to 
   php-saml-ds?
 - `ForceAuthn` in `AuthnRequest` (is anyone actually using this?)
