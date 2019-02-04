@@ -163,7 +163,8 @@ class Response
                 $attributeList[$attributeName] = [];
             }
             // XXX we MUST validate that the NameID's NameQualifier and
-            // SPNameQualifier match the IdP and SP entityIDs!
+            // SPNameQualifier match the IdP and SP entityIDs! Now we just use
+            // the (trusted) values from the SAML assertion directly...
             if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
                 // eduPersonTargetedId, serialize this accordingly
                 $attributeValue = \sprintf('%s!%s!%s', $idpEntityId, $spEntityId, $attributeValueElement->textContent);

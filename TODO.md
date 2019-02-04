@@ -2,6 +2,8 @@
  
 ## 1.0
 
+- make absolutely sure we verify the assertion with the right public key as to
+  avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
 - Add `mdui` to generated metadata
 - Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
