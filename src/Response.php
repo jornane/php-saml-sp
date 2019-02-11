@@ -158,7 +158,11 @@ class Response
         );
         $attributeList = [];
         foreach ($attributeValueElements as $attributeValueElement) {
-            $attributeName = $attributeValueElement->parentNode->getAttribute('Name');
+            $parentNode = $attributeValueElement->parentNode;
+            if (!($parentNode instanceof \DOMElement)) {
+                throw new ResponseException('parent node MUST be DOMElement');
+            }
+            $attributeName = $parentNode->getAttribute('Name');
             if (!\array_key_exists($attributeName, $attributeList)) {
                 $attributeList[$attributeName] = [];
             }
