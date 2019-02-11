@@ -94,6 +94,12 @@ Source of XSD files in `src/schema`:
 All occurrences of `schemaLocation` in the XSD files were modified to point to
 the local files instead of the remote resources.
 
+# Browser Session
+
+You MUST secure your PHP cookie/session settings. See 
+[this](https://paragonie.com/blog/2015/04/fast-track-safe-and-secure-php-sessions) 
+resource.
+
 # Resources
 
 * https://www.owasp.org/index.php/SAML_Security_Cheat_Sheet
