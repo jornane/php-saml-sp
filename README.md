@@ -43,10 +43,10 @@ SP library.
         -subj "/CN=SAML SP" \
         -x509 \
         -sha256 \
-        -newkey rsa:3072 \
+        -newkey rsa:2048 \
         -keyout "sp.key" \
         -out "sp.crt" \
-        -days 3650
+        -days 1800
 
 # Example
 
