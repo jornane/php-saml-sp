@@ -25,6 +25,7 @@
 namespace fkooman\SAML\SP\Tests;
 
 use DateTime;
+use fkooman\SAML\SP\Assertion;
 use fkooman\SAML\SP\PrivateKey;
 use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\Signer;
@@ -44,7 +45,7 @@ class SPTest extends TestCase
             new SpInfo(
                 'http://localhost:8081/metadata.php',
                 'http://localhost:8081/acs.php',
-                null,
+                'http://localhost:8081/slo.php',
                 PrivateKey::fromFile(__DIR__.'/data/sp.key'),
                 PublicKey::fromFile(__DIR__.'/data/sp.crt')
             ),
@@ -127,6 +128,7 @@ EOF;
         </ds:X509Data>
       </ds:KeyInfo>
     </KeyDescriptor>
+    <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/slo.php"/>
     <AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs.php"/>
   </SPSSODescriptor>
 </EntityDescriptor>
@@ -183,4 +185,83 @@ EOF;
         $this->sp->setDateTime(new DateTime('2019-01-02T20:02:34Z'));
         $this->sp->handleResponse(\base64_encode($samlResponse));
     }
+
+    public function testLogout()
+    {
+        $testSession = new TestSession();
+        $samlAssertion = new Assertion(
+            'http://localhost:8080/metadata.php',
+            '<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>',
+            new DateTime('2019-01-02T20:05:33Z'),
+            'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+            [
+                'urn:oid:0.9.2342.19200300.100.1.1' => [
+                    'foo',
+                ],
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.7' => [
+                    'foo',
+                    'bar',
+                    'baz',
+                ],
+            ]
+        );
+        $testSession->set('_fkooman_saml_sp_auth_assertion', $samlAssertion);
+        $this->sp->setSession($testSession);
+        $sloUrl = $this->sp->logout(
+            'http://localhost:8080/app'
+        );
+
+        $logoutRequest = <<< EOF
+<samlp:LogoutRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/slo.php">
+  <saml:Issuer>http://localhost:8081/metadata.php</saml:Issuer>
+  <saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID></samlp:LogoutRequest>
+EOF;
+
+        $relayState = 'http://localhost:8080/app';
+        $httpQuery = \http_build_query(
+            [
+                'SAMLRequest' => \base64_encode(\gzdeflate($logoutRequest)),
+                'RelayState' => $relayState,
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+            ]
+        );
+
+        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $this->assertSame(\sprintf('http://localhost:8080/slo.php?%s&%s', $httpQuery, $signatureQuery), $sloUrl);
+    }
+
+    public function testHandleLogoutResponse()
+    {
+        $samlResponse = <<< EOF
+<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_1e60a9a613e672a64fabef086613452f95676962a7b54bc1e330182ba0c98ae5" Version="2.0" IssueInstant="2019-01-13T21:14:35Z" Destination="http://localhost:8081/slo.php" InResponseTo="_c82bae71c665cb8a1a804bc4b61593f6">
+    <saml:Issuer>http://localhost:8080/metadata.php</saml:Issuer>
+    <samlp:Status>
+        <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+    </samlp:Status>
+</samlp:LogoutResponse>
+EOF;
+        $session = new TestSession();
+        $session->set('_fkooman_saml_sp_auth_logout_id', '_c82bae71c665cb8a1a804bc4b61593f6');
+        $session->set('_fkooman_saml_sp_auth_logout_idp', 'http://localhost:8080/metadata.php');
+        $this->sp->setSession($session);
+
+        $this->sp->handleLogoutResponse(\base64_encode(\gzdeflate($samlResponse)), 'http://localhost:8081/index.php', 'H76WdCmVsHixVXKS3SnqaVJ7lQP7z9o7bp025T1KRcq+RLT3SSVkpzGkeeteSjeY3Yr2yrUHfJHOAL+bG2esKEgLMWW/rqAxzQS6cywHdKLNW4y/hFtxxMKoiGi38mpg6TTwLiF+IFtAHMTogZtSCFN6VKbFnD7yppxpgYaouxl/E8pkc82hK1nXtwYEVDQJ6UIFbxglWRkG53S8IEto1Hshrfshr/Zui5TAKSIyx58LZDZPU4Wj3an2s2NUtyuv9wRjqIH/GaATlkQf/3kf1eC0RR1Fg+ZO+KLhXgbZ9Vuc52yfL0vgEBcfe4QESX0l/zRCRQQr/yCi4BTn7G39swd7a+tQ8eWClDuw2s8cmdpz3DROZsNQZHVbOx35018V+6/t2CHk/84s1IpiFzMjs98KxzVQBW0U+TIgKLTFjuE4GX1KyZVX6nqtpQCUj4L47KCcn/iipUYK4SjCTLdyxlCnkyb81VVh3kyu5Gg2ebXOOwjNBWV+Jrc+u8YMbJNF');
+
+        $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_id'));
+        $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_idp'));
+    }
+
+//    public function testLogoutResponseAdfs()
+//    {
+//SAMLResponse: fVLLbsMgEPwVi7uNX0ls5Fiqkkuk9NJEPfRSEbw0ljAgL0T5/GK7OUSqcmSZ2XlAg3xQlh3Nj/HuA9AajRAd9lvyXUPBhZR5fLmUXVzWso6rTSnidRimaSZkUdQk+oQRe6O3JE9SEh0QPRw0Oq5dGKVZHadZnFXnrGKrgmWbZFWmXyTaA7peczczr85ZZJTerE6cv0OXaHDUXm08mYvRUrjzwSqg0iuVhAuKypBoN3mddPyomeHYI9N8AGROsNPb+5EFS0wsIOY1WhC97KELNvUj6tlMSWVd5aUsZLqWuchWIkt5xS9QrTnwjQiE+6A0srmr13J2NM4Io0jbzF2MC/U1iSPCOHVB2qmLUIXEvyYeyXknkQbUrReA1I0eXUMXhbZZ3vDkuPP4fNqZDqJPrjy8doAzmp28COuRRLRt6PNW+t9HaX8B
+
+//RelayState: https://vpn.tuxed.net/php-saml-sp/example/full.php
+
+//Signature: pI58/1WP+XoSYL02mKehsQJQzD3YFReFtuURm4ppqT8iMUbvjXEe6EK78hRs69ScZAJJAzDznzi4WzTAfKlHXS2i/AUWFKaE7O930viStr0SBb7VHpdmHlnoQNKjNmZTZnCbwXlpU6ccKpspToc1F/02Jxk/oniyoyqX5amViQgI7CwjKGghLlfgJZQV2+cTye1C7ZdBTOIv7k8YfqASLq4pkZrvqGhFJRj9yfNx1Oqd+MCqg/bIIcyM9sMUrsG0gZkwnq0aJaxr1vGhJJo5U8tKGLHhsuDXHGgj9BMs5St7RBjgTPulztw/pRRCFts4eu/q+yWZZ4G3Zz1V8Kd3rA==
+
+//SigAlg: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+
+//        'https://vpn.tuxed.net/php-saml-sp/example/full.php/slo?SAMLResponse=fVJNb4MgGP4rhjsCzg8k1mRpLybdZW122GVhiquJAvGFpj9%2fqOuhydIj8Dzv8%2fFSgZxGK47mx3j3rsAaDSpqDjv0VfZJm5VZgTuav%2bC0y76x5KzDnKYyZXlOS9qh6EPNMBi9Q0lMUdQAeNVocFK7cEVZiSnDjJ8ZFykVjMWcZp8oOihwg5ZuZV6csyAIuVodO39TXayVI%2fZi8WIOgyXqJic7KtL7cYzDA4HRoGi%2feF10%2fKyFkTCA0HJSIFwrTq9vRxEsiXYDCa%2fBqnboBxVMN%2foe9WxCUpbKss9KJlnGeV8UvEwL2tMkkV3B81Si6DaNGsTa1XM5OxtnWjOiulq7mDfqc5IEUPPSBaqXLkIVPfw1cU8uux5IQF2HVgFxswdXkU2hrrYdnpx0Hh5Pe9Op6EOOXj13ACtanHwbxgOKSF2Rx6nkv49S%2fwI%3d&RelayState=https%3a%2f%2fvpn.tuxed.net%2fphp-saml-sp%2fexample%2ffull.php&Signature=U%2fhsM3x89%2f%2bFdjzLLgdS43EvtOM%2byblt9fBYvw%2bB3gWWuWpaPTUeZzYGQDC4xbWwG6PpVFaHs5RV3oA5daClC7GJpJSEyMrRIsWJlK8T5W3D%2foYDDAbtsjmzeprb3zn2kZVU1Fgk2SL2lg%2b8xHk%2fi4SjxNuF2DaEPmS%2fHlvNuXMd%2bDREGhgVuUdFEaPgU9%2bTWtFuH4KtgyEQ%2b%2bG02NPXy1EWZWuB7Djso1cdOK3SxjW5y%2fzYPXBSjMksUpxMCQZl4Z9bufavIq50GAoMl2syiN5vW%2fKIxtVzSQ0RKJVg16%2fvs8vgIibZdqQOBNj8RMYBR0cekWD%2fYwz5SxlLVEfKmA%3d%3d&SigAlg=http%3a%2f%2fwww.w3.org%2f2001%2f04%2fxmldsig-more%23rsa-sha256'
+
+//    }
 }
