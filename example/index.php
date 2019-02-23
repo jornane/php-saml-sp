@@ -34,10 +34,10 @@ try {
     \session_name('SID');
     \session_start();
 
-    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/x509idp.moonshot.utr.surfcloud.nl.xml');
-    $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
-//    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/localhost.xml');
-//    $idpEntityId = 'http://localhost:8080/metadata.php';
+//    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/x509idp.moonshot.utr.surfcloud.nl.xml');
+//    $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
+    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/localhost.xml');
+    $idpEntityId = 'http://localhost:8080/metadata.php';
     $relayState = 'http://localhost:8081/';
 
     // configure the SP

@@ -34,18 +34,18 @@ class ResponseTest extends TestCase
 {
     public function testFrkoIdP()
     {
-        $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
+        $response = new Response(new DateTime('2019-02-23T17:01:21Z'));
         $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
-            'http://localhost:8081/metadata.php',
-            '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
-            'http://localhost:8081/acs.php',
+            'http://localhost:8081/metadata',
+            '_2483d0b8847ccaa5edf203dad685f860',
+            'http://localhost:8081/acs',
             [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
-        $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>', $samlAssertion->getNameId());
+        $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">bGFxwg50lVJbZsA2OHcqchfJ5HCDuxcFYBPxUi_dumo</saml:NameID>', $samlAssertion->getNameId());
         $this->assertSame(
             [
                 'urn:oid:0.9.2342.19200300.100.1.1' => [
@@ -55,6 +55,8 @@ class ResponseTest extends TestCase
                     'foo',
                     'bar',
                     'baz',
+                    'urn:example:LC-admin',
+                    'urn:example:admin',
                 ],
             ],
             $samlAssertion->getAttributes()
@@ -132,9 +134,9 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP_invalid_digest.xml');
         $response->verify(
             $samlResponse,
-            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/metadata',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
-            'http://localhost:8081/acs.php',
+            'http://localhost:8081/acs',
             [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
@@ -150,9 +152,9 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP.xml');
         $response->verify(
             $samlResponse,
-            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/metadata',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
-            'http://localhost:8081/acs.php',
+            'http://localhost:8081/acs',
             [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/simpleSAMLphp.crt')])
         );
@@ -168,9 +170,9 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP_invalid_signature.xml');
         $response->verify(
             $samlResponse,
-            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/metadata',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
-            'http://localhost:8081/acs.php',
+            'http://localhost:8081/acs',
             [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
@@ -186,9 +188,9 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/assertion/FrkoIdP_not_signed.xml');
         $response->verify(
             $samlResponse,
-            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/metadata',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
-            'http://localhost:8081/acs.php',
+            'http://localhost:8081/acs',
             [],
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
@@ -222,7 +224,7 @@ class ResponseTest extends TestCase
         $samlResponse = \file_get_contents(__DIR__.'/data/assertion/x509idp.moonshot.utr.surfcloud.nl.xml');
         $response->verify(
             $samlResponse,
-            'http://localhost:8081/metadata.php',
+            'http://localhost:8081/metadata',
             '_3c35f56a7156b0805fbccb717cc15194',
             'http://localhost:8081/acs',
             [],

@@ -43,9 +43,9 @@ class SPTest extends TestCase
     {
         $this->sp = new SP(
             new SpInfo(
-                'http://localhost:8081/metadata.php',
-                'http://localhost:8081/acs.php',
-                'http://localhost:8081/slo.php',
+                'http://localhost:8081/metadata',
+                'http://localhost:8081/acs',
+                'http://localhost:8081/slo',
                 PrivateKey::fromFile(__DIR__.'/data/sp.key'),
                 PublicKey::fromFile(__DIR__.'/data/sp.crt')
             ),
@@ -67,8 +67,8 @@ class SPTest extends TestCase
         );
 
         $samlRequest = <<< EOF
-<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/sso.php" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="http://localhost:8081/acs.php">
-  <saml:Issuer>http://localhost:8081/metadata.php</saml:Issuer>
+<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/sso.php" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="http://localhost:8081/acs">
+  <saml:Issuer>http://localhost:8081/metadata</saml:Issuer>
 </samlp:AuthnRequest>
 EOF;
 
@@ -96,8 +96,8 @@ EOF;
         );
 
         $samlRequest = <<< EOF
-<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/sso.php" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="http://localhost:8081/acs.php">
-  <saml:Issuer>http://localhost:8081/metadata.php</saml:Issuer>
+<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/sso.php" Consent="urn:oasis:names:tc:SAML:2.0:consent:current-implicit" ForceAuthn="false" IsPassive="false" AssertionConsumerServiceURL="http://localhost:8081/acs">
+  <saml:Issuer>http://localhost:8081/metadata</saml:Issuer>
   <samlp:RequestedAuthnContext Comparison="exact">
     <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken</saml:AuthnContextClassRef>
   </samlp:RequestedAuthnContext>
@@ -119,7 +119,7 @@ EOF;
     public function testMetadata()
     {
         $metadataResponse = <<< EOF
-<EntityDescriptor validUntil="2018-01-02T20:00:00Z" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" entityID="http://localhost:8081/metadata.php">
+<EntityDescriptor validUntil="2018-01-02T20:00:00Z" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" entityID="http://localhost:8081/metadata">
   <SPSSODescriptor AuthnRequestsSigned="true" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
     <KeyDescriptor use="signing">
       <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
@@ -128,8 +128,8 @@ EOF;
         </ds:X509Data>
       </ds:KeyInfo>
     </KeyDescriptor>
-    <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/slo.php"/>
-    <AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs.php"/>
+    <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/slo"/>
+    <AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs"/>
   </SPSSODescriptor>
 </EntityDescriptor>
 EOF;
@@ -146,14 +146,14 @@ EOF;
 
         $session = new TestSession();
         $session->set('_fkooman_saml_sp_auth_idp', 'http://localhost:8080/metadata.php');
-        $session->set('_fkooman_saml_sp_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
+        $session->set('_fkooman_saml_sp_auth_id', '_2483d0b8847ccaa5edf203dad685f860');
         $session->set('_fkooman_saml_sp_auth_acr', []);
         $this->sp->setSession($session);
-        $this->sp->setDateTime(new DateTime('2019-01-02T20:02:34Z'));
+        $this->sp->setDateTime(new DateTime('2019-02-23T17:01:21Z'));
         $this->sp->handleResponse(\base64_encode($samlResponse));
         $samlAssertion = $session->get('_fkooman_saml_sp_auth_assertion');
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
-        $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>', $samlAssertion->getNameId());
+        $this->assertSame('<saml:NameID SPNameQualifier="http://localhost:8081/metadata" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">bGFxwg50lVJbZsA2OHcqchfJ5HCDuxcFYBPxUi_dumo</saml:NameID>', $samlAssertion->getNameId());
         $this->assertSame(
             [
                 'urn:oid:0.9.2342.19200300.100.1.1' => [
@@ -163,6 +163,8 @@ EOF;
                     'foo',
                     'bar',
                     'baz',
+                    'urn:example:LC-admin',
+                    'urn:example:admin',
                 ],
             ],
             $samlAssertion->getAttributes()
@@ -179,10 +181,10 @@ EOF;
 
         $session = new TestSession();
         $session->set('_fkooman_saml_sp_auth_idp', 'http://localhost:8080/metadata.php');
-        $session->set('_fkooman_saml_sp_auth_id', '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067');
+        $session->set('_fkooman_saml_sp_auth_id', '_2483d0b8847ccaa5edf203dad685f860');
         $session->set('_fkooman_saml_sp_auth_acr', ['urn:x-example:bar']);
         $this->sp->setSession($session);
-        $this->sp->setDateTime(new DateTime('2019-01-02T20:02:34Z'));
+        $this->sp->setDateTime(new DateTime('2019-02-23T17:01:21Z'));
         $this->sp->handleResponse(\base64_encode($samlResponse));
     }
 
@@ -191,7 +193,7 @@ EOF;
         $testSession = new TestSession();
         $samlAssertion = new Assertion(
             'http://localhost:8080/metadata.php',
-            '<saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>',
+            '<saml:NameID SPNameQualifier="http://localhost:8081/metadata" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID>',
             new DateTime('2019-01-02T20:05:33Z'),
             'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
             [
@@ -213,8 +215,8 @@ EOF;
 
         $logoutRequest = <<< EOF
 <samlp:LogoutRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_30313233343536373839616263646566" Version="2.0" IssueInstant="2018-01-01T08:00:00Z" Destination="http://localhost:8080/slo.php">
-  <saml:Issuer>http://localhost:8081/metadata.php</saml:Issuer>
-  <saml:NameID SPNameQualifier="http://localhost:8081/metadata.php" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID></samlp:LogoutRequest>
+  <saml:Issuer>http://localhost:8081/metadata</saml:Issuer>
+  <saml:NameID SPNameQualifier="http://localhost:8081/metadata" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">LtrfxjC6GOQ5pywYueOfXJDwfhQ7dZ4t9k3yGEB1WhY</saml:NameID></samlp:LogoutRequest>
 EOF;
 
         $relayState = 'http://localhost:8080/app';
@@ -233,7 +235,7 @@ EOF;
     public function testHandleLogoutResponse()
     {
         $samlResponse = <<< EOF
-<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_1e60a9a613e672a64fabef086613452f95676962a7b54bc1e330182ba0c98ae5" Version="2.0" IssueInstant="2019-01-13T21:14:35Z" Destination="http://localhost:8081/slo.php" InResponseTo="_c82bae71c665cb8a1a804bc4b61593f6">
+<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_6e09018c60b85586a4e513ddef8b311f9f22010ff656c4f530ed66c0f453a165" Version="2.0" IssueInstant="2019-02-23T17:04:25Z" Destination="http://localhost:8081/slo" InResponseTo="_9ac5774131771c2dff4e152c4ef31369">
     <saml:Issuer>http://localhost:8080/metadata.php</saml:Issuer>
     <samlp:Status>
         <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
@@ -241,11 +243,11 @@ EOF;
 </samlp:LogoutResponse>
 EOF;
         $session = new TestSession();
-        $session->set('_fkooman_saml_sp_auth_logout_id', '_c82bae71c665cb8a1a804bc4b61593f6');
+        $session->set('_fkooman_saml_sp_auth_logout_id', '_9ac5774131771c2dff4e152c4ef31369');
         $session->set('_fkooman_saml_sp_auth_logout_idp', 'http://localhost:8080/metadata.php');
         $this->sp->setSession($session);
 
-        $this->sp->handleLogoutResponse(\base64_encode(\gzdeflate($samlResponse)), 'http://localhost:8081/index.php', 'H76WdCmVsHixVXKS3SnqaVJ7lQP7z9o7bp025T1KRcq+RLT3SSVkpzGkeeteSjeY3Yr2yrUHfJHOAL+bG2esKEgLMWW/rqAxzQS6cywHdKLNW4y/hFtxxMKoiGi38mpg6TTwLiF+IFtAHMTogZtSCFN6VKbFnD7yppxpgYaouxl/E8pkc82hK1nXtwYEVDQJ6UIFbxglWRkG53S8IEto1Hshrfshr/Zui5TAKSIyx58LZDZPU4Wj3an2s2NUtyuv9wRjqIH/GaATlkQf/3kf1eC0RR1Fg+ZO+KLhXgbZ9Vuc52yfL0vgEBcfe4QESX0l/zRCRQQr/yCi4BTn7G39swd7a+tQ8eWClDuw2s8cmdpz3DROZsNQZHVbOx35018V+6/t2CHk/84s1IpiFzMjs98KxzVQBW0U+TIgKLTFjuE4GX1KyZVX6nqtpQCUj4L47KCcn/iipUYK4SjCTLdyxlCnkyb81VVh3kyu5Gg2ebXOOwjNBWV+Jrc+u8YMbJNF');
+        $this->sp->handleLogoutResponse(\base64_encode(\gzdeflate($samlResponse)), 'http://localhost:8081/', 'rp/pDrK7fK/FSflLxhj+jvSkj/EnLHJ+sOWTXRYwHWpHxA1SbRgxFlgNORAYGJgLHSVd/zL9eFiYVgfNlGznZVWIo/CBJK6RyV2/vNmyBh9XcMCVIajiAZ/OK6Q+NoH3AhGeJ4D9i8l+CJFFijMSqMBXPVxuajxVG80gxcnNWDtHTF5hi3/aHf10PsT5lG12IMHLwwwFNKIUIRROnUclqFuhDGwusb2qi5PCNlrn07Azl1vkFGuTDDjpXpH9K6sfZ5hx9aJ11X1YK2VKvsEnfMh6D/ZD34xlAC+VibTlggkDuldjvGtyUNM3qKgSAwQ7oir3CAReCg4YwHo82hHdg0BlNsIe8sScvFoR9GYM9YRoFQXiIbIFkpKYHR8EWduMqu5vaPko9T9f7YAmcjSkE9U4ilXD/82kfXQPtM5Bl+Ei/ZvbBDSHTLf45hnn5HsL6ze0/Hun6Yk6eCenDFdLVo1FG2UeJ7ogMbA6RqXxJKiM+ZyZuXmisLoPFSivO5TZ');
 
         $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_id'));
         $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_idp'));
