@@ -24,7 +24,6 @@
 
 require_once \dirname(__DIR__).'/vendor/autoload.php';
 
-use fkooman\SAML\SP\Exception\SamlException;
 use fkooman\SAML\SP\PrivateKey;
 use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\SP;
@@ -37,13 +36,15 @@ try {
 
     $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/x509idp.moonshot.utr.surfcloud.nl.xml');
     $idpEntityId = 'https://x509idp.moonshot.utr.surfcloud.nl/metadata';
+//    $idpInfoSource = new XmlIdpInfoSource(__DIR__.'/localhost.xml');
+//    $idpEntityId = 'http://localhost:8080/metadata.php';
     $relayState = 'http://localhost:8081/';
 
     // configure the SP
     $spInfo = new SpInfo(
         'http://localhost:8081/metadata',
         'http://localhost:8081/acs',
-        null,
+        'http://localhost:8081/slo',
         PrivateKey::fromFile('sp.key'), // used to sign AuthnRequest/LogoutRequest
         PublicKey::fromFile('sp.crt')  // used to provide in metadata
     );
@@ -92,12 +93,23 @@ try {
             }
             break;
 
+        // callback from IdP containing the SAML "LogoutResponse"
+        case '/slo':
+            $sp->handleLogoutResponse($_GET['SAMLResponse'], $_GET['RelayState'], $_GET['Signature']);
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $_GET['RelayState']));
+            break;
+
         // exposes the SP metadata
         case '/metadata':
             \header('Content-Type: application/samlmetadata+xml');
             echo $sp->metadata();
             break;
+
+        default:
+            \http_response_code(404);
+            echo '[404] page not found';
     }
-} catch (SamlException $e) {
+} catch (Exception $e) {
     echo 'Error: '.$e->getMessage().PHP_EOL;
 }
