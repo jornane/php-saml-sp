@@ -32,6 +32,9 @@ class SpInfo
     /** @var string */
     private $acsUrl;
 
+    /** @var string|null */
+    private $sloUrl;
+
     /** @var PrivateKey */
     private $privateKey;
 
@@ -39,15 +42,17 @@ class SpInfo
     private $publicKey;
 
     /**
-     * @param string     $entityId
-     * @param string     $acsUrl
-     * @param PrivateKey $privateKey
-     * @param PublicKey  $publicKey
+     * @param string      $entityId
+     * @param string      $acsUrl
+     * @param string|null $sloUrl
+     * @param PrivateKey  $privateKey
+     * @param PublicKey   $publicKey
      */
-    public function __construct($entityId, $acsUrl, PrivateKey $privateKey, PublicKey $publicKey)
+    public function __construct($entityId, $acsUrl, $sloUrl, PrivateKey $privateKey, PublicKey $publicKey)
     {
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
+        $this->sloUrl = $sloUrl;
         $this->privateKey = $privateKey;
         $this->publicKey = $publicKey;
     }
@@ -66,6 +71,14 @@ class SpInfo
     public function getAcsUrl()
     {
         return $this->acsUrl;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSloUrl()
+    {
+        return $this->sloUrl;
     }
 
     /**

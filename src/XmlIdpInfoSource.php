@@ -75,7 +75,8 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         return new IdpInfo(
             $entityId,
             $this->getSingleSignOnService($domElement),
-            $this->getPublicKey($domElement)
+            $this->getSingleLogoutService($domElement),
+            $this->getPublicKey($domElement)    // XXX rename to getPublicKeys?!
         );
     }
 
@@ -86,8 +87,20 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     private function getSingleSignOnService(DOMElement $domElement)
     {
-        // what happens if there is more than one element that matches this?
+        // XXX what happens if there is more than one element that matches this?
         return $this->xmlDocument->domXPath->evaluate('string(md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location)', $domElement);
+    }
+
+    /**
+     * @param \DOMElement $domElement
+     *
+     * @return string|null
+     */
+    private function getSingleLogoutService(DOMElement $domElement)
+    {
+        // XXX what happens if there is more than one element that matches this?
+        // XXX what happens if there are none? does it actually return null?
+        return $this->xmlDocument->domXPath->evaluate('string(md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location)', $domElement);
     }
 
     /**

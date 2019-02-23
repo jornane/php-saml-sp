@@ -44,6 +44,7 @@ class SPTest extends TestCase
             new SpInfo(
                 'http://localhost:8081/metadata.php',
                 'http://localhost:8081/acs.php',
+                null,
                 PrivateKey::fromFile(__DIR__.'/data/sp.key'),
                 PublicKey::fromFile(__DIR__.'/data/sp.crt')
             ),
