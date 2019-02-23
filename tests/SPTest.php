@@ -234,20 +234,24 @@ EOF;
 
     public function testHandleLogoutResponse()
     {
-        $samlResponse = <<< EOF
-<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_6e09018c60b85586a4e513ddef8b311f9f22010ff656c4f530ed66c0f453a165" Version="2.0" IssueInstant="2019-02-23T17:04:25Z" Destination="http://localhost:8081/slo" InResponseTo="_9ac5774131771c2dff4e152c4ef31369">
-    <saml:Issuer>http://localhost:8080/metadata.php</saml:Issuer>
-    <samlp:Status>
-        <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
-    </samlp:Status>
-</samlp:LogoutResponse>
-EOF;
+        // XXX put this in a file
+        $samlResponse = 'fZLNasMwEITvfQqje2L92xZJoDSXQHppQg69FEVeNQFbMl4Z+vh13YYmtEQ3ze58uwy7QNs2ndnG9zikF8AuBoTso20Cmqm0JEMfTLR4RhNsC2iSM7vH563hc2q6PqboYkOuLPcdFhH6dI6BZJv1krxpoBVlpdP0WCpVaitBMVHX4MujYMxXnnPKqPdaaSe9EhRqrR31UgnLtCLZAXoceUsy4kco4gCbgMmGNEqUVTPKZ1zsWWGoNFy9kmwNmM7Bpsl1Sqkzed5EZ5tTxGRKWrIcmziywiWRfRxXraxTRSGZYEXBHK+9l8AUdxK8YEJXZPWQjW/xFYKZ9uhX/9Fp3kKytU123p26RX7d/0vozC7ZNOC39Ed+ijVkB9sMcD9vnLrNbnAOEEn+MyG/HXH5397B6uET';
+
+//        $samlResponse = <<< EOF
+        //<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_6e09018c60b85586a4e513ddef8b311f9f22010ff656c4f530ed66c0f453a165" Version="2.0" IssueInstant="2019-02-23T17:04:25Z" Destination="http://localhost:8081/slo" InResponseTo="_9ac5774131771c2dff4e152c4ef31369">
+//    <saml:Issuer>http://localhost:8080/metadata.php</saml:Issuer>
+//    <samlp:Status>
+//        <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+//    </samlp:Status>
+        //</samlp:LogoutResponse>
+
+        //EOF;
         $session = new TestSession();
         $session->set('_fkooman_saml_sp_auth_logout_id', '_9ac5774131771c2dff4e152c4ef31369');
         $session->set('_fkooman_saml_sp_auth_logout_idp', 'http://localhost:8080/metadata.php');
         $this->sp->setSession($session);
 
-        $this->sp->handleLogoutResponse(\base64_encode(\gzdeflate($samlResponse)), 'http://localhost:8081/', 'rp/pDrK7fK/FSflLxhj+jvSkj/EnLHJ+sOWTXRYwHWpHxA1SbRgxFlgNORAYGJgLHSVd/zL9eFiYVgfNlGznZVWIo/CBJK6RyV2/vNmyBh9XcMCVIajiAZ/OK6Q+NoH3AhGeJ4D9i8l+CJFFijMSqMBXPVxuajxVG80gxcnNWDtHTF5hi3/aHf10PsT5lG12IMHLwwwFNKIUIRROnUclqFuhDGwusb2qi5PCNlrn07Azl1vkFGuTDDjpXpH9K6sfZ5hx9aJ11X1YK2VKvsEnfMh6D/ZD34xlAC+VibTlggkDuldjvGtyUNM3qKgSAwQ7oir3CAReCg4YwHo82hHdg0BlNsIe8sScvFoR9GYM9YRoFQXiIbIFkpKYHR8EWduMqu5vaPko9T9f7YAmcjSkE9U4ilXD/82kfXQPtM5Bl+Ei/ZvbBDSHTLf45hnn5HsL6ze0/Hun6Yk6eCenDFdLVo1FG2UeJ7ogMbA6RqXxJKiM+ZyZuXmisLoPFSivO5TZ');
+        $this->sp->handleLogoutResponse($samlResponse, 'http://localhost:8081/', 'rp/pDrK7fK/FSflLxhj+jvSkj/EnLHJ+sOWTXRYwHWpHxA1SbRgxFlgNORAYGJgLHSVd/zL9eFiYVgfNlGznZVWIo/CBJK6RyV2/vNmyBh9XcMCVIajiAZ/OK6Q+NoH3AhGeJ4D9i8l+CJFFijMSqMBXPVxuajxVG80gxcnNWDtHTF5hi3/aHf10PsT5lG12IMHLwwwFNKIUIRROnUclqFuhDGwusb2qi5PCNlrn07Azl1vkFGuTDDjpXpH9K6sfZ5hx9aJ11X1YK2VKvsEnfMh6D/ZD34xlAC+VibTlggkDuldjvGtyUNM3qKgSAwQ7oir3CAReCg4YwHo82hHdg0BlNsIe8sScvFoR9GYM9YRoFQXiIbIFkpKYHR8EWduMqu5vaPko9T9f7YAmcjSkE9U4ilXD/82kfXQPtM5Bl+Ei/ZvbBDSHTLf45hnn5HsL6ze0/Hun6Yk6eCenDFdLVo1FG2UeJ7ogMbA6RqXxJKiM+ZyZuXmisLoPFSivO5TZ');
 
         $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_id'));
         $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_idp'));
