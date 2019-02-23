@@ -35,7 +35,7 @@ class XmlIdpInfoSourceBench
     public function benchFromMetadataNoSchemaValidate()
     {
         $xmlDocument = XmlDocument::fromMetadata(
-            \file_get_contents(\dirname(__DIR__).'/tests/data/localhost.xml'),
+            \file_get_contents(\dirname(__DIR__).'/tests/data/metadata/localhost.xml'),
             false
         );
     }
@@ -48,7 +48,7 @@ class XmlIdpInfoSourceBench
     public function benchFromMetadataSchemaValidate()
     {
         $xmlDocument = XmlDocument::fromMetadata(
-            \file_get_contents(\dirname(__DIR__).'/tests/data/localhost.xml'),
+            \file_get_contents(\dirname(__DIR__).'/tests/data/metadata/localhost.xml'),
             true
         );
     }

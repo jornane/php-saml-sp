@@ -37,14 +37,14 @@ class ResponseBench
     public function benchHandleResponse()
     {
         $response = new Response(new DateTime('2019-01-02T20:05:33Z'));
-        $samlResponse = \file_get_contents(\dirname(__DIR__).'/tests/data/FrkoIdP.xml');
+        $samlResponse = \file_get_contents(\dirname(__DIR__).'/tests/data/assertion/FrkoIdP.xml');
         $samlAssertion = $response->verify(
             $samlResponse,
             'http://localhost:8081/metadata.php',
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs.php',
             [],
-            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(\dirname(__DIR__).'/tests/data/FrkoIdP.crt')])
+            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/FrkoIdP.crt')])
         );
     }
 }
