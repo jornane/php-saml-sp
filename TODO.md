@@ -5,7 +5,6 @@
 - can we somehow make `SameSite` cookie parameter work for the application 
   while having it disabled for the ACS endpoint? A form POST comes from a 
   remote location...
-
 - make absolutely sure we verify the assertion with the right public key as to
   avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
@@ -30,10 +29,7 @@
   php-saml-ds?
 - `ForceAuthn` in `AuthnRequest` (is anyone actually using this?)
 - Implement unsolicited `Response`, "IdP initiated"
-- Implement SLO
-  - Send `LogoutRequest`
-  - Receive `LogoutResponse`
-  - Receive unsolicited `LogoutRequest` from IdPs
+- Receive unsolicited `LogoutRequest` from IdPs
 - Support receiving encrypted Assertions (saml2int)
   - rsa-oaep-mgf1p
   - aes-256-gcm
