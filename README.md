@@ -18,9 +18,12 @@ algorithms like (RSA)-SHA1.
 
 - Only SAML SP functionality
 - Only HTTP-Redirect binding for sending `AuthnRequest` to IdP
+- Only HTTP-Redirect binding for sending `LogoutRequest` to IdP
+- Only HTTP-Redirect binding for receiving `LogoutResponse` from IdP
 - Only HTTP-POST binding for receiving `Assertion` from IdP
 - Only supports RSA with SHA256 for signing/verifying signatures
 - Always signs `AuthnRequest`
+- Always signs `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed `saml:Assertion`
 - Allow specifying `AuthnContextClassRef` as part of the `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
@@ -99,6 +102,16 @@ the local files instead of the remote resources.
 You MUST secure your PHP cookie/session settings. See 
 [this](https://paragonie.com/blog/2015/04/fast-track-safe-and-secure-php-sessions) 
 resource.
+
+# simpleSAMLphp as IdP
+
+In your simpleSAMLphp's `metadata/saml20-sp-remote.php`, configure this for 
+this SP library:
+
+    'validate.authnrequest' => true,
+    'saml20.sign.assertion' => true,
+    'sign.logout' => true,
+    'validate.logout' => true,
 
 # Resources
 
