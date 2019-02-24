@@ -24,23 +24,11 @@
 
 namespace fkooman\SAML\SP;
 
-use DateTime;
 use fkooman\SAML\SP\Exception\ResponseException;
 use ParagonIE\ConstantTime\Base64;
 
 class LogoutResponse
 {
-    /** @var \DateTime */
-    private $dateTime;
-
-    /**
-     * @param \DateTime $dateTime
-     */
-    public function __construct(DateTime $dateTime)
-    {
-        $this->dateTime = $dateTime;
-    }
-
     /**
      * @param string  $samlResponse
      * @param string  $relayState
@@ -54,13 +42,7 @@ class LogoutResponse
     public function verify($samlResponse, $relayState, $signature, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
         Signer::verifyRedirect($samlResponse, $relayState, $signature, $idpInfo->getPublicKeys());
-
         $logoutResponseDocument = XmlDocument::fromProtocolMessage(\gzinflate(Base64::decode($samlResponse)));
-        // XXX make sure it actually is a logoutresponse, and that there is only one!!!
-//        $logoutResponseElement = $logoutResponseDocument->getOneElement($responseDocument, '/samlp:LogoutResponse');
-
-//        $logoutResponseDocument = XmlDocument::fromString(\gzinflate(Base64::decode($samlResponse)));
-//        $domXPath = $logoutResponseDocument->getDomXPath();
 
         // the LogoutResponse Issuer MUST be IdP entityId
         $issuer = $logoutResponseDocument->domXPath->evaluate('string(/samlp:LogoutResponse/saml:Issuer)');
@@ -83,7 +65,5 @@ class LogoutResponse
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
             throw new ResponseException(\sprintf('status error code: %s', $statusCode));
         }
-
-        // XXX do not accept old logout responses
     }
 }

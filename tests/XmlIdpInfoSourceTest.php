@@ -47,5 +47,6 @@ class XmlIdpInfoSourceTest extends TestCase
         $idpInfo = $xmlIdpInfoSource->get('https://x509idp.moonshot.utr.surfcloud.nl/metadata');
         $this->assertSame('https://x509idp.moonshot.utr.surfcloud.nl/metadata', $idpInfo->getEntityId());
         $this->assertSame('https://x509idp.moonshot.utr.surfcloud.nl/sso', $idpInfo->getSsoUrl());
+        $this->assertNull($idpInfo->getSloUrl());
     }
 }

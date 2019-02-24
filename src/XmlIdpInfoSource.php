@@ -44,6 +44,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
 
         $this->xmlDocument = XmlDocument::fromMetadata(
             $xmlData,
+            // XXX we have to be a bit smarter here! potential trouble!
             // do NOT validate the schema, we assume the XML is validated and
             // trusted...
             false
@@ -76,7 +77,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             $entityId,
             $this->getSingleSignOnService($domElement),
             $this->getSingleLogoutService($domElement),
-            $this->getPublicKey($domElement)    // XXX rename to getPublicKeys?!
+            $this->getPublicKeys($domElement)
         );
     }
 
@@ -87,8 +88,13 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     private function getSingleSignOnService(DOMElement $domElement)
     {
-        // XXX what happens if there is more than one element that matches this?
-        return $this->xmlDocument->domXPath->evaluate('string(md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location)', $domElement);
+        $domNodeList = $this->xmlDocument->domXPath->query('md:SingleSignOnService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location', $domElement);
+        // return the first one, also if multiple are available
+        if (null === $firstNode = $domNodeList->item(0)) {
+            throw new XmlIdpInfoSourceException('no "md:SingleSignOnService" available');
+        }
+
+        return $firstNode->textContent;
     }
 
     /**
@@ -98,9 +104,13 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     private function getSingleLogoutService(DOMElement $domElement)
     {
-        // XXX what happens if there is more than one element that matches this?
-        // XXX what happens if there are none? does it actually return null?
-        return $this->xmlDocument->domXPath->evaluate('string(md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location)', $domElement);
+        $domNodeList = $this->xmlDocument->domXPath->query('md:SingleLogoutService[@Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"]/@Location', $domElement);
+        // return the first one, also if multiple are available
+        if (null === $firstNode = $domNodeList->item(0)) {
+            return null;
+        }
+
+        return $firstNode->textContent;
     }
 
     /**
@@ -108,7 +118,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      *
      * @return array<PublicKey>
      */
-    private function getPublicKey(DOMElement $domElement)
+    private function getPublicKeys(DOMElement $domElement)
     {
         $publicKeys = [];
         $domNodeList = $this->xmlDocument->domXPath->query('md:KeyDescriptor[not(@use) or @use="signing"]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $domElement);

@@ -236,7 +236,7 @@ class SP
             throw new SpException(\sprintf('IdP "%s" not registered', $idpEntityId));
         }
 
-        $logoutResponse = new LogoutResponse($this->dateTime);
+        $logoutResponse = new LogoutResponse();
         $logoutResponse->verify(
             $samlResponse,
             $relayState,
