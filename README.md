@@ -8,27 +8,28 @@ production until there is a 1.0 release!
 
 # Why
 
-We want to have a minimal implementation of a SAML SP library. Exiting (PHP) 
-software either has a much larger scope, or tries to conform fully to the SAML 
-specification. This library only tries to implement the minimum amount to work
-with deployed IdPs and be secure at all times. It will never support insecure
-algorithms like (RSA)-SHA1.
+I wanted to have a minimal implementation of a SAML SP library with only 
+_signature_ verification, no encryption. Exiting (PHP) software either has a 
+much larger scope, or tries to conform fully to the SAML specification. This 
+library only tries to implement the minimum amount to work with real world 
+deployed IdPs and be secure at all times.
 
 # Features
 
 - Only SAML SP functionality
-- Only HTTP-Redirect binding for sending `AuthnRequest` to IdP
-- Only HTTP-Redirect binding for sending `LogoutRequest` to IdP
+- Only HTTP-Redirect for sending `AuthnRequest`, `LogoutRequest` to IdP
 - Only HTTP-Redirect binding for receiving `LogoutResponse` from IdP
-- Only HTTP-POST binding for receiving `Assertion` from IdP
+- Only HTTP-POST binding for receiving `Response` from IdP
 - Only supports RSA with SHA256 for signing/verifying signatures
 - Always signs `AuthnRequest`
 - Always signs `LogoutRequest`
-- Supports signed `samlp:Response` and/or signed `saml:Assertion`
+- Supports signed `samlp:Response` and/or signed 
+  `samlp:Response/saml:Assertion`
 - Allow specifying `AuthnContextClassRef` as part of the `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
-- Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId`
-- Validates XML schema(s) when processing XML messages
+- Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId` 
+  like Shibboleth;
+- Validates XML schema(s) when processing XML protocol messages
 - Tested with IdPs:
   - [simpleSAMLphp](https://simplesamlphp.org/)
   - [OpenConext](https://openconext.org/)
@@ -55,12 +56,11 @@ SP library.
 
 Two examples are provided in the `example/` directory. In order test them:
 
-    $ composer install
+    $ /path/to/composer install
     $ php -S localhost:8081 -t example
 
 The example performs authentication and shows the attributes received from the 
-IdP. It does not support logout at the IdP, but instead performs a "local" 
-logout (and then redirects again to the IdP).
+IdP. It also supports logout at the IdP if supported by the IdP.
 
 With your browser you can go to 
 [http://localhost:8081/](http://localhost:8081/). The example will redirect 
@@ -69,18 +69,30 @@ immediately to the IdP. The metadata of the SP can be found at this URL:
 
 # IdP Configuration
 
-Make sure the IdP signs the `saml:Assertion` and/or `samlp:Response` it sends 
-back the the SP.
+Make sure:
 
-Optionally the IdP can verify the `samlp:AuthnRequest` as sent by the IdP.
+- the IdP signs the `saml:Assertion` and/or the `samlp:Response`;
+- the IdP does NOT encrypt the `saml:Assertion`, i.e. it MUST NOT send a 
+  `saml:EncryptedAssertion`;
+- the IdP verifies the signature on the `samlp:AuthnRequest`;
+- the IdP verifies the signature on the `samlp:LogoutRequest`;
+- the IdP signs the `samlp:LogoutResponse`.
 
-Encryption is **NOT** currently supported.
+## simpleSAMLphp
+
+In your simpleSAMLphp's `metadata/saml20-sp-remote.php` file, configure this 
+for this SP library:
+
+    'validate.authnrequest' => true,
+    'saml20.sign.assertion' => true,
+    'sign.logout' => true,
+    'validate.logout' => true,
 
 # Tests
 
 In order to run the tests:
 
-    $ composer install
+    $ /path/to/composer install
     $ vendor/bin/phpunit
 
 # XML Schema Validation
@@ -109,16 +121,6 @@ the schema file to make the validation work:
 You MUST secure your PHP cookie/session settings. See 
 [this](https://paragonie.com/blog/2015/04/fast-track-safe-and-secure-php-sessions) 
 resource.
-
-# simpleSAMLphp as IdP
-
-In your simpleSAMLphp's `metadata/saml20-sp-remote.php`, configure this for 
-this SP library:
-
-    'validate.authnrequest' => true,
-    'saml20.sign.assertion' => true,
-    'sign.logout' => true,
-    'validate.logout' => true,
 
 # Resources
 
