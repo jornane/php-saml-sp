@@ -218,13 +218,11 @@ class SP
     }
 
     /**
-     * @param string $samlResponse
-     * @param string $relayState
-     * @param string $signature
+     * @param string $queryString
      *
      * @return void
      */
-    public function handleLogoutResponse($samlResponse, $relayState, $signature)
+    public function handleLogoutResponse($queryString)
     {
         if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
             // SP does not support SLO, nothing we can do here...
@@ -238,9 +236,7 @@ class SP
 
         $logoutResponse = new LogoutResponse();
         $logoutResponse->verify(
-            $samlResponse,
-            $relayState,
-            $signature,
+            new QueryParameters($queryString),
             $this->session->get('_fkooman_saml_sp_auth_logout_id'),
             $spSloUrl,
             $idpInfo

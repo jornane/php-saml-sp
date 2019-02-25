@@ -101,24 +101,20 @@ class Signer
     }
 
     /**
-     * @param string           $samlResponse
-     * @param string           $relayState
-     * @param string           $signature
+     * @param QueryParameters  $queryParameters
      * @param array<PublicKey> $publicKeys
      *
      * @return void
      */
-    public static function verifyRedirect($samlResponse, $relayState, $signature, array $publicKeys)
+    public static function verifyRedirect(QueryParameters $queryParameters, array $publicKeys)
     {
-        $httpQuery = \http_build_query(
-            [
-                'SAMLResponse' => $samlResponse,
-                'RelayState' => $relayState,
-                'SigAlg' => self::SIGNER_XML_SIG_ALGO,
-            ]
-        );
+        $samlResponse = $queryParameters->requireQueryParameter('SAMLResponse', true);
+        $relayState = $queryParameters->requireQueryParameter('RelayState', true);
+        $sigAlg = $queryParameters->requireQueryParameter('SigAlg', true);
+        // XXX RelayState is actually optional...
+        $httpQuery = \sprintf('SAMLResponse=%s&RelayState=%s&SigAlg=%s', $samlResponse, $relayState, $sigAlg);
 
-        self::verifySignature($httpQuery, Base64::decode($signature), $publicKeys);
+        self::verifySignature($httpQuery, Base64::decode($queryParameters->requireQueryParameter('Signature')), $publicKeys);
     }
 
     /**

@@ -95,7 +95,7 @@ try {
 
         // callback from IdP containing the SAML "LogoutResponse"
         case '/slo':
-            $sp->handleLogoutResponse($_GET['SAMLResponse'], $_GET['RelayState'], $_GET['Signature']);
+            $sp->handleLogoutResponse($_SERVER['QUERY_STRING']);
             \http_response_code(302);
             \header(\sprintf('Location: %s', $_GET['RelayState']));
             break;

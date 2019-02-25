@@ -30,19 +30,18 @@ use ParagonIE\ConstantTime\Base64;
 class LogoutResponse
 {
     /**
-     * @param string  $samlResponse
-     * @param string  $relayState
-     * @param string  $signature
-     * @param string  $expectedInResponseTo
-     * @param string  $expectedSloUrl
-     * @param IdpInfo $idpInfo
+     * @param QueryParameters $queryParameters
+     * @param string          $expectedInResponseTo
+     * @param string          $expectedSloUrl
+     * @param IdpInfo         $idpInfo
      *
      * @return void
      */
-    public function verify($samlResponse, $relayState, $signature, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
+    public function verify(QueryParameters $queryParameters, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
-        Signer::verifyRedirect($samlResponse, $relayState, $signature, $idpInfo->getPublicKeys());
-        $logoutResponseDocument = XmlDocument::fromProtocolMessage(\gzinflate(Base64::decode($samlResponse)));
+        Signer::verifyRedirect($queryParameters, $idpInfo->getPublicKeys());
+
+        $logoutResponseDocument = XmlDocument::fromProtocolMessage(\gzinflate(Base64::decode($queryParameters->requireQueryParameter('SAMLResponse'))));
 
         // the LogoutResponse Issuer MUST be IdP entityId
         $issuer = $logoutResponseDocument->domXPath->evaluate('string(/samlp:LogoutResponse/saml:Issuer)');

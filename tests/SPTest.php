@@ -244,7 +244,15 @@ EOF;
         $session->set('_fkooman_saml_sp_auth_logout_idp', 'http://localhost:8080/metadata.php');
         $this->sp->setSession($session);
 
-        $this->sp->handleLogoutResponse(\base64_encode(\gzdeflate($logoutResponse)), 'http://localhost:8081/', 'rp/pDrK7fK/FSflLxhj+jvSkj/EnLHJ+sOWTXRYwHWpHxA1SbRgxFlgNORAYGJgLHSVd/zL9eFiYVgfNlGznZVWIo/CBJK6RyV2/vNmyBh9XcMCVIajiAZ/OK6Q+NoH3AhGeJ4D9i8l+CJFFijMSqMBXPVxuajxVG80gxcnNWDtHTF5hi3/aHf10PsT5lG12IMHLwwwFNKIUIRROnUclqFuhDGwusb2qi5PCNlrn07Azl1vkFGuTDDjpXpH9K6sfZ5hx9aJ11X1YK2VKvsEnfMh6D/ZD34xlAC+VibTlggkDuldjvGtyUNM3qKgSAwQ7oir3CAReCg4YwHo82hHdg0BlNsIe8sScvFoR9GYM9YRoFQXiIbIFkpKYHR8EWduMqu5vaPko9T9f7YAmcjSkE9U4ilXD/82kfXQPtM5Bl+Ei/ZvbBDSHTLf45hnn5HsL6ze0/Hun6Yk6eCenDFdLVo1FG2UeJ7ogMbA6RqXxJKiM+ZyZuXmisLoPFSivO5TZ');
+        $queryString = \http_build_query(
+            [
+                'SAMLResponse' => \base64_encode(\gzdeflate($logoutResponse)),
+                'RelayState' => 'http://localhost:8081/',
+                'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+                'Signature' => 'rp/pDrK7fK/FSflLxhj+jvSkj/EnLHJ+sOWTXRYwHWpHxA1SbRgxFlgNORAYGJgLHSVd/zL9eFiYVgfNlGznZVWIo/CBJK6RyV2/vNmyBh9XcMCVIajiAZ/OK6Q+NoH3AhGeJ4D9i8l+CJFFijMSqMBXPVxuajxVG80gxcnNWDtHTF5hi3/aHf10PsT5lG12IMHLwwwFNKIUIRROnUclqFuhDGwusb2qi5PCNlrn07Azl1vkFGuTDDjpXpH9K6sfZ5hx9aJ11X1YK2VKvsEnfMh6D/ZD34xlAC+VibTlggkDuldjvGtyUNM3qKgSAwQ7oir3CAReCg4YwHo82hHdg0BlNsIe8sScvFoR9GYM9YRoFQXiIbIFkpKYHR8EWduMqu5vaPko9T9f7YAmcjSkE9U4ilXD/82kfXQPtM5Bl+Ei/ZvbBDSHTLf45hnn5HsL6ze0/Hun6Yk6eCenDFdLVo1FG2UeJ7ogMbA6RqXxJKiM+ZyZuXmisLoPFSivO5TZ',
+            ]
+        );
+        $this->sp->handleLogoutResponse($queryString);
 
         $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_id'));
         $this->assertFalse($session->has('_fkooman_saml_sp_auth_logout_idp'));
