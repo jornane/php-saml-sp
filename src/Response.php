@@ -135,7 +135,9 @@ class Response
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
         if (null !== $nameIdElement = $domNodeList->item(0)) {
             // we got a NameID, convert it to string
-            $nameIdElement->prefix = 'saml';
+            if ($nameIdElement->isDefaultNamespace('urn:oasis:names:tc:SAML:2.0:assertion')) {
+                $nameIdElement->prefix = 'saml';
+            }
             $nameId = $responseDocument->domDocument->saveXML($nameIdElement);
         }
 
