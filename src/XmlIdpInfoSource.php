@@ -94,7 +94,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             throw new XmlIdpInfoSourceException('no "md:SingleSignOnService" available');
         }
 
-        return $firstNode->textContent;
+        return \trim($firstNode->textContent);
     }
 
     /**
@@ -110,7 +110,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             return null;
         }
 
-        return $firstNode->textContent;
+        return \trim($firstNode->textContent);
     }
 
     /**

@@ -171,9 +171,9 @@ class Response
             // the (trusted) values from the SAML assertion directly...
             if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
                 // eduPersonTargetedId, serialize this accordingly
-                $attributeValue = \sprintf('%s!%s!%s', $idpEntityId, $spEntityId, $attributeValueElement->textContent);
+                $attributeValue = \sprintf('%s!%s!%s', $idpEntityId, $spEntityId, \trim($attributeValueElement->textContent));
             } else {
-                $attributeValue = $attributeValueElement->textContent;
+                $attributeValue = \trim($attributeValueElement->textContent);
             }
 
             $attributeList[$attributeName][] = $attributeValue;
