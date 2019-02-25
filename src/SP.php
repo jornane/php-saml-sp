@@ -269,6 +269,12 @@ class SP
     {
         $validUntil = \date_add(clone $this->dateTime, new DateInterval('PT36H'));
 
+//    <md:AttributeConsumingService index="0">
+//      <md:ServiceName xml:lang="en">Academic Journals R US</ServiceName>
+//      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.10" isRequired="true"/>
+//      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7" isRequired="false"/>
+//    </md:AttributeConsumingService>
+
         return $this->tpl->render(
             'Metadata',
             [

@@ -101,7 +101,7 @@ class Response
         }
 
         $notOnOrAfter = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)'));
-        if ($this->dateTime >= $notOnOrAfter) {
+        if (DateTimeValidator::isOnOrAfter($this->dateTime, $notOnOrAfter)) {
             throw new ResponseException('saml:Assertion no longer valid (/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)');
         }
 
@@ -117,7 +117,7 @@ class Response
 
         // notBefore
         $notBefore = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Conditions/@NotBefore)'));
-        if ($this->dateTime < $notBefore) {
+        if (DateTimeValidator::isBefore($this->dateTime, $notBefore)) {
             throw new ResponseException('saml:Assertion not yet valid (/samlp:Response/saml:Assertion/saml:Conditions/@NotBefore)');
         }
 

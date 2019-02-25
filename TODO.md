@@ -9,9 +9,9 @@
   avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
 - Add `mdui` to generated metadata
-- Validate schema of outgoing SAML messages (`AuthnRequest`, metadata)
+- Validate schema of outgoing SAML messages (`AuthnRequest`)?
+- Validate schema of generated Metadata?
 - Validate `RelayState` on return from IdP?
-- be a bit more lenient with the dateTime matching
 
 ## 1.1
 
