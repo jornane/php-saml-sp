@@ -2,9 +2,6 @@
  
 ## 1.0
 
-- can we somehow make `SameSite` cookie parameter work for the application 
-  while having it disabled for the ACS endpoint? A form POST comes from a 
-  remote location...
 - make absolutely sure we verify the assertion with the right public key as to
   avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
@@ -12,6 +9,7 @@
 - Validate schema of outgoing SAML messages (`AuthnRequest`)?
 - Validate schema of generated Metadata?
 - Validate `RelayState` on return from IdP?
+- What if we have no NameID and we trigger Logout?
 
 ## 1.1
 
