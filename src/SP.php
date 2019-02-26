@@ -186,6 +186,11 @@ class SP
         // delete the assertion, so we are no longer authenticated
         $this->session->delete('_fkooman_saml_sp_auth_assertion');
 
+        if (null === $samlAssertion->getNameId()) {
+            // IdP's assertion does NOT have a NameID, so we cannot construct a
+            // LogoutRequest
+            return $relayState;
+        }
         $idpSloUrl = $idpInfo->getSloUrl();
         if (null === $idpSloUrl) {
             // IdP does not support SLO, nothing we can do about it

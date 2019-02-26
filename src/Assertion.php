@@ -31,7 +31,7 @@ class Assertion
     /** @var string */
     private $issuer;
 
-    /** @var string|null */
+    /** @var NameId|null */
     private $nameId;
 
     /** @var \DateTime */
@@ -45,15 +45,13 @@ class Assertion
 
     /**
      * @param string                      $issuer
-     * @param string|null                 $nameId
      * @param \DateTime                   $authnInstant
      * @param string                      $authnContext
      * @param array<string,array<string>> $attributeList
      */
-    public function __construct($issuer, $nameId, DateTime $authnInstant, $authnContext, array $attributeList)
+    public function __construct($issuer, DateTime $authnInstant, $authnContext, array $attributeList)
     {
         $this->issuer = $issuer;
-        $this->nameId = $nameId;
         $this->authnInstant = $authnInstant;
         $this->authnContext = $authnContext;
         $this->attributeList = $attributeList;
@@ -68,7 +66,17 @@ class Assertion
     }
 
     /**
-     * @return string|null
+     * @param NameId $nameId
+     *
+     * @return void
+     */
+    public function setNameId(NameId $nameId)
+    {
+        $this->nameId = $nameId;
+    }
+
+    /**
+     * @return NameId|null
      */
     public function getNameId()
     {

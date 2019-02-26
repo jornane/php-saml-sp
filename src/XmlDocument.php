@@ -25,6 +25,8 @@
 namespace fkooman\SAML\SP;
 
 use DOMDocument;
+use DOMElement;
+use DOMNode;
 use DOMXPath;
 use fkooman\SAML\SP\Exception\XmlDocumentException;
 
@@ -71,6 +73,20 @@ class XmlDocument
             $metadataStr,
             $validateSchema ? ['saml-schema-metadata-2.0.xsd', 'sstc-saml-metadata-ui-v1.0.xsd', 'sstc-saml-metadata-algsupport-v1.0.xsd'] : []
         );
+    }
+
+    /**
+     * @param \DOMNode $domNode
+     *
+     * @return \DOMElement
+     */
+    public static function requireDomElement(DOMNode $domNode)
+    {
+        if (!($domNode instanceof DOMElement)) {
+            throw new XmlDocumentException('expected "DOMElement"');
+        }
+
+        return $domNode;
     }
 
     /**

@@ -63,7 +63,7 @@ try {
                 echo '<pre>';
                 echo 'Issuer      : '.$samlAssertion->getIssuer().PHP_EOL;
                 if (null !== $nameId = $samlAssertion->getNameId()) {
-                    echo 'NameID      : '.\htmlentities($nameId).PHP_EOL;
+                    echo 'NameID      : '.\htmlentities($nameId->toXml()).PHP_EOL;
                 }
                 echo 'AuthnTime   : '.$samlAssertion->getAuthnInstant()->format(DateTime::ATOM).PHP_EOL;
                 echo 'AuthnContext: '.$samlAssertion->getAuthnContext().PHP_EOL;

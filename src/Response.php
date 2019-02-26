@@ -131,19 +131,20 @@ class Response
             }
         }
 
+        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spEntityId, $responseDocument->domXPath);
+        $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
+
         $nameId = null;
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
-        if (null !== $nameIdElement = $domNodeList->item(0)) {
-            // we got a NameID, convert it to string
-            if ($nameIdElement->isDefaultNamespace('urn:oasis:names:tc:SAML:2.0:assertion')) {
-                $nameIdElement->prefix = 'saml';
-            }
-            $nameId = $responseDocument->domDocument->saveXML($nameIdElement);
+        if (null !== $nameIdNode = $domNodeList->item(0)) {
+            $nameId = new NameId($idpInfo->getEntityId(), $spEntityId, XmlDocument::requireDomElement($nameIdNode));
         }
 
-        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spEntityId, $responseDocument->domXPath);
+        if (null !== $nameId) {
+            $samlAssertion->setNameId($nameId);
+        }
 
-        return new Assertion($idpInfo->getEntityId(), $nameId, $authnInstant, $authnContextClassRef, $attributeList);
+        return $samlAssertion;
     }
 
     /**
@@ -168,12 +169,10 @@ class Response
             if (!\array_key_exists($attributeName, $attributeList)) {
                 $attributeList[$attributeName] = [];
             }
-            // XXX we MUST validate that the NameID's NameQualifier and
-            // SPNameQualifier match the IdP and SP entityIDs! Now we just use
-            // the (trusted) values from the SAML assertion directly...
             if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
                 // eduPersonTargetedId, serialize this accordingly
-                $attributeValue = \sprintf('%s!%s!%s', $idpEntityId, $spEntityId, \trim($attributeValueElement->textContent));
+                $nameId = new NameId($idpEntityId, $spEntityId, XmlDocument::requireDomElement($attributeValueElement));
+                $attributeValue = $nameId->serialize();
             } else {
                 $attributeValue = \trim($attributeValueElement->textContent);
             }
