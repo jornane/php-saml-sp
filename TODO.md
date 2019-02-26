@@ -9,7 +9,6 @@
 - Validate schema of outgoing SAML messages (`AuthnRequest`)?
 - Validate schema of generated Metadata?
 - Validate `RelayState` on return from IdP?
-- What if we have no NameID and we trigger Logout?
 
 ## 1.1
 
