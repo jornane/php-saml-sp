@@ -54,7 +54,7 @@ class Response
     public function verify($samlResponse, $spEntityId, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromProtocolMessage($samlResponse);
-        $responseElement = $this->getOneElement($responseDocument, '/samlp:Response');
+        $responseElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response')->item(0));
 
         // check the status code
         $statusCode = $responseDocument->domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/@Value)');
@@ -74,7 +74,8 @@ class Response
             $responseSigned = true;
         }
 
-        $assertionElement = $this->getOneElement($responseDocument, '/samlp:Response/saml:Assertion');
+        // we used XML schema hardening to force that there is exactly 1 saml:Assertion (saml2int)
+        $assertionElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response/saml:Assertion')->item(0));
         $assertionSigned = false;
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/ds:Signature');
         if (1 === $domNodeList->length) {
@@ -177,23 +178,5 @@ class Response
         }
 
         return $attributeList;
-    }
-
-    /**
-     * @param string $xPathQuery
-     *
-     * @return \DOMElement
-     */
-    private static function getOneElement(XmlDocument $xmlDocument, $xPathQuery)
-    {
-        $domNodeList = $xmlDocument->domXPath->query($xPathQuery);
-        if (0 === $domNodeList->length) {
-            throw new ResponseException(\sprintf('element "%s" not found', $xPathQuery));
-        }
-        if (1 !== $domNodeList->length) {
-            throw new ResponseException(\sprintf('element "%s" found more than once', $xPathQuery));
-        }
-
-        return XmlDocument::requireDomElement($domNodeList->item(0));
     }
 }

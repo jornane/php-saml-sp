@@ -197,24 +197,6 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage element "/samlp:Response/saml:Assertion" found more than once
-     */
-    public function testTwoAssertions()
-    {
-        $response = new Response(new DateTime('2019-01-02T21:58:23Z'));
-        $samlResponse = \file_get_contents(__DIR__.'/data/assertion/SURFconext_two_assertions.xml');
-        $response->verify(
-            $samlResponse,
-            'https://labrat.eduvpn.nl/saml',
-            '_928BA2C80BB10E7BA8F2C4504E0EB20B',
-            'https://labrat.eduvpn.nl/saml/postResponse',
-            [],
-            new IdpInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/SURFconext.crt')])
-        );
-    }
-
-    /**
      * @expectedException \fkooman\SAML\SP\Exception\SignerException
      * @expectedExceptionMessage digest method "http://www.w3.org/2000/09/xmldsig#sha1" not supported
      */

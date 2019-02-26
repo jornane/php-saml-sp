@@ -25,7 +25,6 @@
 namespace fkooman\SAML\SP;
 
 use DOMElement;
-use DOMNode;
 use fkooman\SAML\SP\Exception\SignerException;
 use ParagonIE\ConstantTime\Base64;
 
@@ -64,9 +63,9 @@ class Signer
         $signatureValue = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignatureValue)', $domElement);
         $digestValue = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestValue)', $domElement);
 
-        $signedInfoElement = self::getOneElement($xmlDocument, 'ds:Signature/ds:SignedInfo', $domElement);
+        $signedInfoElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('ds:Signature/ds:SignedInfo', $domElement)->item(0));
         $canonicalSignedInfo = $signedInfoElement->C14N(true, false);
-        $signatureElement = self::getOneElement($xmlDocument, 'ds:Signature', $domElement);
+        $signatureElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('ds:Signature', $domElement)->item(0));
         $domElement->removeChild($signatureElement);
 
         $rootElementDigest = Base64::encode(
@@ -133,25 +132,5 @@ class Signer
         }
 
         throw new SignerException('invalid signature');
-    }
-
-    /**
-     * @param XmlDocument $xmlDocument
-     * @param string      $xPathQuery
-     * @param \DOMNode    $contextNode
-     *
-     * @return \DOMElement
-     */
-    private static function getOneElement(XmlDocument $xmlDocument, $xPathQuery, DOMNode $contextNode)
-    {
-        $domNodeList = $xmlDocument->domXPath->query($xPathQuery, $contextNode);
-        if (0 === $domNodeList->length) {
-            throw new SignerException(\sprintf('element "%s" not found', $xPathQuery));
-        }
-        if (1 !== $domNodeList->length) {
-            throw new SignerException(\sprintf('element "%s" found more than once', $xPathQuery));
-        }
-
-        return XmlDocument::requireDomElement($domNodeList->item(0));
     }
 }

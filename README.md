@@ -116,6 +116,9 @@ the schema file to make the validation work:
     <import namespace="urn:oasis:names:tc:SAML:2.0:metadata"
     schemaLocation="saml-schema-metadata-2.0.xsd"/>
 
+We used "schema hardening" in `saml-schema-protocol-2.0.xsd` to enforce that 
+there is at most one `saml:Assertion` in the `samlp:Response`.
+
 # Browser Session
 
 You MUST secure your PHP cookie/session settings. See 

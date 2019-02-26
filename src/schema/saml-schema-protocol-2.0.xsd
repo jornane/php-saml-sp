@@ -203,7 +203,7 @@
     <complexType name="ResponseType">
     	<complexContent>
             <extension base="samlp:StatusResponseType">
-                <choice minOccurs="0" maxOccurs="unbounded">
+                <choice minOccurs="0">
                     <element ref="saml:Assertion"/>
                     <element ref="saml:EncryptedAssertion"/>
                 </choice>
