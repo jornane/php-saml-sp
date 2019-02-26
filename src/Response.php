@@ -25,7 +25,6 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
-use DOMElement;
 use DOMXpath;
 use fkooman\SAML\SP\Exception\ResponseException;
 
@@ -161,11 +160,8 @@ class Response
         );
         $attributeList = [];
         foreach ($attributeValueElements as $attributeValueElement) {
-            $parentNode = $attributeValueElement->parentNode;
-            if (!($parentNode instanceof \DOMElement)) {
-                throw new ResponseException('parent node MUST be DOMElement');
-            }
-            $attributeName = $parentNode->getAttribute('Name');
+            $parentElement = XmlDocument::requireDomElement($attributeValueElement->parentNode);
+            $attributeName = $parentElement->getAttribute('Name');
             if (!\array_key_exists($attributeName, $attributeList)) {
                 $attributeList[$attributeName] = [];
             }
@@ -197,11 +193,7 @@ class Response
         if (1 !== $domNodeList->length) {
             throw new ResponseException(\sprintf('element "%s" found more than once', $xPathQuery));
         }
-        $domElement = $domNodeList->item(0);
-        if (!($domElement instanceof DOMElement)) {
-            throw new ResponseException(\sprintf('element "%s" is not an element', $xPathQuery));
-        }
 
-        return $domElement;
+        return XmlDocument::requireDomElement($domNodeList->item(0));
     }
 }

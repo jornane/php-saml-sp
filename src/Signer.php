@@ -151,11 +151,7 @@ class Signer
         if (1 !== $domNodeList->length) {
             throw new SignerException(\sprintf('element "%s" found more than once', $xPathQuery));
         }
-        $domElement = $domNodeList->item(0);
-        if (!($domElement instanceof DOMElement)) {
-            throw new SignerException(\sprintf('element "%s" is not an element', $xPathQuery));
-        }
 
-        return $domElement;
+        return XmlDocument::requireDomElement($domNodeList->item(0));
     }
 }

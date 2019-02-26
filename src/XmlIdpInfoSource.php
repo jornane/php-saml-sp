@@ -68,10 +68,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             // IdP found more than once?
             throw new XmlIdpInfoSourceException(\sprintf('IdP "%s" found more than once', $entityId));
         }
-        $domElement = $domNodeList->item(0);
-        if (!($domElement instanceof DOMElement)) {
-            throw new XmlIdpInfoSourceException(\sprintf('element "%s" is not an element', $xPathQuery));
-        }
+        $domElement = XmlDocument::requireDomElement($domNodeList->item(0));
 
         return new IdpInfo(
             $entityId,

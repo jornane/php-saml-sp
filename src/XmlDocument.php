@@ -26,7 +26,6 @@ namespace fkooman\SAML\SP;
 
 use DOMDocument;
 use DOMElement;
-use DOMNode;
 use DOMXPath;
 use fkooman\SAML\SP\Exception\XmlDocumentException;
 
@@ -76,17 +75,17 @@ class XmlDocument
     }
 
     /**
-     * @param \DOMNode $domNode
+     * @param mixed $inputVar
      *
      * @return \DOMElement
      */
-    public static function requireDomElement(DOMNode $domNode)
+    public static function requireDomElement($inputVar)
     {
-        if (!($domNode instanceof DOMElement)) {
+        if (!($inputVar instanceof DOMElement)) {
             throw new XmlDocumentException('expected "DOMElement"');
         }
 
-        return $domNode;
+        return $inputVar;
     }
 
     /**
