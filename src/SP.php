@@ -158,6 +158,7 @@ class SP
             $this->session->get('_fkooman_saml_sp_auth_id'),
             $this->spInfo->getAcsUrl(),
             $authnContextClassRef,
+            $this->spInfo->getPrivateKey(),
             $idpInfo
         );
 

@@ -27,6 +27,8 @@ namespace fkooman\SAML\SP;
 use DateTime;
 use DOMXpath;
 use fkooman\SAML\SP\Exception\ResponseException;
+use ParagonIE\ConstantTime\Base64;
+use RuntimeException;
 
 class Response
 {
@@ -47,11 +49,12 @@ class Response
      * @param string        $expectedInResponseTo
      * @param string        $expectedAcsUrl
      * @param array<string> $authnContext
+     * @param PrivateKey    $privateKey
      * @param IdpInfo       $idpInfo
      *
      * @return Assertion
      */
-    public function verify($samlResponse, $spEntityId, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, IdpInfo $idpInfo)
+    public function verify($samlResponse, $spEntityId, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, PrivateKey $privateKey, IdpInfo $idpInfo)
     {
         $responseDocument = XmlDocument::fromProtocolMessage($samlResponse);
         $responseElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response')->item(0));
@@ -75,12 +78,33 @@ class Response
         }
 
         // we used XML schema hardening to force that there is exactly 1 saml:Assertion (saml2int)
-        $assertionElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response/saml:Assertion')->item(0));
+        $encryptedAssertionElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response/saml:EncryptedAssertion')->item(0));
+        $ciperValue = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)');
+
+        // decrypt the encryption key
+        if (false === \openssl_private_decrypt(Base64::decode($ciperValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
+            throw new RuntimeException('unable to extract decryption key');
+        }
+
+        $ciperValue = Base64::decode($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)'));
+        $iv = \substr($ciperValue, 0, 16);    // XXX use safe substr
+        $cipherText = \substr($ciperValue, 16);  // XXX use safe substr
+        if (false === $samlAssertionStr = \openssl_decrypt($cipherText, 'aes-128-cbc', $symmetricEncryptionKey, OPENSSL_RAW_DATA, $iv)) {
+            throw new RuntimeException('unable to decrypt data');
+        }
+        $assertionDocument = XmlDocument::fromAssertion($samlAssertionStr);
+        $assertionElement = XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
+
+        // we try to hack this document in the responseDocument... what could go wrong, right?
+        $foo = $responseDocument->domDocument->importNode($assertionElement, true);
+        $responseElement->replaceChild($foo, $encryptedAssertionElement);
+
         $assertionSigned = false;
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/ds:Signature');
         if (1 === $domNodeList->length) {
             // saml:Assertion is signed
-            Signer::verifyPost($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
+            // XXX we have to refetch assertionElement for foo...
+            Signer::verifyPost($responseDocument, $foo, $idpInfo->getPublicKeys());
             $assertionSigned = true;
         }
 

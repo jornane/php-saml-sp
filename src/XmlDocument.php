@@ -48,6 +48,7 @@ class XmlDocument
         $this->domXPath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
         $this->domXPath->registerNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
         $this->domXPath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
+        $this->domXPath->registerNameSpace('xenc', 'http://www.w3.org/2001/04/xmlenc#');
     }
 
     /**
@@ -58,6 +59,16 @@ class XmlDocument
     public static function fromProtocolMessage($protocolMessageStr)
     {
         return self::loadStr($protocolMessageStr, ['saml-schema-protocol-2.0.xsd']);
+    }
+
+    /**
+     * @param string $assertionStr
+     *
+     * @return self
+     */
+    public static function fromAssertion($assertionStr)
+    {
+        return self::loadStr($assertionStr, ['saml-schema-assertion-2.0.xsd']);
     }
 
     /**
