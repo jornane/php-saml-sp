@@ -27,7 +27,4 @@
 - `ForceAuthn` in `AuthnRequest` (is anyone actually using this?)
 - Implement unsolicited `Response`, "IdP initiated"
 - Receive unsolicited `LogoutRequest` from IdPs
-- Support receiving encrypted Assertions (saml2int)
-  - rsa-oaep-mgf1p
-  - aes-256-gcm
 - Sign SAML metadata

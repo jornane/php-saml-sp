@@ -8,11 +8,10 @@ production until there is a 1.0 release!
 
 # Why
 
-I wanted to have a minimal implementation of a SAML SP library with only 
-_signature_ verification, no encryption. Exiting (PHP) software either has a 
-much larger scope, or tries to conform fully to the SAML specification. This 
-library only tries to implement the minimum amount to work with real world 
-deployed IdPs and be secure at all times.
+I wanted to have a minimal implementation of a SAML SP library. Exiting (PHP) 
+software either has a much larger scope, or tries to conform fully to the SAML 
+specification. This library only tries to implement the minimum amount to work 
+with real world deployed IdPs and be secure at all times.
 
 # Features
 
@@ -21,6 +20,7 @@ deployed IdPs and be secure at all times.
 - Only HTTP-Redirect binding for receiving `LogoutResponse` from IdP
 - Only HTTP-POST binding for receiving `Response` from IdP
 - Only supports RSA with SHA256 for signing/verifying signatures
+- Only supports AES-256-GCM for `EncryptedAssertion`
 - Always signs `AuthnRequest`
 - Always signs `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed 
@@ -35,7 +35,7 @@ deployed IdPs and be secure at all times.
   - [OpenConext](https://openconext.org/)
   - [FrkoIdP](https://github.com/fkooman/php-saml-idp/)
   - [AD FS](https://en.wikipedia.org/wiki/Active_Directory_Federation_Services)
-- Currently ~1000 NCLOC
+- Currently ~1300 NCLOC
 
 # X.509
 
@@ -73,7 +73,7 @@ Make sure:
 
 - the IdP signs the `saml:Assertion` and/or the `samlp:Response`;
 - the IdP does NOT encrypt the `saml:Assertion`, i.e. it MUST NOT send a 
-  `saml:EncryptedAssertion`;
+  `saml:EncryptedAssertion`, or supports `AES-256-GCM`;
 - the IdP verifies the signature on the `samlp:AuthnRequest`;
 - the IdP verifies the signature on the `samlp:LogoutRequest`;
 - the IdP signs the `samlp:LogoutResponse`.
@@ -87,6 +87,9 @@ for this SP library:
     'saml20.sign.assertion' => true,
     'sign.logout' => true,
     'validate.logout' => true,
+
+As of writing, simpleSAMLphp does not support `EncryptedAssertion` with 
+AES-256-GCM.
 
 # Tests
 
