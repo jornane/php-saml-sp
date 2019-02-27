@@ -26,6 +26,7 @@ namespace fkooman\SAML\SP\Tests;
 
 use DateTime;
 use fkooman\SAML\SP\IdpInfo;
+use fkooman\SAML\SP\PrivateKey;
 use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\Response;
 use PHPUnit\Framework\TestCase;
@@ -42,6 +43,7 @@ class ResponseTest extends TestCase
             '_2483d0b8847ccaa5edf203dad685f860',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
         $this->assertSame('http://localhost:8080/metadata.php', $samlAssertion->getIssuer());
@@ -73,6 +75,7 @@ class ResponseTest extends TestCase
             '_928BA2C80BB10E7BA8F2C4504E0EB20B',
             'https://labrat.eduvpn.nl/saml/postResponse',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('https://idp.surfnet.nl', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/SURFconext.crt')])
         );
         $this->assertSame(
@@ -108,6 +111,7 @@ class ResponseTest extends TestCase
             '_b354c4367b3e379f940145868f28987e9520b1fb0b',
             'https://vpn.tuxed.net/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('https://vpn.tuxed.net/simplesaml/saml2/idp/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/simpleSAMLphp.crt')])
         );
         $this->assertSame(
@@ -138,6 +142,7 @@ class ResponseTest extends TestCase
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
     }
@@ -156,6 +161,7 @@ class ResponseTest extends TestCase
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/simpleSAMLphp.crt')])
         );
     }
@@ -174,6 +180,7 @@ class ResponseTest extends TestCase
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
     }
@@ -192,6 +199,7 @@ class ResponseTest extends TestCase
             '_6f4ccd6d1ced9e0f5ac6333893c64a2010487d289044b6bb4497b716ebc0a067',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')])
         );
     }
@@ -210,6 +218,7 @@ class ResponseTest extends TestCase
             '_3c35f56a7156b0805fbccb717cc15194',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('https://x509idp.moonshot.utr.surfcloud.nl/metadata', 'https://x509idp.moonshot.utr.surfcloud.nl/sso', null, [PublicKey::fromFile(__DIR__.'/data/certs/x509idp.moonshot.utr.surfcloud.nl.crt')])
         );
     }
@@ -224,6 +233,7 @@ class ResponseTest extends TestCase
             '_cf4383b97e07821f6b9a07e57b3d4557',
             'https://vpn.tuxed.net/php-saml-sp/example/full.php/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('http://fs.tuxed.example/adfs/services/trust', 'SSO', null, [PublicKey::fromFile(__DIR__.'/data/certs/adfs_idp_response.crt')])
         );
         $this->assertSame(
@@ -251,6 +261,7 @@ class ResponseTest extends TestCase
             '_6a31edbaec0922414f9a96e5fdb5493e',
             'https://kluitje.eduvpn.nl/portal/_saml/acs',
             [],
+            PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
             new IdpInfo('https://sa-gw.test.surfconext.nl/authentication/metadata', 'SSO', null, [PublicKey::fromFile(__DIR__.'/data/certs/SURFsecureID.crt')])
         );
     }
