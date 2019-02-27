@@ -10,6 +10,8 @@
           <ds:X509Certificate><?=$X509Certificate; ?></ds:X509Certificate>
         </ds:X509Data>
       </ds:KeyInfo>
+      <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+      <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"/>
     </md:KeyDescriptor>
 <?php if (null !== $SingleLogoutService): ?>
     <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="<?=$SingleLogoutService; ?>"/>
