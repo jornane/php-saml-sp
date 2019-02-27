@@ -84,7 +84,6 @@ In your simpleSAMLphp's `metadata/saml20-sp-remote.php` file, configure this
 for this SP library:
 
     'validate.authnrequest' => true,
-    'saml20.sign.assertion' => true,
     'sign.logout' => true,
     'validate.logout' => true,
 
