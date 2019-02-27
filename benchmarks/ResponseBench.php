@@ -23,6 +23,7 @@
  */
 
 use fkooman\SAML\SP\IdpInfo;
+use fkooman\SAML\SP\PrivateKey;
 use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\Response;
 
@@ -44,6 +45,7 @@ class ResponseBench
             '_2483d0b8847ccaa5edf203dad685f860',
             'http://localhost:8081/acs',
             [],
+            PrivateKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.key'),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/FrkoIdP.crt')])
         );
     }
