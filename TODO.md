@@ -9,6 +9,8 @@
 - Validate schema of outgoing SAML messages (`AuthnRequest`)?
 - Validate schema of generated Metadata?
 - Validate `RelayState` on return from IdP?
+- When encryption algorithm is not supported throw Exception
+- Verify extracted symmetric key size before feeding it to decryption function
 
 ## 1.1
 
