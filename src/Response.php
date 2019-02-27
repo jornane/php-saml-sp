@@ -90,9 +90,9 @@ class Response
                 throw new RuntimeException('unable to extract decryption key');
             }
             $assertionCiperValue = Base64::decode($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)'));
-            $cipherIv = Binary::safeSubstr($assertionCiperValue, 0, 16);
-            $cipherText = Binary::safeSubstr($assertionCiperValue, 16);
-            if (false === $decryptedAssertion = \openssl_decrypt($cipherText, 'aes-128-cbc', $symmetricEncryptionKey, OPENSSL_RAW_DATA, $cipherIv)) {
+            $cipherNonce = Binary::safeSubstr($assertionCiperValue, 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
+            $cipherText = Binary::safeSubstr($assertionCiperValue, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
+            if (false === $decryptedAssertion = \sodium_crypto_aead_aes256gcm_decrypt($cipherText, '', $cipherNonce, $symmetricEncryptionKey)) {
                 throw new RuntimeException('unable to decrypt data');
             }
             $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
