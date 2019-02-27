@@ -82,6 +82,11 @@ class Response
         // did we get an EncryptedAssertion?
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:EncryptedAssertion');
         if (1 === $domNodeList->length) {
+            // make sure we support AES-256-GCM
+            if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
+                throw new RuntimeException('AES decryption not supported on this hardware');
+            }
+
             // EncryptedAssertion
             $encryptedAssertionElement = XmlDocument::requireDomElement($domNodeList->item(0));
             $keyCiperValue = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)');
