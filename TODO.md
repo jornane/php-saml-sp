@@ -13,9 +13,6 @@
 ## 1.1
 
 - support `<shibm:Scope>` to restrict scopes for e.d. `eduPersonPrincipalName`
-- verify the `NameQualifier` and `SPNameQualifier` in the NameID (ePTID) match
-  the IdP entityID and SP entityID, now the verified IdP entityID and SP 
-  entityID from the assertion are taken.
 - Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
 
 # 2.0
