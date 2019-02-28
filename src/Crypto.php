@@ -28,7 +28,6 @@ use DOMElement;
 use fkooman\SAML\SP\Exception\CryptoException;
 use ParagonIE\ConstantTime\Base64;
 use ParagonIE\ConstantTime\Binary;
-use RuntimeException;
 
 class Crypto
 {
@@ -37,8 +36,11 @@ class Crypto
     const SIGN_DIGEST_ALGO = 'http://www.w3.org/2001/04/xmlenc#sha256';
     const SIGN_HASH_ALGO = 'sha256';
 
+    const ENCRYPT_OPENSSL_ALGO = 'aes-256-gcm';
     const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
     const ENCRYPT_KEY_ALGO = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
+    const ENCRYPT_KEY_LEN = 32;
+    const ENCRYPT_TAG_LEN = 16; // GCM authentication tag is always 128 bits
 
     /**
      * @param XmlDocument      $xmlDocument
@@ -142,11 +144,6 @@ class Crypto
             throw new CryptoException(\sprintf('key encryption method "%s" not supported', $keyEncryptionMethod));
         }
 
-        // make sure this system supports aes-256-gcm from libsodium
-        if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
-            throw new RuntimeException('AES decryption not supported on this hardware');
-        }
-
         // extract the session key
         $keyCipherValue = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)', $domElement);
 
@@ -156,19 +153,21 @@ class Crypto
         }
 
         // make sure the obtained key is the exact length we expect
-        if (SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES !== Binary::safeStrlen($symmetricEncryptionKey)) {
+        if (self::ENCRYPT_KEY_LEN !== Binary::safeStrLen($symmetricEncryptionKey)) {
             throw new CryptoException('extracted session key has unexpected length');
         }
 
         // extract the encrypted Assertion
         $assertionCipherValue = Base64::decode($xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)', $domElement));
 
-        // split the nonce and data
-        $cipherNonce = Binary::safeSubstr($assertionCipherValue, 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
-        $cipherText = Binary::safeSubstr($assertionCipherValue, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
+        // extract the nonce (IV), cipher text and authentication tag
+        $ivLength = \openssl_cipher_iv_length(self::ENCRYPT_OPENSSL_ALGO);
+        $cipherNonce = Binary::safeSubstr($assertionCipherValue, 0, $ivLength);
+        $cipherText = Binary::safeSubstr($assertionCipherValue, $ivLength, -self::ENCRYPT_TAG_LEN);
+        $authTag = Binary::safeSubstr($assertionCipherValue, -self::ENCRYPT_TAG_LEN);
 
         // decrypt the Assertion
-        if (false === $decryptedAssertion = \sodium_crypto_aead_aes256gcm_decrypt($cipherText, '', $cipherNonce, $symmetricEncryptionKey)) {
+        if (false === $decryptedAssertion = \openssl_decrypt($cipherText, self::ENCRYPT_OPENSSL_ALGO, $symmetricEncryptionKey, OPENSSL_RAW_DATA, $cipherNonce, $authTag)) {
             throw new CryptoException('unable to decrypt data');
         }
 
