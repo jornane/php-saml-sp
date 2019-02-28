@@ -129,7 +129,7 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedException \fkooman\SAML\SP\Exception\CryptoException
      * @expectedExceptionMessage unexpected digest
      */
     public function testInvalidDigest()
@@ -148,7 +148,7 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedException \fkooman\SAML\SP\Exception\CryptoException
      * @expectedExceptionMessage invalid signature
      */
     public function testWrongCertificate()
@@ -167,7 +167,7 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedException \fkooman\SAML\SP\Exception\CryptoException
      * @expectedExceptionMessage invalid signature
      */
     public function testWrongSignature()
@@ -205,7 +205,7 @@ class ResponseTest extends TestCase
     }
 
     /**
-     * @expectedException \fkooman\SAML\SP\Exception\SignerException
+     * @expectedException \fkooman\SAML\SP\Exception\CryptoException
      * @expectedExceptionMessage digest method "http://www.w3.org/2000/09/xmldsig#sha1" not supported
      */
     public function testSha1()

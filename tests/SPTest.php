@@ -27,10 +27,10 @@ namespace fkooman\SAML\SP\Tests;
 use DateTime;
 use DOMDocument;
 use fkooman\SAML\SP\Assertion;
+use fkooman\SAML\SP\Crypto;
 use fkooman\SAML\SP\NameId;
 use fkooman\SAML\SP\PrivateKey;
 use fkooman\SAML\SP\PublicKey;
-use fkooman\SAML\SP\Signer;
 use fkooman\SAML\SP\SP;
 use fkooman\SAML\SP\SpInfo;
 use fkooman\SAML\SP\XmlIdpInfoSource;
@@ -82,7 +82,7 @@ EOF;
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => Crypto::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
         $this->assertSame('http://localhost:8080/metadata.php', $session->get('_fkooman_saml_sp_auth_idp'));
         $this->assertSame('_30313233343536373839616263646566', $session->get('_fkooman_saml_sp_auth_id'));
@@ -114,7 +114,7 @@ EOF;
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => Crypto::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 
@@ -242,7 +242,7 @@ EOF;
             ]
         );
 
-        $signatureQuery = \http_build_query(['Signature' => Signer::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => Crypto::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
         $this->assertSame(\sprintf('http://localhost:8080/slo.php?%s&%s', $httpQuery, $signatureQuery), $sloUrl);
     }
 

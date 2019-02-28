@@ -25,10 +25,12 @@
 namespace fkooman\SAML\SP;
 
 use DOMElement;
-use fkooman\SAML\SP\Exception\SignerException;
+use fkooman\SAML\SP\Exception\CryptoException;
 use ParagonIE\ConstantTime\Base64;
+use ParagonIE\ConstantTime\Binary;
+use RuntimeException;
 
-class Signer
+class Crypto
 {
     const SIGNER_OPENSSL_ALGO = OPENSSL_ALGO_SHA256;
     const SIGNER_XML_SIG_ALGO = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256';
@@ -47,17 +49,17 @@ class Signer
         $rootElementId = $xmlDocument->domXPath->evaluate('string(self::node()/@ID)', $domElement);
         $referenceUri = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/@URI)', $domElement);
         if (\sprintf('#%s', $rootElementId) !== $referenceUri) {
-            throw new SignerException('reference URI does not point to document ID');
+            throw new CryptoException('reference URI does not point to document ID');
         }
 
         $digestMethod = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestMethod/@Algorithm)', $domElement);
         if (self::SIGNER_XML_DIGEST_ALGO !== $digestMethod) {
-            throw new SignerException(\sprintf('digest method "%s" not supported', $digestMethod));
+            throw new CryptoException(\sprintf('digest method "%s" not supported', $digestMethod));
         }
 
         $signatureMethod = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:SignatureMethod/@Algorithm)', $domElement);
         if (self::SIGNER_XML_SIG_ALGO !== $signatureMethod) {
-            throw new SignerException(\sprintf('signature method "%s" not supported', $signatureMethod));
+            throw new CryptoException(\sprintf('signature method "%s" not supported', $signatureMethod));
         }
 
         $signatureValue = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignatureValue)', $domElement);
@@ -78,7 +80,7 @@ class Signer
 
         // compare the digest from the XML with the actual digest
         if (!\hash_equals($rootElementDigest, $digestValue)) {
-            throw new SignerException('unexpected digest');
+            throw new CryptoException('unexpected digest');
         }
 
         self::verifySignature($canonicalSignedInfo, Base64::decode($signatureValue), $publicKeys);
@@ -93,7 +95,7 @@ class Signer
     public static function signRedirect($httpQuery, PrivateKey $privateKey)
     {
         if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGNER_OPENSSL_ALGO)) {
-            throw new SignerException('unable to sign');
+            throw new CryptoException('unable to sign');
         }
 
         return Base64::encode($signature);
@@ -117,6 +119,81 @@ class Signer
     }
 
     /**
+     * @param XmlDocument $xmlDocument
+     * @param \DOMElement $domElement
+     * @param PrivateKey  $privateKey
+     *
+     * @return \DOMElement
+     */
+    public static function decryptXml(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
+    {
+        // make sure this system supports aes-256-gcm from libsodium
+        if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
+            throw new RuntimeException('AES decryption not supported on this hardware');
+        }
+
+        // extract the session key
+        $keyCipherValue = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)', $domElement);
+
+        // decrypt the session key
+        if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
+            throw new CryptoException('unable to extract decryption key');
+        }
+
+        // extract the encrypted Assertion
+        $assertionCipherValue = Base64::decode($xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)', $domElement));
+
+        // split the nonce and data
+        $cipherNonce = Binary::safeSubstr($assertionCipherValue, 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
+        $cipherText = Binary::safeSubstr($assertionCipherValue, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
+
+        // decrypt the Assertion
+        if (false === $decryptedAssertion = \sodium_crypto_aead_aes256gcm_decrypt($cipherText, '', $cipherNonce, $symmetricEncryptionKey)) {
+            throw new CryptoException('unable to decrypt data');
+        }
+
+        // create and validate new document for Assertion
+        $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
+
+        return XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
+    }
+
+//    /**
+//     * @param XmlDocument $xmlDocument
+//     * @param \DOMElement $domElement
+//     * @param PrivateKey  $privateKey
+//     *
+//     * @return \DOMElement
+//     */
+//    public static function decryptXmlCbc(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
+//    {
+//        // extract the session key
+//        $keyCipherValue = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)', $domElement);
+
+//        // decrypt the session key
+//        if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
+//            throw new CryptoException('unable to extract decryption key');
+//        }
+
+//        // extract the encrypted Assertion
+//        $assertionCipherValue = Base64::decode($xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)', $domElement));
+
+//        // split the nonce and data
+//        $cipherNonce = Binary::safeSubstr($assertionCipherValue, 0, 16);
+//        $cipherText = Binary::safeSubstr($assertionCipherValue, 16);
+
+//        // decrypt the Assertion
+//        if (false === $decryptedAssertion = \openssl_decrypt($cipherText, 'aes-128-cbc', $symmetricEncryptionKey, OPENSSL_RAW_DATA, $cipherNonce)) {
+//            throw new CryptoException('unable to decrypt data');
+//        }
+
+//        // create and validate new document for Assertion
+//        $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
+
+//        return XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
+//    }
+
+    /**
      * @param string           $data
      * @param string           $signature
      * @param array<PublicKey> $publicKeys
@@ -131,6 +208,6 @@ class Signer
             }
         }
 
-        throw new SignerException('invalid signature');
+        throw new CryptoException('invalid signature');
     }
 }

@@ -306,7 +306,7 @@ class SP
         ];
 
         // add the Signature key/value to the HTTP query
-        $httpQueryParameters['Signature'] = Signer::signRedirect(
+        $httpQueryParameters['Signature'] = Crypto::signRedirect(
             \http_build_query($httpQueryParameters),
             $privateKey
         );

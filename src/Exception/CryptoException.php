@@ -24,6 +24,6 @@
 
 namespace fkooman\SAML\SP\Exception;
 
-class SignerException extends SamlException
+class CryptoException extends SamlException
 {
 }

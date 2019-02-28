@@ -27,9 +27,6 @@ namespace fkooman\SAML\SP;
 use DateTime;
 use DOMXpath;
 use fkooman\SAML\SP\Exception\ResponseException;
-use ParagonIE\ConstantTime\Base64;
-use ParagonIE\ConstantTime\Binary;
-use RuntimeException;
 
 class Response
 {
@@ -74,7 +71,7 @@ class Response
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/ds:Signature');
         if (1 === $domNodeList->length) {
             // samlp:Response is signed
-            Signer::verifyPost($responseDocument, $responseElement, $idpInfo->getPublicKeys());
+            Crypto::verifyPost($responseDocument, $responseElement, $idpInfo->getPublicKeys());
             $responseSigned = true;
         }
 
@@ -82,26 +79,10 @@ class Response
         // did we get an EncryptedAssertion?
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:EncryptedAssertion');
         if (1 === $domNodeList->length) {
-            // make sure we support AES-256-GCM
-            if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
-                throw new RuntimeException('AES decryption not supported on this hardware');
-            }
-
             // EncryptedAssertion
             $encryptedAssertionElement = XmlDocument::requireDomElement($domNodeList->item(0));
-            $keyCiperValue = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)');
-            // decrypt the encryption key
-            if (false === \openssl_private_decrypt(Base64::decode($keyCiperValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
-                throw new RuntimeException('unable to extract decryption key');
-            }
-            $assertionCiperValue = Base64::decode($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:EncryptedAssertion/xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)'));
-            $cipherNonce = Binary::safeSubstr($assertionCiperValue, 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
-            $cipherText = Binary::safeSubstr($assertionCiperValue, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES);
-            if (false === $decryptedAssertion = \sodium_crypto_aead_aes256gcm_decrypt($cipherText, '', $cipherNonce, $symmetricEncryptionKey)) {
-                throw new RuntimeException('unable to decrypt data');
-            }
-            $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
-            $assertionElement = XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
+            $assertionElement = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $privateKey);
+
             // we replace saml:EncryptedAssertion with saml:Assertion in the original document
             $responseElement->replaceChild(
                 $responseDocument->domDocument->importNode($assertionElement, true),
@@ -116,7 +97,7 @@ class Response
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/ds:Signature');
         if (1 === $domNodeList->length) {
             // saml:Assertion is signed
-            Signer::verifyPost($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
+            Crypto::verifyPost($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
             $assertionSigned = true;
         }
 

@@ -39,7 +39,7 @@ class LogoutResponse
      */
     public function verify(QueryParameters $queryParameters, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
-        Signer::verifyRedirect($queryParameters, $idpInfo->getPublicKeys());
+        Crypto::verifyRedirect($queryParameters, $idpInfo->getPublicKeys());
 
         $logoutResponseDocument = XmlDocument::fromProtocolMessage(\gzinflate(Base64::decode($queryParameters->requireQueryParameter('SAMLResponse'))));
 
