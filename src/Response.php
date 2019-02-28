@@ -42,17 +42,15 @@ class Response
     }
 
     /**
-     * @param string        $samlResponse
-     * @param string        $spEntityId
-     * @param string        $expectedInResponseTo
-     * @param string        $expectedAcsUrl
-     * @param array<string> $authnContext
-     * @param PrivateKey    $privateKey
+     * @param SpInfo        $spInfo
      * @param IdpInfo       $idpInfo
+     * @param string        $samlResponse
+     * @param string        $expectedInResponseTo
+     * @param array<string> $authnContext
      *
      * @return Assertion
      */
-    public function verify($samlResponse, $spEntityId, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, PrivateKey $privateKey, IdpInfo $idpInfo)
+    public function verify(SpInfo $spInfo, IdpInfo $idpInfo, $samlResponse, $expectedInResponseTo, array $authnContext)
     {
         $responseDocument = XmlDocument::fromProtocolMessage($samlResponse);
         $responseElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response')->item(0));
@@ -81,7 +79,7 @@ class Response
         if (1 === $domNodeList->length) {
             // EncryptedAssertion
             $encryptedAssertionElement = XmlDocument::requireDomElement($domNodeList->item(0));
-            $assertionElement = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $privateKey);
+            $assertionElement = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $spInfo->getPrivateKey());
 
             // we replace saml:EncryptedAssertion with saml:Assertion in the original document
             $responseElement->replaceChild(
@@ -113,8 +111,8 @@ class Response
 
         // the saml:Conditions/saml:AudienceRestriction MUST be us
         $audienceElement = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience)');
-        if ($audienceElement !== $spEntityId) {
-            throw new ResponseException(\sprintf('expected saml:Audience "%s", got "%s"', $spEntityId, $audienceElement));
+        if ($audienceElement !== $spInfo->getEntityId()) {
+            throw new ResponseException(\sprintf('expected saml:Audience "%s", got "%s"', $spInfo->getEntityId(), $audienceElement));
         }
 
         $notOnOrAfter = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)'));
@@ -123,8 +121,8 @@ class Response
         }
 
         $recipient = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@Recipient)');
-        if ($expectedAcsUrl !== $recipient) {
-            throw new ResponseException(\sprintf('expected Recipient "%s", got "%s"', $expectedAcsUrl, $recipient));
+        if ($spInfo->getAcsUrl() !== $recipient) {
+            throw new ResponseException(\sprintf('expected Recipient "%s", got "%s"', $spInfo->getAcsUrl(), $recipient));
         }
 
         $inResponseTo = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@InResponseTo)');
@@ -148,13 +146,13 @@ class Response
             }
         }
 
-        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spEntityId, $responseDocument->domXPath);
+        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spInfo->getEntityId(), $responseDocument->domXPath);
         $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
 
         $nameId = null;
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
         if (null !== $nameIdNode = $domNodeList->item(0)) {
-            $nameId = new NameId($idpInfo->getEntityId(), $spEntityId, XmlDocument::requireDomElement($nameIdNode));
+            $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), XmlDocument::requireDomElement($nameIdNode));
         }
 
         if (null !== $nameId) {
