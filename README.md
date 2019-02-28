@@ -33,6 +33,7 @@ with real world deployed IdPs and be secure at all times.
   - [OpenConext](https://openconext.org/)
   - [FrkoIdP](https://github.com/fkooman/php-saml-idp/)
   - [AD FS](https://en.wikipedia.org/wiki/Active_Directory_Federation_Services)
+  - [Shibboleth IdP](https://www.shibboleth.net/products/identity-provider/)
 - Currently ~1400 NCLOC
 
 # Requirements
