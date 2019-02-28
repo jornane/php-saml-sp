@@ -2,16 +2,21 @@
  
 ## 1.0
 
+### Features
+
+- make it possible to enforce assertion encryption (per IdP)
+  - for all IdPs? Or only for some?
+- ability to add `mdui` to generated metadata
+
+### Open Issues
+
 - make absolutely sure we verify the assertion with the right public key as to
   avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
-- Add `mdui` to generated metadata
 - Validate schema of outgoing SAML messages (`AuthnRequest`)?
 - Validate schema of generated Metadata?
 - Validate `RelayState` on return from IdP?
-- Verify extracted symmetric key size before feeding it to decryption function
-- make it possible to enforce assertion encryption (per IdP)
-- check xenc:EncryptedKey @Recipient
+- check xenc:EncryptedKey @Recipient?
 
 ## 1.1
 
