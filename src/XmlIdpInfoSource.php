@@ -58,17 +58,11 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function get($entityId)
     {
+        // find the IdP with specified entityId, if there is more than one
+        // we pick the first... Just don't have multiple entries for the same
+        // entityId...
         $xPathQuery = \sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId);
-        $domNodeList = $this->xmlDocument->domXPath->query($xPathQuery);
-        if (0 === $domNodeList->length) {
-            // IdP not found
-            return false;
-        }
-        if (1 !== $domNodeList->length) {
-            // IdP found more than once?
-            throw new XmlIdpInfoSourceException(\sprintf('IdP "%s" found more than once', $entityId));
-        }
-        $domElement = XmlDocument::requireDomElement($domNodeList->item(0));
+        $domElement = XmlDocument::requireDomElement($this->xmlDocument->domXPath->query($xPathQuery)->item(0));
 
         return new IdpInfo(
             $entityId,
