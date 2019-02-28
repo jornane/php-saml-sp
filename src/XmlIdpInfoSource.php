@@ -35,20 +35,15 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
 
     /**
      * @param string $metadataFile
+     * @param bool   $validateSchema
      */
-    public function __construct($metadataFile)
+    public function __construct($metadataFile, $validateSchema = true)
     {
         if (false === $xmlData = \file_get_contents($metadataFile)) {
             throw new RuntimeException(\sprintf('unable to read file "%s"', $metadataFile));
         }
 
-        $this->xmlDocument = XmlDocument::fromMetadata(
-            $xmlData,
-            // XXX we have to be a bit smarter here! potential trouble!
-            // do NOT validate the schema, we assume the XML is validated and
-            // trusted...
-            false
-        );
+        $this->xmlDocument = XmlDocument::fromMetadata($xmlData, $validateSchema);
     }
 
     /**
