@@ -43,10 +43,9 @@ class ResponseBench
         $samlAssertion = $response->verify(
             new SpInfo(
                 'http://localhost:8081/metadata',
-                'http://localhost:8081/acs',
-                'http://localhost:8081/slo',
                 PrivateKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.key'),
-                PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.crt')
+                PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.crt'),
+                'http://localhost:8081/acs'
             ),
             new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/FrkoIdP.crt')]),
             $samlResponse,

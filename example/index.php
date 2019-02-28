@@ -40,11 +40,13 @@ try {
     // configure the SP
     $spInfo = new SpInfo(
         'http://localhost:8081/metadata',
-        'http://localhost:8081/acs',
-        'http://localhost:8081/slo',
         PrivateKey::fromFile('sp.key'), // used to sign AuthnRequest/LogoutRequest
-        PublicKey::fromFile('sp.crt')  // used to provide in metadata
+        PublicKey::fromFile('sp.crt'),  // used to decrypt EncryptedAssertion
+        'http://localhost:8081/acs'
     );
+    // we also want to support SLO in the example
+    $spInfo->setSloUrl('http://localhost:8081/slo');
+
     $sp = new SP($spInfo, $idpInfoSource);
 
     $pathInfo = \array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '/';

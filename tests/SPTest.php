@@ -43,14 +43,15 @@ class SPTest extends TestCase
 
     public function setUp()
     {
+        $spInfo = new SpInfo(
+            'http://localhost:8081/metadata',
+            PrivateKey::fromFile(__DIR__.'/data/sp.key'),
+            PublicKey::fromFile(__DIR__.'/data/sp.crt'),
+            'http://localhost:8081/acs'
+        );
+        $spInfo->setSloUrl('http://localhost:8081/slo');
         $this->sp = new SP(
-            new SpInfo(
-                'http://localhost:8081/metadata',
-                'http://localhost:8081/acs',
-                'http://localhost:8081/slo',
-                PrivateKey::fromFile(__DIR__.'/data/sp.key'),
-                PublicKey::fromFile(__DIR__.'/data/sp.crt')
-            ),
+            $spInfo,
             new XmlIdpInfoSource(__DIR__.'/data/metadata/localhost.xml')
         );
         $this->sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
