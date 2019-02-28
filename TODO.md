@@ -4,7 +4,6 @@
 
 ### Features
 
-- make it possible to enforce assertion encryption
 - ability to add `mdui` to generated metadata
 - ability to expose requested attributes through metadata
 

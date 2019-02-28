@@ -73,6 +73,8 @@ class Response
             $responseSigned = true;
         }
 
+        $assertionEncrypted = false;
+
         // we used XML schema hardening to force that there is exactly 1 saml:Assertion / saml:EncryptedAssertion (saml2int)
         // did we get an EncryptedAssertion?
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:EncryptedAssertion');
@@ -86,6 +88,11 @@ class Response
                 $responseDocument->domDocument->importNode($assertionElement, true),
                 $encryptedAssertionElement
             );
+            $assertionEncrypted = true;
+        }
+
+        if ($spInfo->getRequireEncryptedAssertion() && !$assertionEncrypted) {
+            throw new ResponseException('assertion not encrypted, but encryption required');
         }
 
         // now we MUST have a saml:Assertion

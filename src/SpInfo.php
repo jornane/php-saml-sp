@@ -41,6 +41,9 @@ class SpInfo
     /** @var PublicKey */
     private $publicKey;
 
+    /** @var bool */
+    private $requireEncryptedAssertion = false;
+
     /**
      * @param string      $entityId
      * @param string      $acsUrl
@@ -95,5 +98,23 @@ class SpInfo
     public function getPublicKey()
     {
         return $this->publicKey;
+    }
+
+    /**
+     * @param bool $requireEncryptedAssertion
+     *
+     * @return void
+     */
+    public function setRequireEncryptedAssertion($requireEncryptedAssertion)
+    {
+        $this->requireEncryptedAssertion = $requireEncryptedAssertion;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getRequireEncryptedAssertion()
+    {
+        return $this->requireEncryptedAssertion;
     }
 }
