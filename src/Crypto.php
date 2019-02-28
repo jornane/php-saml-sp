@@ -32,10 +32,13 @@ use RuntimeException;
 
 class Crypto
 {
-    const SIGNER_OPENSSL_ALGO = OPENSSL_ALGO_SHA256;
-    const SIGNER_XML_SIG_ALGO = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256';
-    const SIGNER_XML_DIGEST_ALGO = 'http://www.w3.org/2001/04/xmlenc#sha256';
-    const SIGNER_HASH_ALGO = 'sha256';
+    const SIGN_OPENSSL_ALGO = OPENSSL_ALGO_SHA256;
+    const SIGN_ALGO = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256';
+    const SIGN_DIGEST_ALGO = 'http://www.w3.org/2001/04/xmlenc#sha256';
+    const SIGN_HASH_ALGO = 'sha256';
+
+    const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
+    const ENCRYPT_KEY_ALGO = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
 
     /**
      * @param XmlDocument      $xmlDocument
@@ -53,12 +56,12 @@ class Crypto
         }
 
         $digestMethod = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/ds:DigestMethod/@Algorithm)', $domElement);
-        if (self::SIGNER_XML_DIGEST_ALGO !== $digestMethod) {
+        if (self::SIGN_DIGEST_ALGO !== $digestMethod) {
             throw new CryptoException(\sprintf('digest method "%s" not supported', $digestMethod));
         }
 
         $signatureMethod = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:SignatureMethod/@Algorithm)', $domElement);
-        if (self::SIGNER_XML_SIG_ALGO !== $signatureMethod) {
+        if (self::SIGN_ALGO !== $signatureMethod) {
             throw new CryptoException(\sprintf('signature method "%s" not supported', $signatureMethod));
         }
 
@@ -72,7 +75,7 @@ class Crypto
 
         $rootElementDigest = Base64::encode(
             \hash(
-                self::SIGNER_HASH_ALGO,
+                self::SIGN_HASH_ALGO,
                 $domElement->C14N(true, false),
                 true
             )
@@ -94,7 +97,7 @@ class Crypto
      */
     public static function signRedirect($httpQuery, PrivateKey $privateKey)
     {
-        if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGNER_OPENSSL_ALGO)) {
+        if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
             throw new CryptoException('unable to sign');
         }
 
@@ -129,13 +132,13 @@ class Crypto
     {
         // make sure we support the encryption algorithm
         $encryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:EncryptionMethod/@Algorithm)', $domElement);
-        if ('http://www.w3.org/2009/xmlenc11#aes256-gcm' !== $encryptionMethod) {
+        if (self::ENCRYPT_ALGO !== $encryptionMethod) {
             throw new CryptoException(\sprintf('encryption method "%s" not supported', $encryptionMethod));
         }
 
         // make sure we support the key transport encryption algorithm
         $keyEncryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm)', $domElement);
-        if ('http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' !== $keyEncryptionMethod) {
+        if (self::ENCRYPT_KEY_ALGO !== $keyEncryptionMethod) {
             throw new CryptoException(\sprintf('key encryption method "%s" not supported', $keyEncryptionMethod));
         }
 
@@ -180,7 +183,7 @@ class Crypto
     private static function verifySignature($data, $signature, array $publicKeys)
     {
         foreach ($publicKeys as $publicKey) {
-            if (1 === \openssl_verify($data, $signature, $publicKey->raw(), self::SIGNER_OPENSSL_ALGO)) {
+            if (1 === \openssl_verify($data, $signature, $publicKey->raw(), self::SIGN_OPENSSL_ALGO)) {
                 return;
             }
         }
