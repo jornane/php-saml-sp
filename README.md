@@ -19,8 +19,6 @@ with real world deployed IdPs and be secure at all times.
 - Only HTTP-Redirect for sending `AuthnRequest`, `LogoutRequest` to IdP
 - Only HTTP-Redirect binding for receiving `LogoutResponse` from IdP
 - Only HTTP-POST binding for receiving `Response` from IdP
-- Only supports RSA with SHA256 for signing/verifying signatures
-- Only supports AES-256-GCM for `EncryptedAssertion`
 - Always signs `AuthnRequest`
 - Always signs `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed 
@@ -36,6 +34,23 @@ with real world deployed IdPs and be secure at all times.
   - [FrkoIdP](https://github.com/fkooman/php-saml-idp/)
   - [AD FS](https://en.wikipedia.org/wiki/Active_Directory_Federation_Services)
 - Currently ~1300 NCLOC
+
+# Requirements
+
+- PHP >= 5.4
+- `php-openssl`
+- `php-sodium` (PHP >= 7.2) or `php-pecl-libsodium` for `EncryptedAssertion` 
+  support
+- See `composer.json` for other (polyfill) dependencies
+
+# Crypto
+
+This library only supports algorithms that are not currently broken and easy to
+implement. There is no choice, only the below algorithms are supported.
+
+Digest: `http://www.w3.org/2001/04/xmlenc#sha256`
+Signature: `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`
+Encryption: `http://www.w3.org/2009/xmlenc11#aes256-gcm`
 
 # X.509
 
@@ -88,7 +103,7 @@ for this SP library:
     'validate.logout' => true,
 
 As of writing, simpleSAMLphp does not support `EncryptedAssertion` with 
-AES-256-GCM.
+AES-256-GCM. Work [in progress](https://github.com/robrichards/xmlseclibs/pull/192).
 
 # Tests
 
