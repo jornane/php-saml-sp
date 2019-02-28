@@ -11,12 +11,10 @@
 
 ### Open Issues
 
-- ability to enforce encryption for all IdPs, or per IdP? Seems unwise to allow
-  IdP overrides...
 - make absolutely sure we verify the assertion with the right public key as to
   avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
-- Validate schema of outgoing SAML messages (`AuthnRequest`)?
+- Validate schema of outgoing SAML messages (`AuthnRequest`, `LogoutRequest`)?
 - Validate schema of generated Metadata?
 - Validate `RelayState` on return from IdP?
 - check xenc:EncryptedKey @Recipient?
