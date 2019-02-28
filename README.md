@@ -48,9 +48,10 @@ with real world deployed IdPs and be secure at all times.
 This library only supports algorithms that are not currently broken and easy to
 implement. There is no choice, only the below algorithms are supported.
 
-Digest: `http://www.w3.org/2001/04/xmlenc#sha256`
-Signature: `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`
-Encryption: `http://www.w3.org/2009/xmlenc11#aes256-gcm`
+- Digest: `http://www.w3.org/2001/04/xmlenc#sha256`
+- Signature: `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`
+- Encryption: `http://www.w3.org/2009/xmlenc11#aes256-gcm`
+- Key Transport: `http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p`
 
 # X.509
 
