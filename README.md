@@ -88,8 +88,8 @@ immediately to the IdP. The metadata of the SP can be found at this URL:
 Make sure:
 
 - the IdP signs the `saml:Assertion` and/or the `samlp:Response`;
-- the IdP does NOT encrypt the `saml:Assertion`, i.e. it MUST NOT send a 
-  `saml:EncryptedAssertion`, or supports `AES-256-GCM`;
+- the IdP, when supporting encryption, MUST encrypt using `aes-256-gcm`, other
+  algorithms are NOT supported;
 - the IdP verifies the signature on the `samlp:AuthnRequest`;
 - the IdP verifies the signature on the `samlp:LogoutRequest`;
 - the IdP signs the `samlp:LogoutResponse`.
@@ -104,7 +104,8 @@ for this SP library:
     'validate.logout' => true,
 
 As of writing, simpleSAMLphp does not support `EncryptedAssertion` with 
-AES-256-GCM. Work [in progress](https://github.com/robrichards/xmlseclibs/pull/192).
+`aes-256-gcm`. Follow the 
+[progress](https://github.com/robrichards/xmlseclibs/pull/192).
 
 # Tests
 
