@@ -127,6 +127,18 @@ class Crypto
      */
     public static function decryptXml(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
     {
+        // make sure we support the encryption algorithm
+        $encryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:EncryptionMethod/@Algorithm)', $domElement);
+        if ('http://www.w3.org/2009/xmlenc11#aes256-gcm' !== $encryptionMethod) {
+            throw new CryptoException(\sprintf('encryption method "%s" not supported', $encryptionMethod));
+        }
+
+        // make sure we support the key transport encryption algorithm
+        $keyEncryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm)', $domElement);
+        if ('http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p' !== $keyEncryptionMethod) {
+            throw new CryptoException(\sprintf('key encryption method "%s" not supported', $keyEncryptionMethod));
+        }
+
         // make sure this system supports aes-256-gcm from libsodium
         if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
             throw new RuntimeException('AES decryption not supported on this hardware');
@@ -157,41 +169,6 @@ class Crypto
 
         return XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
     }
-
-//    /**
-//     * @param XmlDocument $xmlDocument
-//     * @param \DOMElement $domElement
-//     * @param PrivateKey  $privateKey
-//     *
-//     * @return \DOMElement
-//     */
-//    public static function decryptXmlCbc(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
-//    {
-//        // extract the session key
-//        $keyCipherValue = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)', $domElement);
-
-//        // decrypt the session key
-//        if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
-//            throw new CryptoException('unable to extract decryption key');
-//        }
-
-//        // extract the encrypted Assertion
-//        $assertionCipherValue = Base64::decode($xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:CipherData/xenc:CipherValue)', $domElement));
-
-//        // split the nonce and data
-//        $cipherNonce = Binary::safeSubstr($assertionCipherValue, 0, 16);
-//        $cipherText = Binary::safeSubstr($assertionCipherValue, 16);
-
-//        // decrypt the Assertion
-//        if (false === $decryptedAssertion = \openssl_decrypt($cipherText, 'aes-128-cbc', $symmetricEncryptionKey, OPENSSL_RAW_DATA, $cipherNonce)) {
-//            throw new CryptoException('unable to decrypt data');
-//        }
-
-//        // create and validate new document for Assertion
-//        $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
-
-//        return XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
-//    }
 
     /**
      * @param string           $data
