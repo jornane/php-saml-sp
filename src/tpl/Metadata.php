@@ -10,7 +10,7 @@
           <ds:X509Certificate><?=$X509Certificate; ?></ds:X509Certificate>
         </ds:X509Data>
       </ds:KeyInfo>
-      <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-gcm"/>
+      <md:EncryptionMethod Algorithm="http://www.w3.org/2009/xmlenc11#aes256-gcm"/>
       <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"/>
     </md:KeyDescriptor>
 <?php if (null !== $SingleLogoutService): ?>
