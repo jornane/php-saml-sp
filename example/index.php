@@ -53,6 +53,7 @@ try {
     $requestMethod = $_SERVER['REQUEST_METHOD'];
 
     switch ($pathInfo) {
+        // landing page
         case '/':
             if (false === $samlAssertion = $sp->getAssertion()) {
                 // not logged in, redirect to IdP
@@ -73,12 +74,13 @@ try {
             }
             break;
 
+        // user triggered logout
         case '/logout':
             \http_response_code(302);
             \header(\sprintf('Location: %s', $sp->logout($relayState)));
             break;
 
-        // callback from IdP containing the SAML "Response"
+        // callback from IdP containing the "SAMLResponse"
         case '/acs':
             if ('POST' === $requestMethod) {
                 // listen only for POST HTTP request
@@ -92,19 +94,19 @@ try {
             }
             break;
 
-        // callback from IdP containing the SAML "LogoutResponse"
-        case '/slo':
-            // we need the "raw" query string to be able to verify the
-            // signatures
-            $sp->handleLogoutResponse($_SERVER['QUERY_STRING']);
-            \http_response_code(302);
-            \header(\sprintf('Location: %s', $_GET['RelayState']));
-            break;
-
-        // exposes the SP metadata
+        // exposes the SP metadata for IdP consumption
         case '/metadata':
             \header('Content-Type: application/samlmetadata+xml');
             echo $sp->metadata();
+            break;
+
+        // callback from IdP containing the "LogoutResponse"
+        case '/slo':
+            // we need the "raw" query string to be able to verify the
+            // signatures...
+            $sp->handleLogoutResponse($_SERVER['QUERY_STRING']);
+            \http_response_code(302);
+            \header(\sprintf('Location: %s', $_GET['RelayState']));
             break;
 
         default:
