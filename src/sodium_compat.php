@@ -26,6 +26,10 @@ if (!\defined('SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES')) {
     \define('SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES', \Sodium\CRYPTO_AEAD_AES256GCM_NPUBBYTES);
 }
 
+if (!\defined('SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES')) {
+    \define('SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES', \Sodium\CRYPTO_AEAD_AES256GCM_KEYBYTES);
+}
+
 if (!\is_callable('sodium_crypto_aead_aes256gcm_is_available')) {
     /**
      * @return bool

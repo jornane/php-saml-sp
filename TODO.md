@@ -11,6 +11,7 @@
 - Validate `RelayState` on return from IdP?
 - Verify extracted symmetric key size before feeding it to decryption function
 - make it possible to enforce assertion encryption (per IdP)
+- check xenc:EncryptedKey @Recipient
 
 ## 1.1
 

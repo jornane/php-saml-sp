@@ -152,7 +152,12 @@ class Crypto
 
         // decrypt the session key
         if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
-            throw new CryptoException('unable to extract decryption key');
+            throw new CryptoException('unable to extract session key');
+        }
+
+        // make sure the obtained key is the exact length we expect
+        if (SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES !== Binary::safeStrlen($symmetricEncryptionKey)) {
+            throw new CryptoException('extracted session key has unexpected length');
         }
 
         // extract the encrypted Assertion
