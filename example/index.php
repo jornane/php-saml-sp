@@ -40,8 +40,10 @@ try {
     // configure the SP
     $spInfo = new SpInfo(
         'http://localhost:8081/metadata',
-        PrivateKey::fromFile('sp.key'), // used to sign AuthnRequest/LogoutRequest
-        PublicKey::fromFile('sp.crt'),  // used to decrypt EncryptedAssertion
+        PrivateKey::fromFile('sp.key'), // used to sign AuthnRequest /
+                                        // LogoutRequest and decrypt
+                                        // EncryptedAssertion
+        PublicKey::fromFile('sp.crt'),
         'http://localhost:8081/acs'
     );
     // we also want to support SLO in the example
