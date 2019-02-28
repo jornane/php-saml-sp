@@ -81,7 +81,7 @@ class Response
         if (1 === $domNodeList->length) {
             // EncryptedAssertion
             $encryptedAssertionElement = XmlDocument::requireDomElement($domNodeList->item(0));
-            $assertionElement = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $spInfo->getPrivateKey());
+            $assertionElement = Crypto::decryptAssertion($responseDocument, $encryptedAssertionElement, $spInfo->getPrivateKey());
 
             // we replace saml:EncryptedAssertion with saml:Assertion in the original document
             $responseElement->replaceChild(

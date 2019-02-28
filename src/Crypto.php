@@ -113,10 +113,13 @@ class Crypto
     public static function verifyRedirect(QueryParameters $queryParameters, array $publicKeys)
     {
         $samlResponse = $queryParameters->requireQueryParameter('SAMLResponse', true);
-        $relayState = $queryParameters->requireQueryParameter('RelayState', true);
+        $relayState = $queryParameters->optionalQueryParameter('RelayState', true);
         $sigAlg = $queryParameters->requireQueryParameter('SigAlg', true);
-        // XXX RelayState is actually optional...
-        $httpQuery = \sprintf('SAMLResponse=%s&RelayState=%s&SigAlg=%s', $samlResponse, $relayState, $sigAlg);
+        if (null === $relayState) {
+            $httpQuery = \sprintf('SAMLResponse=%s&SigAlg=%s', $samlResponse, $sigAlg);
+        } else {
+            $httpQuery = \sprintf('SAMLResponse=%s&RelayState=%s&SigAlg=%s', $samlResponse, $relayState, $sigAlg);
+        }
 
         self::verifySignature($httpQuery, Base64::decode($queryParameters->requireQueryParameter('Signature')), $publicKeys);
     }
@@ -128,7 +131,7 @@ class Crypto
      *
      * @return \DOMElement
      */
-    public static function decryptXml(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
+    public static function decryptAssertion(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
     {
         // make sure we support the encryption algorithm
         $encryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:EncryptionMethod/@Algorithm)', $domElement);
