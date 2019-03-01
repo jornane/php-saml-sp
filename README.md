@@ -42,7 +42,10 @@ with real world deployed IdPs and be secure at all times.
 - `php-openssl`
 - `php-sodium` (PHP >= 7.2) or `php-pecl-libsodium` for `EncryptedAssertion` 
   support
-- See `composer.json` for other (polyfill) dependencies
+  - Debian 9: `sudo apt install php-libsodium`
+  - CentOS 7: `sudo yum -y install php-pecl-libsodium`
+  - Fedora >= 28: `sudo dnf -y install php-sodium`
+- See `composer.json` for other dependencies
 
 # Crypto
 
