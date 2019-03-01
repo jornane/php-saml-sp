@@ -101,8 +101,8 @@ class NameId
     /**
      * @return string
      */
-    public function getUserId()
-    {   
+    public function toUserId()
+    {
         // this only makes sense when we have "persistent" NameID
         if ('urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' !== $this->nameIdFormat) {
             throw new NameIdException(\sprintf('NameID format "%s" not supported for user identifiers', $this->nameIdFormat));

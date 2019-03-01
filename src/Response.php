@@ -189,7 +189,7 @@ class Response
                 // eduPersonTargetedId, extract a user ID from the NameID
                 // XXX what if there are more children?!
                 $nameId = new NameId($idpEntityId, $spEntityId, XmlDocument::requireDomElement($attributeValueElement->firstChild));
-                $attributeValue = $nameId->getUserId();
+                $attributeValue = $nameId->toUserId();
             } else {
                 $attributeValue = \trim($attributeValueElement->textContent);
             }
