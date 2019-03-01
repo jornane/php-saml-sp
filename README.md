@@ -23,6 +23,7 @@ with real world deployed IdPs, and be secure at all times.
 - Always signs `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed 
   `samlp:Response/saml:Assertion`
+- Supports multiple IdP certificates for key rollover
 - Allow specifying `AuthnContextClassRef` as part of the `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
 - Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId` 
@@ -67,10 +68,10 @@ SP library.
         -subj "/CN=SAML SP" \
         -x509 \
         -sha256 \
-        -newkey rsa:2048 \
+        -newkey rsa:3072 \
         -keyout "sp.key" \
         -out "sp.crt" \
-        -days 1800
+        -days 3650
 
 # Example
 

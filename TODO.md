@@ -23,17 +23,20 @@
   - `eduPersonPrincipalName`
   - `urn:oasis:names:tc:SAML:attribute:subject-id`
   - `urn:oasis:names:tc:SAML:attribute:pairwise-id`
-- Provide `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
+- Expose `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
+- Implement a way to have multiple certificates
+  - 1 for signing, encryption and metadata?
+  - rollover?
 
 # 2.0
 
 - remove PHP 5 support
   - only support PHP >= 7.2 (CentOS 8, Debian 10)
   - remove libsodium (no longer needed as PHP >= 7.1 supports AES-256-GCM as 
-    well
+    well see `php71` branch
 - support auto update of IdP metadata? This may be something best left to 
   php-saml-ds?
 - `ForceAuthn` in `AuthnRequest` (is anyone actually using this?)
 - Implement unsolicited `Response`, "IdP initiated"
 - Receive unsolicited `LogoutRequest` from IdPs
-- Sign SAML metadata
+- Sign SAML metadata?
