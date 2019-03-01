@@ -43,27 +43,27 @@ class LogoutResponse
         Crypto::verify($queryString, Base64::decode($queryParameters->requireQueryParameter('Signature')), $idpInfo->getPublicKeys());
 
         $logoutResponseDocument = XmlDocument::fromProtocolMessage(\gzinflate(Base64::decode($queryParameters->requireQueryParameter('SAMLResponse'))));
+        $logoutResponseElement = XmlDocument::requireDomElement($logoutResponseDocument->domXPath->query('/samlp:LogoutResponse')->item(0));
 
         // the LogoutResponse Issuer MUST be IdP entityId
-        $issuer = $logoutResponseDocument->domXPath->evaluate('string(/samlp:LogoutResponse/saml:Issuer)');
-        if ($idpInfo->getEntityId() !== $issuer) {
+        $issuerElement = XmlDocument::requireDomElement($logoutResponseDocument->domXPath->query('saml:Issuer', $logoutResponseElement)->item(0));
+        if ($issuerElement->textContent !== $idpInfo->getEntityId()) {
             throw new ResponseException('unexpected Issuer');
         }
 
-        $inResponseTo = $logoutResponseDocument->domXPath->evaluate('string(/samlp:LogoutResponse/@InResponseTo)');
-        if ($inResponseTo !== $expectedInResponseTo) {
+        if ($expectedInResponseTo !== $logoutResponseElement->getAttribute('InResponseTo')) {
             throw new ResponseException('unexpected InResponseTo');
         }
 
-        $destination = $logoutResponseDocument->domXPath->evaluate('string(/samlp:LogoutResponse/@Destination)');
-        if ($destination !== $expectedSloUrl) {
+        if ($expectedSloUrl !== $logoutResponseElement->getAttribute('Destination')) {
             throw new ResponseException('unexpected Destination');
         }
 
-        // check the status code
-        $statusCode = $logoutResponseDocument->domXPath->evaluate('string(/samlp:LogoutResponse/samlp:Status/samlp:StatusCode/@Value)');
+        // handle samlp:Status
+        $statusCodeElement = XmlDocument::requireDomElement($logoutResponseDocument->domXPath->query('samlp:Status/samlp:StatusCode', $logoutResponseElement)->item(0));
+        $statusCode = $statusCodeElement->getAttribute('Value');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
-            throw new ResponseException(\sprintf('status error code: %s', $statusCode));
+            throw new ResponseException($statusCode);
         }
     }
 
