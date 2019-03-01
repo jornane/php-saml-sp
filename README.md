@@ -8,10 +8,10 @@ production until there is a 1.0 release!
 
 # Why
 
-I wanted to have a minimal implementation of a SAML SP library. Exiting (PHP) 
+I wanted to have a minimal implementation of a SAML SP library. Existing (PHP) 
 software either has a much larger scope, or tries to conform fully to the SAML 
 specification. This library only tries to implement the minimum amount to work 
-with real world deployed IdPs and be secure at all times.
+with real world deployed IdPs, and be secure at all times.
 
 # Features
 
