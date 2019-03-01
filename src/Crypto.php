@@ -47,7 +47,7 @@ class Crypto
      *
      * @return void
      */
-    public static function verifyPost(XmlDocument $xmlDocument, DOMElement $domElement, array $publicKeys)
+    public static function verifyXml(XmlDocument $xmlDocument, DOMElement $domElement, array $publicKeys)
     {
         $rootElementId = $xmlDocument->domXPath->evaluate('string(self::node()/@ID)', $domElement);
         $referenceUri = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/@URI)', $domElement);
@@ -95,7 +95,7 @@ class Crypto
      *
      * @return string
      */
-    public static function signRedirect($httpQuery, PrivateKey $privateKey)
+    public static function signQuery($httpQuery, PrivateKey $privateKey)
     {
         if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
             throw new CryptoException('unable to sign');
@@ -110,8 +110,10 @@ class Crypto
      *
      * @return void
      */
-    public static function verifyRedirect(QueryParameters $queryParameters, array $publicKeys)
+    public static function verifyQuery(QueryParameters $queryParameters, array $publicKeys)
     {
+        // XXX could also be SAMLRequest for LogoutRequest arriving on SLO endpoint,
+        // we don't support this yet...
         $samlResponse = $queryParameters->requireQueryParameter('SAMLResponse', true);
         $relayState = $queryParameters->optionalQueryParameter('RelayState', true);
         $sigAlg = $queryParameters->requireQueryParameter('SigAlg', true);
@@ -129,9 +131,9 @@ class Crypto
      * @param \DOMElement $domElement
      * @param PrivateKey  $privateKey
      *
-     * @return \DOMElement
+     * @return string
      */
-    public static function decryptAssertion(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
+    public static function decryptXml(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
     {
         // make sure we support the encryption algorithm
         $encryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:EncryptionMethod/@Algorithm)', $domElement);
@@ -175,10 +177,7 @@ class Crypto
             throw new CryptoException('unable to decrypt data');
         }
 
-        // create and validate new document for Assertion
-        $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
-
-        return XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
+        return $decryptedAssertion;
     }
 
     /**

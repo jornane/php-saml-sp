@@ -69,7 +69,7 @@ class Response
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/ds:Signature');
         if (1 === $domNodeList->length) {
             // samlp:Response is signed
-            Crypto::verifyPost($responseDocument, $responseElement, $idpInfo->getPublicKeys());
+            Crypto::verifyXml($responseDocument, $responseElement, $idpInfo->getPublicKeys());
             $responseSigned = true;
         }
 
@@ -81,7 +81,11 @@ class Response
         if (1 === $domNodeList->length) {
             // EncryptedAssertion
             $encryptedAssertionElement = XmlDocument::requireDomElement($domNodeList->item(0));
-            $assertionElement = Crypto::decryptAssertion($responseDocument, $encryptedAssertionElement, $spInfo->getPrivateKey());
+            $decryptedAssertion = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $spInfo->getPrivateKey());
+
+            // create and validate new document for Assertion
+            $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
+            $assertionElement = XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
 
             // we replace saml:EncryptedAssertion with saml:Assertion in the original document
             $responseElement->replaceChild(
@@ -102,7 +106,7 @@ class Response
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/ds:Signature');
         if (1 === $domNodeList->length) {
             // saml:Assertion is signed
-            Crypto::verifyPost($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
+            Crypto::verifyXml($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
             $assertionSigned = true;
         }
 
