@@ -162,7 +162,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\CryptoException
-     * @expectedExceptionMessage invalid signature
+     * @expectedExceptionMessage unable to verify signature
      */
     public function testWrongCertificate()
     {
@@ -184,7 +184,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\CryptoException
-     * @expectedExceptionMessage invalid signature
+     * @expectedExceptionMessage unable to verify signature
      */
     public function testWrongSignature()
     {

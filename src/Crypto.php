@@ -100,11 +100,12 @@ class Crypto
     {
         foreach ($publicKeys as $publicKey) {
             if (1 === \openssl_verify($inStr, $inSig, $publicKey->raw(), self::SIGN_OPENSSL_ALGO)) {
+                // signature verified
                 return;
             }
         }
 
-        throw new CryptoException('invalid signature');
+        throw new CryptoException('unable to verify signature');
     }
 
     /**
@@ -116,7 +117,7 @@ class Crypto
     public static function sign($inStr, PrivateKey $privateKey)
     {
         if (false === \openssl_sign($inStr, $outSig, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
-            throw new CryptoException('unable to sign');
+            throw new CryptoException('unable to create signature');
         }
 
         return $outSig;
@@ -145,7 +146,7 @@ class Crypto
 
         // make sure this system supports aes-256-gcm from libsodium
         if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
-            throw new RuntimeException('AES decryption not supported on this hardware');
+            throw new RuntimeException('decryption not supported on this hardware');
         }
 
         // extract the session key
@@ -158,7 +159,7 @@ class Crypto
 
         // make sure the obtained key is the exact length we expect
         if (SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES !== Binary::safeStrlen($symmetricEncryptionKey)) {
-            throw new CryptoException('extracted session key has unexpected length');
+            throw new CryptoException('session key has unexpected length');
         }
 
         // extract the encrypted Assertion
