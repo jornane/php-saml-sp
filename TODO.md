@@ -4,8 +4,6 @@
 
 ### Features
 
-- improve response error when status is not "Success" (`Response` / 
-  `LogoutResponse`)
 - ability to add `mdui` to generated metadata
 - ability to expose requested attributes through metadata
 

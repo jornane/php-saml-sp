@@ -66,14 +66,19 @@ class Response
             $responseSigned = true;
         }
 
-        // check the status code
-        // XXX find better way to do this!
-        $statusCode = $responseDocument->domXPath->evaluate('string(samlp:Status/samlp:StatusCode/@Value)', $responseElement);
+        // handle samlp:Status
+        $statusCodeElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('samlp:Status/samlp:StatusCode', $responseElement)->item(0));
+        $statusCode = $statusCodeElement->getAttribute('Value');
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
-            $statusCodes = [$statusCode];
-            // check if we have an additional status code
-            $statusCodes[] = $responseDocument->domXPath->evaluate('string(samlp:Status/samlp:StatusCode/samlp:StatusCode/@Value)', $responseElement);
-            throw new ResponseException(\sprintf('status error code: %s', \implode(',', $statusCodes)));
+            // check if there is a second-level status code
+            $secondLevelStatusCode = null;
+            $domNodeList = $responseDocument->domXPath->query('samlp:StatusCode', $statusCodeElement);
+            if (1 === $domNodeList->length) {
+                $secondLevelStatusCode = XmlDocument::requireDomElement($domNodeList->item(0))->getAttribute('Value');
+            }
+            $exceptionMsg = null === $secondLevelStatusCode ? $statusCode : \sprintf('%s (%s)', $statusCode, $secondLevelStatusCode);
+
+            throw new ResponseException($exceptionMsg);
         }
 
         $domNodeList = $responseDocument->domXPath->query('saml:EncryptedAssertion', $responseElement);

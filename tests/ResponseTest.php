@@ -303,7 +303,7 @@ class ResponseTest extends TestCase
 
     /**
      * @expectedException \fkooman\SAML\SP\Exception\ResponseException
-     * @expectedExceptionMessage status error code: urn:oasis:names:tc:SAML:2.0:status:Responder,urn:oasis:names:tc:SAML:2.0:status:NoAuthnContext
+     * @expectedExceptionMessage urn:oasis:names:tc:SAML:2.0:status:Responder (urn:oasis:names:tc:SAML:2.0:status:NoAuthnContext)
      */
     public function testErrorResponse()
     {
