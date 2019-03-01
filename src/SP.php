@@ -294,9 +294,11 @@ class SP
         ];
 
         // add the Signature key/value to the HTTP query
-        $httpQueryParameters['Signature'] = Crypto::signQuery(
-            \http_build_query($httpQueryParameters),
-            $privateKey
+        $httpQueryParameters['Signature'] = Base64::encode(
+            Crypto::sign(
+                \http_build_query($httpQueryParameters),
+                $privateKey
+            )
         );
 
         return \sprintf(

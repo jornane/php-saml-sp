@@ -39,7 +39,8 @@ class LogoutResponse
      */
     public function verify(QueryParameters $queryParameters, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)
     {
-        Crypto::verifyQuery($queryParameters, $idpInfo->getPublicKeys());
+        $queryString = self::prepareQueryString($queryParameters);
+        Crypto::verify($queryString, Base64::decode($queryParameters->requireQueryParameter('Signature')), $idpInfo->getPublicKeys());
 
         $logoutResponseDocument = XmlDocument::fromProtocolMessage(\gzinflate(Base64::decode($queryParameters->requireQueryParameter('SAMLResponse'))));
 
@@ -64,5 +65,22 @@ class LogoutResponse
         if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
             throw new ResponseException(\sprintf('status error code: %s', $statusCode));
         }
+    }
+
+    /**
+     * @param QueryParameters $queryParameters
+     *
+     * @return string
+     */
+    private static function prepareQueryString(QueryParameters $queryParameters)
+    {
+        $samlResponse = $queryParameters->requireQueryParameter('SAMLResponse', true);
+        $relayState = $queryParameters->optionalQueryParameter('RelayState', true);
+        $sigAlg = $queryParameters->requireQueryParameter('SigAlg', true);
+        if (null === $relayState) {
+            return \sprintf('SAMLResponse=%s&SigAlg=%s', $samlResponse, $sigAlg);
+        }
+
+        return \sprintf('SAMLResponse=%s&RelayState=%s&SigAlg=%s', $samlResponse, $relayState, $sigAlg);
     }
 }

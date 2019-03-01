@@ -86,44 +86,40 @@ class Crypto
             throw new CryptoException('unexpected digest');
         }
 
-        self::verifySignature($canonicalSignedInfo, Base64::decode($signatureValue), $publicKeys);
+        self::verify($canonicalSignedInfo, Base64::decode($signatureValue), $publicKeys);
     }
 
     /**
-     * @param string     $httpQuery
-     * @param PrivateKey $privateKey
-     *
-     * @return string
-     */
-    public static function signQuery($httpQuery, PrivateKey $privateKey)
-    {
-        if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
-            throw new CryptoException('unable to sign');
-        }
-
-        return Base64::encode($signature);
-    }
-
-    /**
-     * @param QueryParameters  $queryParameters
+     * @param string           $inStr
+     * @param string           $inSig
      * @param array<PublicKey> $publicKeys
      *
      * @return void
      */
-    public static function verifyQuery(QueryParameters $queryParameters, array $publicKeys)
+    public static function verify($inStr, $inSig, array $publicKeys)
     {
-        // XXX could also be SAMLRequest for LogoutRequest arriving on SLO endpoint,
-        // we don't support this yet...
-        $samlResponse = $queryParameters->requireQueryParameter('SAMLResponse', true);
-        $relayState = $queryParameters->optionalQueryParameter('RelayState', true);
-        $sigAlg = $queryParameters->requireQueryParameter('SigAlg', true);
-        if (null === $relayState) {
-            $httpQuery = \sprintf('SAMLResponse=%s&SigAlg=%s', $samlResponse, $sigAlg);
-        } else {
-            $httpQuery = \sprintf('SAMLResponse=%s&RelayState=%s&SigAlg=%s', $samlResponse, $relayState, $sigAlg);
+        foreach ($publicKeys as $publicKey) {
+            if (1 === \openssl_verify($inStr, $inSig, $publicKey->raw(), self::SIGN_OPENSSL_ALGO)) {
+                return;
+            }
         }
 
-        self::verifySignature($httpQuery, Base64::decode($queryParameters->requireQueryParameter('Signature')), $publicKeys);
+        throw new CryptoException('invalid signature');
+    }
+
+    /**
+     * @param string     $inStr
+     * @param PrivateKey $privateKey
+     *
+     * @return string
+     */
+    public static function sign($inStr, PrivateKey $privateKey)
+    {
+        if (false === \openssl_sign($inStr, $outSig, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
+            throw new CryptoException('unable to sign');
+        }
+
+        return $outSig;
     }
 
     /**
@@ -178,23 +174,5 @@ class Crypto
         }
 
         return $decryptedAssertion;
-    }
-
-    /**
-     * @param string           $data
-     * @param string           $signature
-     * @param array<PublicKey> $publicKeys
-     *
-     * @return void
-     */
-    private static function verifySignature($data, $signature, array $publicKeys)
-    {
-        foreach ($publicKeys as $publicKey) {
-            if (1 === \openssl_verify($data, $signature, $publicKey->raw(), self::SIGN_OPENSSL_ALGO)) {
-                return;
-            }
-        }
-
-        throw new CryptoException('invalid signature');
     }
 }
