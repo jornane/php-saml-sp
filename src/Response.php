@@ -153,7 +153,7 @@ class Response
             }
         }
 
-        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spInfo->getEntityId(), $responseDocument->domXPath);
+        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spInfo->getEntityId(), $responseDocument);
         $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
 
         // NameID
@@ -167,34 +167,34 @@ class Response
     }
 
     /**
-     * @param string    $idpEntityId
-     * @param string    $spEntityId
-     * @param \DOMXPath $domXPath
+     * @param string      $idpEntityId
+     * @param string      $spEntityId
+     * @param XmlDocument $domXPath
      *
      * @return array<string,array<string>>
      */
-    private static function extractAttributes($idpEntityId, $spEntityId, DOMXPath $domXPath)
+    private static function extractAttributes($idpEntityId, $spEntityId, XmlDocument $xmlDocument)
     {
-        $attributeValueElements = $domXPath->query(
-            '/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute/saml:AttributeValue'
-        );
         $attributeList = [];
-        foreach ($attributeValueElements as $attributeValueElement) {
-            $parentElement = XmlDocument::requireDomElement($attributeValueElement->parentNode);
-            $attributeName = $parentElement->getAttribute('Name');
-            if (!\array_key_exists($attributeName, $attributeList)) {
-                $attributeList[$attributeName] = [];
-            }
+        $attributeDomNodeList = $xmlDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute');
+        foreach ($attributeDomNodeList as $attributeDomNode) {
+            $attributeElement = XmlDocument::requireDomElement($attributeDomNode);
+            $attributeName = $attributeElement->getAttribute('Name');
+            $attributeList[$attributeName] = [];
             if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
-                // eduPersonTargetedId, extract a user ID from the NameID
-                // XXX what if there are more children?!
-                $nameId = new NameId($idpEntityId, $spEntityId, XmlDocument::requireDomElement($attributeValueElement->firstChild));
-                $attributeValue = $nameId->toUserId();
-            } else {
-                $attributeValue = \trim($attributeValueElement->textContent);
+                // ePTID (eduPersonTargetedId) is a special case as it wraps an
+                // saml:NameID construct and not "simple" string values...
+                $nameIdElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('saml:AttributeValue/saml:NameID', $attributeElement)->item(0));
+                $nameId = new NameId($idpEntityId, $spEntityId, $nameIdElement);
+                $attributeList['urn:oid:1.3.6.1.4.1.5923.1.1.1.10'][] = $nameId->toUserId();
+                continue;
             }
-
-            $attributeList[$attributeName][] = $attributeValue;
+            $attributeValueDomNodeList = $xmlDocument->domXPath->query('saml:AttributeValue', $attributeElement);
+            // loop over AttributeValue
+            foreach ($attributeValueDomNodeList as $attributeValueDomNode) {
+                $attributeValueElement = XmlDocument::requireDomElement($attributeValueDomNode);
+                $attributeList[$attributeName][] = $attributeValueElement->textContent;
+            }
         }
 
         return $attributeList;
