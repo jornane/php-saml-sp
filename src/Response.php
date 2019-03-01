@@ -156,13 +156,10 @@ class Response
         $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spInfo->getEntityId(), $responseDocument->domXPath);
         $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
 
-        $nameId = null;
+        // NameID
         $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
         if (null !== $nameIdNode = $domNodeList->item(0)) {
             $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), XmlDocument::requireDomElement($nameIdNode));
-        }
-
-        if (null !== $nameId) {
             $samlAssertion->setNameId($nameId);
         }
 
@@ -189,9 +186,10 @@ class Response
                 $attributeList[$attributeName] = [];
             }
             if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
-                // eduPersonTargetedId, serialize this accordingly
-                $nameId = new NameId($idpEntityId, $spEntityId, XmlDocument::requireDomElement($attributeValueElement));
-                $attributeValue = $nameId->serialize();
+                // eduPersonTargetedId, extract a user ID from the NameID
+                // XXX what if there are more children?!
+                $nameId = new NameId($idpEntityId, $spEntityId, XmlDocument::requireDomElement($attributeValueElement->firstChild));
+                $attributeValue = $nameId->getUserId();
             } else {
                 $attributeValue = \trim($attributeValueElement->textContent);
             }
