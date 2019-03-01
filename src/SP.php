@@ -269,10 +269,7 @@ class SP
             'Metadata',
             [
                 'validUntil' => $validUntil->format('Y-m-d\TH:i:s\Z'),
-                'entityID' => $this->spInfo->getEntityId(),
-                'X509Certificate' => $this->spInfo->getPublicKey()->toEncodedString(),
-                'AssertionConsumerService' => $this->spInfo->getAcsUrl(),
-                'SingleLogoutService' => $this->spInfo->getSloUrl(),
+                'spInfo' => $this->spInfo,
             ]
         );
     }
