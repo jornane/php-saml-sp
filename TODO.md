@@ -21,8 +21,10 @@
 
 - support `<shibm:Scope>` from IdP metadata to restrict scopes for:
   - `eduPersonPrincipalName`
-  - `urn:oasis:names:tc:SAML:attribute:subject-id`
-  - `urn:oasis:names:tc:SAML:attribute:pairwise-id`
+  - `eduPersonUniqueId`
+  - `eduPersonScopedAffiliation`
+  - `urn:oasis:names:tc:SAML:attribute:subject-id`?
+  - `urn:oasis:names:tc:SAML:attribute:pairwise-id`?
 - Expose `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
 - Implement a way to have multiple certificates
   - 1 for signing, encryption and metadata?
