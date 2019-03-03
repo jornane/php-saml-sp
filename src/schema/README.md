@@ -10,12 +10,14 @@ Source of XSD files in `src/schema`:
     $ curl -O https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/cs01/xsd/sstc-saml-metadata-ui-v1.0.xsd
     $ curl -O https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-algsupport-v1.0.xsd
     $ curl -O https://www.w3.org/2001/03/xml.xsd
+    $ curl -O https://docs.oasis-open.org/security/saml-subject-id-attr/v1.0/cs01/schema/saml-subject-id-attr-v1.0.xsd
 
 All occurrences of `schemaLocation` in the XSD files were modified to point to
 the local files instead of the remote resources.
 
-For the `sstc-saml-metadata-algsupport-v1.0.xml` schema we needed to add this 
-to the schema file to make the validation work:
+For the `sstc-saml-metadata-algsupport-v1.0.xsd` and 
+`saml-subject-id-attr-v1.0.xsd` schema we needed to add this to the schema file 
+to make the validation work:
 
     <import namespace="urn:oasis:names:tc:SAML:2.0:metadata"
     schemaLocation="saml-schema-metadata-2.0.xsd"/>

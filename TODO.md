@@ -6,6 +6,10 @@
 
 - ability to add `mdui` to generated metadata
 - ability to expose requested attributes through metadata
+- enforce `<shibm:Scope>` from IdP metadata to restrict scopes for:
+  - `eduPersonPrincipalName`
+  - `urn:oasis:names:tc:SAML:attribute:subject-id`
+  - `urn:oasis:names:tc:SAML:attribute:pairwise-id`
 
 ### Open Issues
 
@@ -19,10 +23,6 @@
 
 ## 1.1
 
-- support `<shibm:Scope>` from IdP metadata to restrict scopes for:
-  - `eduPersonPrincipalName`
-  - `urn:oasis:names:tc:SAML:attribute:subject-id`
-  - `urn:oasis:names:tc:SAML:attribute:pairwise-id`
 - Expose `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
 - Implement a way to have multiple certificates
   - 1 for signing, encryption and metadata?
