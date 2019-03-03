@@ -49,7 +49,6 @@ class XmlDocument
         $this->domXPath->registerNamespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
         $this->domXPath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
         $this->domXPath->registerNameSpace('xenc', 'http://www.w3.org/2001/04/xmlenc#');
-        $this->domXPath->registerNameSpace('shibmd', 'urn:mace:shibboleth:metadata:1.0');
     }
 
     /**
@@ -82,7 +81,7 @@ class XmlDocument
     {
         return self::loadStr(
             $metadataStr,
-            $validateSchema ? ['saml-schema-metadata-2.0.xsd', 'sstc-saml-metadata-ui-v1.0.xsd', 'sstc-saml-metadata-algsupport-v1.0.xsd', 'saml-subject-id-attr-v1.0.xsd'] : []
+            $validateSchema ? ['saml-schema-metadata-2.0.xsd', 'sstc-saml-metadata-ui-v1.0.xsd', 'sstc-saml-metadata-algsupport-v1.0.xsd'] : []
         );
     }
 

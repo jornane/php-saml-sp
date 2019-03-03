@@ -63,8 +63,7 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
             $entityId,
             $this->getSingleSignOnService($domElement),
             $this->getSingleLogoutService($domElement),
-            $this->getPublicKeys($domElement),
-            $this->getScope($domElement)
+            $this->getPublicKeys($domElement)
         );
     }
 
@@ -120,22 +119,5 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         }
 
         return $publicKeys;
-    }
-
-    /**
-     * @param \DOMElement $domElement
-     *
-     * @return array<string>
-     */
-    private function getScope(DOMElement $domElement)
-    {
-        $scopeList = [];
-        $domNodeList = $this->xmlDocument->domXPath->query('md:Extensions/shibmd:Scope[not(@regexp) or @regexp="false" or @regexp="0"]', $domElement);
-        foreach ($domNodeList as $domNode) {
-            $scopeElement = XmlDocument::requireDomElement($domNode);
-            $scopeList[] = $scopeElement->textContent;
-        }
-
-        return $scopeList;
     }
 }

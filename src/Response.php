@@ -196,7 +196,6 @@ class Response
                 $attributeList['urn:oid:1.3.6.1.4.1.5923.1.1.1.10'][] = $nameId->toUserId();
                 continue;
             }
-            // XXX verify ePPN and subject-id/pairwise-id for IdPInfo->getScopeList()
             $attributeValueDomNodeList = $xmlDocument->domXPath->query('saml:AttributeValue', $attributeElement);
             // loop over AttributeValue
             foreach ($attributeValueDomNodeList as $attributeValueDomNode) {

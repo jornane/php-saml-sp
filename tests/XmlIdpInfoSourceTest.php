@@ -39,7 +39,6 @@ class XmlIdpInfoSourceTest extends TestCase
         $this->assertSame('https://idp.tuxed.net/sso.php', $idpInfo->getSsoUrl());
         $this->assertSame('https://idp.tuxed.net/slo.php', $idpInfo->getSloUrl());
         $this->assertSame($encodedString, $idpInfo->getPublicKeys()[0]->toEncodedString());
-        $this->assertSame(['tuxed.net'], $idpInfo->getScopeList());
     }
 
     public function testNoNsPrefix()
