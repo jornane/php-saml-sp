@@ -174,7 +174,7 @@ class Response
     }
 
     /**
-     * @param IdPInfo     $idpInfo
+     * @param IdpInfo     $idpInfo
      * @param SpInfo      $spInfo
      * @param XmlDocument $domXPath
      *
