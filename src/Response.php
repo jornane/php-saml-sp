@@ -25,8 +25,9 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
-use DOMXpath;
+use DOMElement;
 use fkooman\SAML\SP\Exception\ResponseException;
+use ParagonIE\ConstantTime\Binary;
 
 class Response
 {
@@ -160,7 +161,7 @@ class Response
             }
         }
 
-        $attributeList = self::extractAttributes($idpInfo, $spInfo, $responseDocument);
+        $attributeList = self::extractAttributes($responseDocument, $assertionElement, $idpInfo, $spInfo);
         $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
 
         // NameID
@@ -174,36 +175,81 @@ class Response
     }
 
     /**
+     * @param XmlDocument $xmlDocument
+     * @param \DOMElement $assertionElement
      * @param IdpInfo     $idpInfo
      * @param SpInfo      $spInfo
-     * @param XmlDocument $domXPath
      *
      * @return array<string,array<string>>
      */
-    private static function extractAttributes(IdpInfo $idpInfo, SpInfo $spInfo, XmlDocument $xmlDocument)
+    private static function extractAttributes(XmlDocument $xmlDocument, DOMElement $assertionElement, IdpInfo $idpInfo, SpInfo $spInfo)
     {
         $attributeList = [];
-        $attributeDomNodeList = $xmlDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute');
+        $attributeDomNodeList = $xmlDocument->domXPath->query('saml:AttributeStatement/saml:Attribute', $assertionElement);
         foreach ($attributeDomNodeList as $attributeDomNode) {
             $attributeElement = XmlDocument::requireDomElement($attributeDomNode);
             $attributeName = $attributeElement->getAttribute('Name');
-            $attributeList[$attributeName] = [];
-            if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
-                // ePTID (eduPersonTargetedId) is a special case as it wraps an
-                // saml:NameID construct and not "simple" string values...
-                $nameIdElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('saml:AttributeValue/saml:NameID', $attributeElement)->item(0));
-                $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), $nameIdElement);
-                $attributeList['urn:oid:1.3.6.1.4.1.5923.1.1.1.10'][] = $nameId->toUserId();
-                continue;
-            }
             $attributeValueDomNodeList = $xmlDocument->domXPath->query('saml:AttributeValue', $attributeElement);
-            // loop over AttributeValue
+            // loop over AttributeValue(s) for this Attribute
             foreach ($attributeValueDomNodeList as $attributeValueDomNode) {
                 $attributeValueElement = XmlDocument::requireDomElement($attributeValueDomNode);
-                $attributeList[$attributeName][] = $attributeValueElement->textContent;
+                if (false !== $attributeValue = self::processAttributeValue($xmlDocument, $attributeValueElement, $attributeName, $idpInfo, $spInfo)) {
+                    if (!\array_key_exists($attributeName, $attributeList)) {
+                        $attributeList[$attributeName] = [];
+                    }
+                    $attributeList[$attributeName][] = $attributeValue;
+                }
             }
         }
 
         return $attributeList;
+    }
+
+    /**
+     * @param XmlDocument $xmlDocument
+     * @param \DOMElement $attributeValueElement
+     * @param string      $attributeName
+     * @param IdpInfo     $idpInfo
+     * @param SpInfo      $spInfo
+     *
+     * @return false|string
+     */
+    private static function processAttributeValue(XmlDocument $xmlDocument, DOMElement $attributeValueElement, $attributeName, IdpInfo $idpInfo, SpInfo $spInfo)
+    {
+        // eduPersonTargetedId
+        if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
+            // ePTID (eduPersonTargetedId) is a special case as it wraps a
+            // saml:NameID construct and not a simple string value...
+            $nameIdElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('saml:NameID', $attributeValueElement)->item(0));
+            $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), $nameIdElement);
+
+            return $nameId->toUserId();
+        }
+
+        // filter "scoped" attributes
+        // @see https://spaces.at.internet2.edu/display/InCFederation/2016/05/08/Scoped+User+Identifiers
+        $idpScopeList = $idpInfo->getScopeList();
+        if (0 !== \count($idpScopeList)) {
+            $scopedAttributeNameList = [
+                '1.3.6.1.4.1.5923.1.1.1.6',  // eduPersonPrincipalName
+                '1.3.6.1.4.1.5923.1.1.1.9',  // eduPersonScopedAffiliation
+                '1.3.6.1.4.1.5923.1.1.1.13', // eduPersonUniqueId
+            ];
+
+            if (\in_array($attributeName, $scopedAttributeNameList, true)) {
+                $attributeValue = $attributeValueElement->textContent;
+                foreach ($idpScopeList as $idpScope) {
+                    $attributeScope = Binary::safeSubstr($attributeValue, -(Binary::safeStrlen($idpScope) + 1));
+                    echo $attributeScope.PHP_EOL;
+                    if ('@'.$idpScope === $attributeScope) {
+                        return $attributeValue;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        return $attributeValueElement->textContent;
     }
 }

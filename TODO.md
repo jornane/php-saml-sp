@@ -6,10 +6,6 @@
 
 - ability to add `mdui` to generated metadata
 - ability to expose requested attributes through metadata
-- enforce `<shibm:Scope>` from IdP metadata to restrict scopes for:
-  - `eduPersonPrincipalName`
-  - `urn:oasis:names:tc:SAML:attribute:subject-id`
-  - `urn:oasis:names:tc:SAML:attribute:pairwise-id`
 
 ### Open Issues
 

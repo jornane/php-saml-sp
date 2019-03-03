@@ -28,6 +28,7 @@ with real world deployed IdPs, and be secure at all times.
 - No dependency on `robrichards/xmlseclibs`
 - Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId` 
   like Shibboleth;
+- Verify "scope" of attributes based on `<shibmd:Scope>` metadata element
 - Validates XML schema(s) when processing XML protocol messages
 - Tested with IdPs:
   - [simpleSAMLphp](https://simplesamlphp.org/)
