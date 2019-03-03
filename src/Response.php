@@ -160,7 +160,7 @@ class Response
             }
         }
 
-        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spInfo->getEntityId(), $responseDocument);
+        $attributeList = self::extractAttributes($idpInfo, $spInfo, $responseDocument);
         $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
 
         // NameID
@@ -174,13 +174,13 @@ class Response
     }
 
     /**
-     * @param string      $idpEntityId
-     * @param string      $spEntityId
+     * @param IdPInfo     $idpInfo
+     * @param SpInfo      $spInfo
      * @param XmlDocument $domXPath
      *
      * @return array<string,array<string>>
      */
-    private static function extractAttributes($idpEntityId, $spEntityId, XmlDocument $xmlDocument)
+    private static function extractAttributes(IdpInfo $idpInfo, SpInfo $spInfo, XmlDocument $xmlDocument)
     {
         $attributeList = [];
         $attributeDomNodeList = $xmlDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute');
@@ -192,11 +192,10 @@ class Response
                 // ePTID (eduPersonTargetedId) is a special case as it wraps an
                 // saml:NameID construct and not "simple" string values...
                 $nameIdElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('saml:AttributeValue/saml:NameID', $attributeElement)->item(0));
-                $nameId = new NameId($idpEntityId, $spEntityId, $nameIdElement);
+                $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), $nameIdElement);
                 $attributeList['urn:oid:1.3.6.1.4.1.5923.1.1.1.10'][] = $nameId->toUserId();
                 continue;
             }
-            // XXX verify ePPN and subject-id/pairwise-id for IdPInfo->getScopeList()
             $attributeValueDomNodeList = $xmlDocument->domXPath->query('saml:AttributeValue', $attributeElement);
             // loop over AttributeValue
             foreach ($attributeValueDomNodeList as $attributeValueDomNode) {
