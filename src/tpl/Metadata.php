@@ -18,5 +18,18 @@
     <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="<?=$spInfo->getSloUrl(); ?>"/>
 <?php endif; ?>
     <md:AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="<?=$spInfo->getAcsUrl(); ?>"/>
+<?php if (0 !== \count($spInfo->getServiceName())): ?>
+    <md:AttributeConsumingService index="0">
+<?php foreach ($spInfo->getServiceName() as $xmlLang => $serviceName): ?>
+      <md:ServiceName xml:lang="<?=$xmlLang; ?>"><?=$serviceName; ?></md:ServiceName>
+<?php endforeach; ?>
+<?php foreach ($spInfo->getRequiredAttributes() as $requiredAttribute): ?>
+      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="<?=$requiredAttribute; ?>" isRequired="true"/>
+<?php endforeach; ?>
+<?php foreach ($spInfo->getOptionalAttributes() as $optionalAttribute): ?>
+      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="<?=$optionalAttribute; ?>" isRequired="false"/>
+<?php endforeach; ?>
+    </md:AttributeConsumingService>
+<?php endif; ?>
   </md:SPSSODescriptor>
 </md:EntityDescriptor>

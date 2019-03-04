@@ -50,6 +50,9 @@ class SPTest extends TestCase
             'http://localhost:8081/acs'
         );
         $spInfo->setSloUrl('http://localhost:8081/slo');
+        $spInfo->setServiceName(['en' => 'Foo']);
+        $spInfo->setRequiredAttributes(['urn:oid:1.3.6.1.4.1.5923.1.1.1.10']);
+        $spInfo->setOptionalAttributes(['urn:oid:1.3.6.1.4.1.5923.1.1.1.7']);
         $this->sp = new SP(
             $spInfo,
             new XmlIdpInfoSource(__DIR__.'/data/metadata/localhost.xml')
@@ -140,6 +143,11 @@ EOF;
     </md:KeyDescriptor>
     <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/slo"/>
     <md:AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs"/>
+    <md:AttributeConsumingService index="0">
+      <md:ServiceName xml:lang="en">Foo</md:ServiceName>
+      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.10" isRequired="true"/>
+      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7" isRequired="false"/>
+    </md:AttributeConsumingService>
   </md:SPSSODescriptor>
 </md:EntityDescriptor>
 EOF;

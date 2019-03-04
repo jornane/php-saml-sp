@@ -5,7 +5,6 @@
 ### Features
 
 - ability to add `mdui` to generated metadata
-- ability to expose requested attributes through metadata
 - implement sha256 digest for OAEP in PHP: https://gist.github.com/fkooman/5c2dba93c20178205b36bf3f7688955a
 
 ### Open Issues

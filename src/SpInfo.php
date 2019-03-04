@@ -44,6 +44,15 @@ class SpInfo
     /** @var bool */
     private $requireEncryptedAssertion = false;
 
+    /** @var array<string,string> */
+    private $serviceName = [];
+
+    /** @var array<string> */
+    private $requiredAttributes = [];
+
+    /** @var array<string> */
+    private $optionalAttributes = [];
+
     /**
      * @param string     $entityId
      * @param PrivateKey $privateKey
@@ -124,5 +133,59 @@ class SpInfo
     public function getRequireEncryptedAssertion()
     {
         return $this->requireEncryptedAssertion;
+    }
+
+    /**
+     * @param array<string,string> $serviceName
+     *
+     * @return void
+     */
+    public function setServiceName(array $serviceName)
+    {
+        $this->serviceName = $serviceName;
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    public function getServiceName()
+    {
+        return $this->serviceName;
+    }
+
+    /**
+     * @param array<string> $requiredAttributes
+     *
+     * @return void
+     */
+    public function setRequiredAttributes(array $requiredAttributes)
+    {
+        $this->requiredAttributes = $requiredAttributes;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getRequiredAttributes()
+    {
+        return $this->requiredAttributes;
+    }
+
+    /**
+     * @param array<string> $optionalAttributes
+     *
+     * @return void
+     */
+    public function setOptionalAttributes(array $optionalAttributes)
+    {
+        $this->optionalAttributes = $optionalAttributes;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getOptionalAttributes()
+    {
+        return $this->optionalAttributes;
     }
 }
