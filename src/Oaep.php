@@ -41,6 +41,8 @@ class Oaep
     const ENCRYPT_OAEP_DIGEST_LEN = 20;      // php -r "echo strlen(hash('sha1', '', true));"
 
     /**
+     * @see https://github.com/golang/go/blob/0c7cdb49d89b34baf1f407135b64fd38876823e2/src/crypto/rsa/rsa.go#L569
+     * @see https://github.com/openssl/openssl/blob/39c44eee7fd89ce13e805873e1c43bd8e488a93f/crypto/rsa/rsa_oaep.c#L116
      * @see https://tools.ietf.org/html/rfc3447#section-7.1.2
      *
      * @param string $EM
@@ -94,19 +96,24 @@ class Oaep
         //    output "decryption error" and stop.  (See the note below.)
         $lHashPrime = Binary::safeSubstr($DB, 0, $hLen);
 
+        // XXX this stuff below is NOT constant time... it will leak too much!
+        // This is NOT okay. Both
+        // openssl C & go RSA implementation do some stuff to prevent this...
+        // we  MUST too! phpseclib/phpseclib doesn't seem to care about
+        // this at all!
+
         $M = Binary::safeSubstr($DB, $hLen);
 
-        // XXX this stuff below is NOT constant time... it will leak the
-        // padding size and expose which check fails...?!
-
-        // eat away all "\0" characters from $M
+        // eat away all "\0" characters from start of $M
         $M = \ltrim($M, "\0");
         if (!\hash_equals($lHash, $lHashPrime)) {
             return false;
         }
+
         if (0x01 !== \ord($M)) {
             return false;
         }
+
         if (0x00 !== $Y) {
             return false;
         }
