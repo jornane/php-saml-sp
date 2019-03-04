@@ -162,9 +162,6 @@ class Crypto
         $keyCipherValue = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)', $domElement);
 
         // decrypt the session key
-        // unfortunately: as openssl in PHP only supports MFG1 with SHA1 
-        // digest, we need to implement the padding removal in "user space" to
-        // be able to use MFG1 with SHA1 and SHA2 for the digest...
         if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $encodedSymmetricEncryptionKey, $privateKey->raw(), OPENSSL_NO_PADDING)) {
             throw new CryptoException('unable to extract session key');
         }
