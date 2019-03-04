@@ -52,6 +52,7 @@ class Oaep
         // Length checking
         // if $l is larger than two million terrabytes and you're using sha1, PKCS#1 suggests a "Label too long" error
         // be output.
+        // XXX we do not support "$l", it is always empty string
         if (Binary::safeStrlen($encodedMessage) !== $modLen || $modLen < 2 * self::ENCRYPT_OAEP_DIGEST_LEN + 2) {
             return false;
         }
@@ -66,6 +67,17 @@ class Oaep
         $dbMask = self::mgf1($seed, $modLen - self::ENCRYPT_OAEP_DIGEST_LEN - 1);
         $db = $maskedDB ^ $dbMask;
         $lHash2 = Binary::safeSubstr($db, 0, self::ENCRYPT_OAEP_DIGEST_LEN);
+
+
+//   Note.  Care must be taken to ensure that an opponent cannot
+//   distinguish the different error conditions in Step 3.g, whether by
+//   error message or timing, or, more generally, learn partial
+//   information about the encoded message EM.  Otherwise an opponent may
+//   be able to obtain useful information about the decryption of the
+//   ciphertext C, leading to a chosen-ciphertext attack such as the one
+//   observed by Manger [36].
+
+
         $m = Binary::safeSubstr($db, self::ENCRYPT_OAEP_DIGEST_LEN);
         // XXX make sure hash_equals has correct order!
         if (!\hash_equals($lHash, $lHash2)) {
