@@ -43,6 +43,7 @@ class Oaep
     /**
      * @see https://github.com/golang/go/blob/0c7cdb49d89b34baf1f407135b64fd38876823e2/src/crypto/rsa/rsa.go#L569
      * @see https://github.com/openssl/openssl/blob/39c44eee7fd89ce13e805873e1c43bd8e488a93f/crypto/rsa/rsa_oaep.c#L116
+     * @see https://github.com/phpseclib/phpseclib/blob/604954cd09345e96c9fe38f77d84dd2e6d843dc0/phpseclib/Crypt/RSA.php#L1212
      * @see https://tools.ietf.org/html/rfc3447#section-7.1.2
      *
      * @param string $EM
@@ -102,6 +103,16 @@ class Oaep
         // we  MUST too! phpseclib/phpseclib doesn't seem to care about
         // this at all!
 
+
+//      Note: Care must be taken to ensure that an opponent cannot
+//      distinguish the different error conditions in Step 3.g, whether by
+//      error message or timing, and, more generally, that an opponent
+//      cannot learn partial information about the encoded message EM.
+//      Otherwise, an opponent may be able to obtain useful information
+//      about the decryption of the ciphertext C, leading to a chosen-
+//      ciphertext attack such as the one observed by Manger [MANGER].
+
+
         $M = Binary::safeSubstr($DB, $hLen);
 
         // eat away all "\0" characters from start of $M
@@ -131,7 +142,8 @@ class Oaep
      */
     private static function MGF($mgfSeed, $maskLen)
     {
-        // XXX from RFC: I don't know what this means... What is 2^32 hLen?
+        // XXX from RFC: I don't know what this means... What is 2^32 hLen? 
+        // What about on 32 bit systems?! On 64 bit systems this could work...
         //   1. If maskLen > 2^32 hLen, output "mask too long" and stop.
         $hLen = self::ENCRYPT_OAEP_MGF1_DIGEST_LEN;
         $T = '';
