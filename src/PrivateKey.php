@@ -33,6 +33,9 @@ class PrivateKey
     /** @var resource */
     private $privateKey;
 
+    /** @var string */
+    private $n;
+
     /**
      * @param string $pemStr
      */
@@ -55,6 +58,15 @@ class PrivateKey
             throw new KeyException('invalid RSA key, must be >= 2048 bits');
         }
         $this->privateKey = $privateKey;
+        $this->n = $rsaInfo['n'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getModulus()
+    {
+        return $this->n;
     }
 
     /**

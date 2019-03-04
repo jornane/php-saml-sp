@@ -38,7 +38,10 @@ class Crypto
     const SIGN_HASH_ALGO = 'sha256';
 
     const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
-    const ENCRYPT_KEY_ALGO = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
+    const ENCRYPT_KEY_ALGO_LIST = [
+        'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
+        'http://www.w3.org/2001/04/xmlenc#rsa-oaep',
+    ];
 
     /**
      * @param XmlDocument      $xmlDocument
@@ -140,8 +143,14 @@ class Crypto
 
         // make sure we support the key transport encryption algorithm
         $keyEncryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm)', $domElement);
-        if (self::ENCRYPT_KEY_ALGO !== $keyEncryptionMethod) {
-            throw new CryptoException(\sprintf('key encryption method "%s" not supported', $keyEncryptionMethod));
+        if (!\in_array($keyEncryptionMethod, self::ENCRYPT_KEY_ALGO_LIST, true)) {
+            throw new CryptoException(\sprintf('key encryption algorithm "%s" not supported', $keyEncryptionMethod));
+        }
+
+        $digestMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/ds:DigestMethod/@Algorithm)', $domElement);
+        // XXX sha256!
+        if ('http://www.w3.org/2000/09/xmldsig#sha1' !== $digestMethod) {
+            throw new CryptoException(\sprintf('key encryption digest "%s" not supported', $digestMethod));
         }
 
         // make sure this system supports aes-256-gcm from libsodium
@@ -153,8 +162,13 @@ class Crypto
         $keyCipherValue = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:CipherData/xenc:CipherValue)', $domElement);
 
         // decrypt the session key
-        if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $symmetricEncryptionKey, $privateKey->raw(), OPENSSL_PKCS1_OAEP_PADDING)) {
+        if (false === \openssl_private_decrypt(Base64::decode($keyCipherValue), $encodedSymmetricEncryptionKey, $privateKey->raw(), OPENSSL_NO_PADDING)) {
             throw new CryptoException('unable to extract session key');
+        }
+
+        // remove the OAEP padding
+        if (false === $symmetricEncryptionKey = Oaep::decode($encodedSymmetricEncryptionKey, Binary::safeStrlen($privateKey->getModulus()))) {
+            throw new CryptoException('unable to remove OAEP padding');
         }
 
         // make sure the obtained key is the exact length we expect
