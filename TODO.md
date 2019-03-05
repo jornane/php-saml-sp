@@ -5,20 +5,20 @@
 ### Features
 
 - ability to add `mdui` to generated metadata
-- implement sha256 digest for OAEP in PHP: https://gist.github.com/fkooman/5c2dba93c20178205b36bf3f7688955a
+- check digest to make sure it is SHA1 for OAEP
 
 ### Open Issues
 
 - make absolutely sure we verify the assertion with the right public key as to
   avoid allowing one IdP to pretend to be another IdP
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
-- Validate schema of outgoing SAML messages (`AuthnRequest`, `LogoutRequest`)?
-- Validate schema of generated Metadata?
+- Validate schema of outgoing SAML messages (`AuthnRequest`, `LogoutRequest`, `Metadata`)?
 - Validate `RelayState` on return from IdP?
 - check xenc:EncryptedKey @Recipient?
 
 ## 1.1
 
+- implement sha256 digest for OAEP in PHP, see `oaep` branch
 - Expose `AuthenticatingAuthority` as well, next to `AuthnContextClassRef`?
 - Implement a way to have multiple certificates
   - 1 for signing, encryption and metadata?
