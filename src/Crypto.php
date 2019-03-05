@@ -38,6 +38,7 @@ class Crypto
     const SIGN_HASH_ALGO = 'sha256';
 
     const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
+    const ENCRYPT_KEY_DIGEST_ALGO = 'http://www.w3.org/2000/09/xmldsig#sha1';
     const ENCRYPT_KEY_ALGO = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
 
     /**
@@ -141,7 +142,13 @@ class Crypto
         // make sure we support the key transport encryption algorithm
         $keyEncryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm)', $domElement);
         if (self::ENCRYPT_KEY_ALGO !== $keyEncryptionMethod) {
-            throw new CryptoException(\sprintf('key encryption method "%s" not supported', $keyEncryptionMethod));
+            throw new CryptoException(\sprintf('key encryption algorithm "%s" not supported', $keyEncryptionMethod));
+        }
+
+        // make sure we support the key transport encryption digest algorithm
+        $keyEncryptionDigestMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/ds:DigestMethod/@Algorithm)', $domElement);
+        if (self::ENCRYPT_KEY_DIGEST_ALGO !== $keyEncryptionDigestMethod) {
+            throw new CryptoException(\sprintf('key encryption digest "%s" not supported', $keyEncryptionDigestMethod));
         }
 
         // make sure this system supports aes-256-gcm from libsodium
