@@ -5,7 +5,6 @@
 ### Features
 
 - ability to add `mdui` to generated metadata
-- check digest to make sure it is SHA1 for OAEP
 
 ### Open Issues
 
