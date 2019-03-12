@@ -97,39 +97,26 @@ class Oaep
         //    output "decryption error" and stop.  (See the note below.)
         $lHashPrime = Binary::safeSubstr($DB, 0, $hLen);
 
-        // XXX this stuff below is NOT constant time... it will leak too much!
-        // This is NOT okay. Both
-        // openssl C & go RSA implementation do some stuff to prevent this...
-        // we  MUST too! phpseclib/phpseclib doesn't seem to care about
-        // this at all!
-
-
-//      Note: Care must be taken to ensure that an opponent cannot
-//      distinguish the different error conditions in Step 3.g, whether by
-//      error message or timing, and, more generally, that an opponent
-//      cannot learn partial information about the encoded message EM.
-//      Otherwise, an opponent may be able to obtain useful information
-//      about the decryption of the ciphertext C, leading to a chosen-
-//      ciphertext attack such as the one observed by Manger [MANGER].
-
-
         $M = Binary::safeSubstr($DB, $hLen);
 
-        // eat away all "\0" characters from start of $M
-        $M = \ltrim($M, "\0");
-        if (!\hash_equals($lHash, $lHashPrime)) {
+        $hashesMatch = \hash_equals($lHash, $lHashPrime);
+        $leadingZeros = 1;
+        $patternMatch = 0;
+        $offset = 0;
+        for ($i = 0; $i < Binary::safeStrlen($M); ++$i) {
+            // XXX the casts are a bit ugly
+            $patternMatch |= $leadingZeros & (int) ("\1" === $M[$i]);
+            $leadingZeros &= (int) ("\0" === $M[$i]);
+            $offset += $patternMatch ? 0 : 1;
+        }
+        // we do & instead of && to avoid https://en.wikipedia.org/wiki/Short-circuit_evaluation
+        // to protect against timing attacks
+        if (!$hashesMatch & !$patternMatch) {
             return false;
         }
 
-        if (0x01 !== \ord($M)) {
-            return false;
-        }
-
-        if (0x00 !== $Y) {
-            return false;
-        }
-
-        return Binary::safeSubstr($M, 1);
+        // Output the message M
+        return Binary::safeSubstr($M, $offset + 1);
     }
 
     /**
@@ -142,8 +129,7 @@ class Oaep
      */
     private static function MGF($mgfSeed, $maskLen)
     {
-        // XXX from RFC: I don't know what this means... What is 2^32 hLen? 
-        // What about on 32 bit systems?! On 64 bit systems this could work...
+        // XXX
         //   1. If maskLen > 2^32 hLen, output "mask too long" and stop.
         $hLen = self::ENCRYPT_OAEP_MGF1_DIGEST_LEN;
         $T = '';
