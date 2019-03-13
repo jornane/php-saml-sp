@@ -39,7 +39,10 @@ class Crypto
 
     const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
     const ENCRYPT_KEY_DIGEST_ALGO = 'http://www.w3.org/2000/09/xmldsig#sha1';
-    const ENCRYPT_KEY_ALGO = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
+    const ENCRYPT_KEY_ALGO_LIST = [
+        'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
+        'http://www.w3.org/2001/04/xmlenc#rsa-oaep',
+    ];
 
     /**
      * @param XmlDocument      $xmlDocument
@@ -141,7 +144,7 @@ class Crypto
 
         // make sure we support the key transport encryption algorithm
         $keyEncryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm)', $domElement);
-        if (self::ENCRYPT_KEY_ALGO !== $keyEncryptionMethod) {
+        if (!\in_array($keyEncryptionMethod, self::ENCRYPT_KEY_ALGO_LIST, true)) {
             throw new CryptoException(\sprintf('key encryption algorithm "%s" not supported', $keyEncryptionMethod));
         }
 
