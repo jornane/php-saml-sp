@@ -8,10 +8,10 @@ production until there is a 1.0 release!
 
 # Why
 
-I wanted to have a minimal implementation of a SAML SP library. Exiting (PHP) 
+I wanted to have a minimal implementation of a SAML SP library. Existing (PHP) 
 software either has a much larger scope, or tries to conform fully to the SAML 
 specification. This library only tries to implement the minimum amount to work 
-with real world deployed IdPs and be secure at all times.
+with real world deployed IdPs, and be secure at all times.
 
 # Features
 
@@ -23,10 +23,12 @@ with real world deployed IdPs and be secure at all times.
 - Always signs `LogoutRequest`
 - Supports signed `samlp:Response` and/or signed 
   `samlp:Response/saml:Assertion`
+- Supports multiple IdP certificates for key rollover
 - Allow specifying `AuthnContextClassRef` as part of the `AuthnRequest`
 - No dependency on `robrichards/xmlseclibs`
 - Serializes `eduPersonTargetedId` as `idpEntityId!spEntityId!persistentId` 
   like Shibboleth;
+- Verify "scope" of attributes based on `<shibmd:Scope>` metadata element
 - Validates XML schema(s) when processing XML protocol messages
 - Tested with IdPs:
   - [simpleSAMLphp](https://simplesamlphp.org/)
@@ -42,17 +44,29 @@ with real world deployed IdPs and be secure at all times.
 - `php-openssl`
 - `php-sodium` (PHP >= 7.2) or `php-pecl-libsodium` for `EncryptedAssertion` 
   support
-- See `composer.json` for other (polyfill) dependencies
+  - Debian 9: `sudo apt install php-libsodium`
+  - CentOS 7: `sudo yum -y install php-pecl-libsodium`
+  - Fedora >= 28: `sudo dnf -y install php-sodium`
+- See `composer.json` for other dependencies
 
 # Crypto
 
 This library only supports algorithms that are not currently broken and easy to
 implement. There is no choice, only the below algorithms are supported.
 
+## Signatures
+
 - Digest: `http://www.w3.org/2001/04/xmlenc#sha256`
 - Signature: `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`
+
+## Encryption
+
 - Encryption: `http://www.w3.org/2009/xmlenc11#aes256-gcm`
 - Key Transport: `http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p`
+- Digest: `http://www.w3.org/2000/09/xmldsig#sha1`
+
+NOTE: currently only MGF1+SHA1 is supported due to PHP's OpenSSL limitations,
+we aim for MGF1+SHA256 support in version 1.1 of this library.
 
 # X.509
 
@@ -64,10 +78,10 @@ SP library.
         -subj "/CN=SAML SP" \
         -x509 \
         -sha256 \
-        -newkey rsa:2048 \
+        -newkey rsa:3072 \
         -keyout "sp.key" \
         -out "sp.crt" \
-        -days 1800
+        -days 3650
 
 # Example
 

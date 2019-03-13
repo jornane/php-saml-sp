@@ -43,14 +43,15 @@ class SPTest extends TestCase
 
     public function setUp()
     {
+        $spInfo = new SpInfo(
+            'http://localhost:8081/metadata',
+            PrivateKey::fromFile(__DIR__.'/data/sp.key'),
+            PublicKey::fromFile(__DIR__.'/data/sp.crt'),
+            'http://localhost:8081/acs'
+        );
+        $spInfo->setSloUrl('http://localhost:8081/slo');
         $this->sp = new SP(
-            new SpInfo(
-                'http://localhost:8081/metadata',
-                'http://localhost:8081/acs',
-                'http://localhost:8081/slo',
-                PrivateKey::fromFile(__DIR__.'/data/sp.key'),
-                PublicKey::fromFile(__DIR__.'/data/sp.crt')
-            ),
+            $spInfo,
             new XmlIdpInfoSource(__DIR__.'/data/metadata/localhost.xml')
         );
         $this->sp->setDateTime(new DateTime('2018-01-01 08:00:00'));
@@ -82,7 +83,7 @@ EOF;
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-        $signatureQuery = \http_build_query(['Signature' => Crypto::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => \base64_encode(Crypto::sign($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key')))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
         $this->assertSame('http://localhost:8080/metadata.php', $session->get('_fkooman_saml_sp_auth_idp'));
         $this->assertSame('_30313233343536373839616263646566', $session->get('_fkooman_saml_sp_auth_id'));
@@ -114,14 +115,14 @@ EOF;
                 'SigAlg' => 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
             ]
         );
-        $signatureQuery = \http_build_query(['Signature' => Crypto::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => \base64_encode(Crypto::sign($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key')))]);
         $this->assertSame(\sprintf('http://localhost:8080/sso.php?%s&%s', $httpQuery, $signatureQuery), $ssoUrl);
     }
 
     public function testMetadata()
     {
         $metadataResponse = <<< EOF
-<md:EntityDescriptor validUntil="2018-01-02T20:00:00Z" xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" entityID="http://localhost:8081/metadata">
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" entityID="http://localhost:8081/metadata">
   <md:Extensions>
     <alg:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
     <alg:SigningMethod MinKeySize="2048" Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
@@ -135,6 +136,7 @@ EOF;
       </ds:KeyInfo>
       <md:EncryptionMethod Algorithm="http://www.w3.org/2009/xmlenc11#aes256-gcm"/>
       <md:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"/>
+      <md:EncryptionMethod Algorithm="http://www.w3.org/2009/xmlenc11#rsa-oaep"/>
     </md:KeyDescriptor>
     <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://localhost:8081/slo"/>
     <md:AssertionConsumerService index="0" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://localhost:8081/acs"/>
@@ -242,7 +244,7 @@ EOF;
             ]
         );
 
-        $signatureQuery = \http_build_query(['Signature' => Crypto::signRedirect($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key'))]);
+        $signatureQuery = \http_build_query(['Signature' => \base64_encode(Crypto::sign($httpQuery, PrivateKey::fromFile(__DIR__.'/data/sp.key')))]);
         $this->assertSame(\sprintf('http://localhost:8080/slo.php?%s&%s', $httpQuery, $signatureQuery), $sloUrl);
     }
 

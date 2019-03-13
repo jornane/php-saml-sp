@@ -25,8 +25,9 @@
 namespace fkooman\SAML\SP;
 
 use DateTime;
-use DOMXpath;
+use DOMElement;
 use fkooman\SAML\SP\Exception\ResponseException;
+use ParagonIE\ConstantTime\Binary;
 
 class Response
 {
@@ -42,62 +43,74 @@ class Response
     }
 
     /**
-     * @param string        $samlResponse
-     * @param string        $spEntityId
-     * @param string        $expectedInResponseTo
-     * @param string        $expectedAcsUrl
-     * @param array<string> $authnContext
-     * @param PrivateKey    $privateKey
+     * @param SpInfo        $spInfo
      * @param IdpInfo       $idpInfo
+     * @param string        $samlResponse
+     * @param string        $expectedInResponseTo
+     * @param array<string> $authnContext
      *
      * @return Assertion
      */
-    public function verify($samlResponse, $spEntityId, $expectedInResponseTo, $expectedAcsUrl, array $authnContext, PrivateKey $privateKey, IdpInfo $idpInfo)
+    public function verify(SpInfo $spInfo, IdpInfo $idpInfo, $samlResponse, $expectedInResponseTo, array $authnContext)
     {
+        $responseSigned = false;
+        $assertionEncrypted = false;
+        $assertionSigned = false;
+
         $responseDocument = XmlDocument::fromProtocolMessage($samlResponse);
         $responseElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response')->item(0));
 
-        // check the status code
-        $statusCode = $responseDocument->domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/@Value)');
-        if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
-            $statusCodes = [$statusCode];
-            // check if we have an additional status code
-            $statusCodes[] = $responseDocument->domXPath->evaluate('string(/samlp:Response/samlp:Status/samlp:StatusCode/samlp:StatusCode/@Value)');
-            // XXX better error, this is useless...
-            throw new ResponseException(\sprintf('status error code: %s', \implode(',', $statusCodes)));
-        }
-
-        $responseSigned = false;
-        $domNodeList = $responseDocument->domXPath->query('/samlp:Response/ds:Signature');
+        $domNodeList = $responseDocument->domXPath->query('ds:Signature', $responseElement);
         if (1 === $domNodeList->length) {
             // samlp:Response is signed
-            Crypto::verifyPost($responseDocument, $responseElement, $idpInfo->getPublicKeys());
+            Crypto::verifyXml($responseDocument, $responseElement, $idpInfo->getPublicKeys());
             $responseSigned = true;
         }
 
-        // we used XML schema hardening to force that there is exactly 1 saml:Assertion / saml:EncryptedAssertion (saml2int)
-        // did we get an EncryptedAssertion?
-        $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:EncryptedAssertion');
+        // handle samlp:Status
+        $statusCodeElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('samlp:Status/samlp:StatusCode', $responseElement)->item(0));
+        $statusCode = $statusCodeElement->getAttribute('Value');
+        if ('urn:oasis:names:tc:SAML:2.0:status:Success' !== $statusCode) {
+            // check if there is a second-level status code
+            $secondLevelStatusCode = null;
+            $domNodeList = $responseDocument->domXPath->query('samlp:StatusCode', $statusCodeElement);
+            if (1 === $domNodeList->length) {
+                $secondLevelStatusCode = XmlDocument::requireDomElement($domNodeList->item(0))->getAttribute('Value');
+            }
+            $exceptionMsg = null === $secondLevelStatusCode ? $statusCode : \sprintf('%s (%s)', $statusCode, $secondLevelStatusCode);
+
+            throw new ResponseException($exceptionMsg);
+        }
+
+        $domNodeList = $responseDocument->domXPath->query('saml:EncryptedAssertion', $responseElement);
         if (1 === $domNodeList->length) {
-            // EncryptedAssertion
+            // saml:EncryptedAssertion
             $encryptedAssertionElement = XmlDocument::requireDomElement($domNodeList->item(0));
-            $assertionElement = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $privateKey);
+            $decryptedAssertion = Crypto::decryptXml($responseDocument, $encryptedAssertionElement, $spInfo->getPrivateKey());
+
+            // create and validate new document for Assertion
+            $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
+            $assertionElement = XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
 
             // we replace saml:EncryptedAssertion with saml:Assertion in the original document
             $responseElement->replaceChild(
                 $responseDocument->domDocument->importNode($assertionElement, true),
                 $encryptedAssertionElement
             );
+            $assertionEncrypted = true;
+        }
+
+        if ($spInfo->getRequireEncryptedAssertion() && !$assertionEncrypted) {
+            throw new ResponseException('assertion was not encrypted, but encryption is enforced');
         }
 
         // now we MUST have a saml:Assertion
-        $assertionElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('/samlp:Response/saml:Assertion')->item(0));
+        $assertionElement = XmlDocument::requireDomElement($responseDocument->domXPath->query('saml:Assertion', $responseElement)->item(0));
 
-        $assertionSigned = false;
-        $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/ds:Signature');
+        $domNodeList = $responseDocument->domXPath->query('ds:Signature', $assertionElement);
         if (1 === $domNodeList->length) {
             // saml:Assertion is signed
-            Crypto::verifyPost($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
+            Crypto::verifyXml($responseDocument, $assertionElement, $idpInfo->getPublicKeys());
             $assertionSigned = true;
         }
 
@@ -106,41 +119,41 @@ class Response
         }
 
         // the saml:Assertion Issuer MUST be IdP entityId
-        $issuerElement = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Issuer)');
-        if ($idpInfo->getEntityId() !== $issuerElement) {
+        $issuerElement = $responseDocument->domXPath->evaluate('string(saml:Issuer)', $assertionElement);
+        if ($issuerElement !== $idpInfo->getEntityId()) {
             throw new ResponseException(\sprintf('expected saml:Issuer "%s", got "%s"', $idpInfo->getEntityId(), $issuerElement));
         }
 
         // the saml:Conditions/saml:AudienceRestriction MUST be us
-        $audienceElement = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Conditions/saml:AudienceRestriction/saml:Audience)');
-        if ($audienceElement !== $spEntityId) {
-            throw new ResponseException(\sprintf('expected saml:Audience "%s", got "%s"', $spEntityId, $audienceElement));
+        $audienceElement = $responseDocument->domXPath->evaluate('string(saml:Conditions/saml:AudienceRestriction/saml:Audience)', $assertionElement);
+        if ($audienceElement !== $spInfo->getEntityId()) {
+            throw new ResponseException(\sprintf('expected saml:Audience "%s", got "%s"', $spInfo->getEntityId(), $audienceElement));
         }
 
-        $notOnOrAfter = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)'));
+        $notOnOrAfter = new DateTime($responseDocument->domXPath->evaluate('string(saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)', $assertionElement));
         if (DateTimeValidator::isOnOrAfter($this->dateTime, $notOnOrAfter)) {
             throw new ResponseException('saml:Assertion no longer valid (/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@NotOnOrAfter)');
         }
 
-        $recipient = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@Recipient)');
-        if ($expectedAcsUrl !== $recipient) {
-            throw new ResponseException(\sprintf('expected Recipient "%s", got "%s"', $expectedAcsUrl, $recipient));
+        $recipient = $responseDocument->domXPath->evaluate('string(saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@Recipient)', $assertionElement);
+        if ($recipient !== $spInfo->getAcsUrl()) {
+            throw new ResponseException(\sprintf('expected Recipient "%s", got "%s"', $spInfo->getAcsUrl(), $recipient));
         }
 
-        $inResponseTo = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@InResponseTo)');
-        if ($expectedInResponseTo !== $inResponseTo) {
+        $inResponseTo = $responseDocument->domXPath->evaluate('string(saml:Subject/saml:SubjectConfirmation/saml:SubjectConfirmationData/@InResponseTo)', $assertionElement);
+        if ($inResponseTo !== $expectedInResponseTo) {
             throw new ResponseException(\sprintf('expected InResponseTo "%s", got "%s"', $expectedInResponseTo, $inResponseTo));
         }
 
         // notBefore
-        $notBefore = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:Conditions/@NotBefore)'));
+        $notBefore = new DateTime($responseDocument->domXPath->evaluate('string(saml:Conditions/@NotBefore)', $assertionElement));
         if (DateTimeValidator::isBefore($this->dateTime, $notBefore)) {
             throw new ResponseException('saml:Assertion not yet valid (/samlp:Response/saml:Assertion/saml:Conditions/@NotBefore)');
         }
 
-        $authnInstant = new DateTime($responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/@AuthnInstant)'));
+        $authnInstant = new DateTime($responseDocument->domXPath->evaluate('string(saml:AuthnStatement/saml:AuthnContext/@AuthnInstant)', $assertionElement));
 
-        $authnContextClassRef = $responseDocument->domXPath->evaluate('string(/samlp:Response/saml:Assertion/saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef)');
+        $authnContextClassRef = $responseDocument->domXPath->evaluate('string(saml:AuthnStatement/saml:AuthnContext/saml:AuthnContextClassRef)', $assertionElement);
         if (0 !== \count($authnContext)) {
             // we requested a particular AuthnContext, make sure we got it
             if (!\in_array($authnContextClassRef, $authnContext, true)) {
@@ -148,16 +161,13 @@ class Response
             }
         }
 
-        $attributeList = self::extractAttributes($idpInfo->getEntityId(), $spEntityId, $responseDocument->domXPath);
+        $attributeList = self::extractAttributes($responseDocument, $assertionElement, $idpInfo, $spInfo);
         $samlAssertion = new Assertion($idpInfo->getEntityId(), $authnInstant, $authnContextClassRef, $attributeList);
 
-        $nameId = null;
-        $domNodeList = $responseDocument->domXPath->query('/samlp:Response/saml:Assertion/saml:Subject/saml:NameID');
+        // NameID
+        $domNodeList = $responseDocument->domXPath->query('saml:Subject/saml:NameID', $assertionElement);
         if (null !== $nameIdNode = $domNodeList->item(0)) {
-            $nameId = new NameId($idpInfo->getEntityId(), $spEntityId, XmlDocument::requireDomElement($nameIdNode));
-        }
-
-        if (null !== $nameId) {
+            $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), XmlDocument::requireDomElement($nameIdNode));
             $samlAssertion->setNameId($nameId);
         }
 
@@ -165,35 +175,81 @@ class Response
     }
 
     /**
-     * @param string    $idpEntityId
-     * @param string    $spEntityId
-     * @param \DOMXPath $domXPath
+     * @param XmlDocument $xmlDocument
+     * @param \DOMElement $assertionElement
+     * @param IdpInfo     $idpInfo
+     * @param SpInfo      $spInfo
      *
      * @return array<string,array<string>>
      */
-    private static function extractAttributes($idpEntityId, $spEntityId, DOMXPath $domXPath)
+    private static function extractAttributes(XmlDocument $xmlDocument, DOMElement $assertionElement, IdpInfo $idpInfo, SpInfo $spInfo)
     {
-        $attributeValueElements = $domXPath->query(
-            '/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute/saml:AttributeValue'
-        );
         $attributeList = [];
-        foreach ($attributeValueElements as $attributeValueElement) {
-            $parentElement = XmlDocument::requireDomElement($attributeValueElement->parentNode);
-            $attributeName = $parentElement->getAttribute('Name');
-            if (!\array_key_exists($attributeName, $attributeList)) {
-                $attributeList[$attributeName] = [];
+        $attributeDomNodeList = $xmlDocument->domXPath->query('saml:AttributeStatement/saml:Attribute', $assertionElement);
+        foreach ($attributeDomNodeList as $attributeDomNode) {
+            $attributeElement = XmlDocument::requireDomElement($attributeDomNode);
+            $attributeName = $attributeElement->getAttribute('Name');
+            $attributeValueDomNodeList = $xmlDocument->domXPath->query('saml:AttributeValue', $attributeElement);
+            // loop over AttributeValue(s) for this Attribute
+            foreach ($attributeValueDomNodeList as $attributeValueDomNode) {
+                $attributeValueElement = XmlDocument::requireDomElement($attributeValueDomNode);
+                if (false !== $attributeValue = self::processAttributeValue($xmlDocument, $attributeValueElement, $attributeName, $idpInfo, $spInfo)) {
+                    if (!\array_key_exists($attributeName, $attributeList)) {
+                        $attributeList[$attributeName] = [];
+                    }
+                    $attributeList[$attributeName][] = $attributeValue;
+                }
             }
-            if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
-                // eduPersonTargetedId, serialize this accordingly
-                $nameId = new NameId($idpEntityId, $spEntityId, XmlDocument::requireDomElement($attributeValueElement));
-                $attributeValue = $nameId->serialize();
-            } else {
-                $attributeValue = \trim($attributeValueElement->textContent);
-            }
-
-            $attributeList[$attributeName][] = $attributeValue;
         }
 
         return $attributeList;
+    }
+
+    /**
+     * @param XmlDocument $xmlDocument
+     * @param \DOMElement $attributeValueElement
+     * @param string      $attributeName
+     * @param IdpInfo     $idpInfo
+     * @param SpInfo      $spInfo
+     *
+     * @return false|string
+     */
+    private static function processAttributeValue(XmlDocument $xmlDocument, DOMElement $attributeValueElement, $attributeName, IdpInfo $idpInfo, SpInfo $spInfo)
+    {
+        // eduPersonTargetedId
+        if ('urn:oid:1.3.6.1.4.1.5923.1.1.1.10' === $attributeName) {
+            // ePTID (eduPersonTargetedId) is a special case as it wraps a
+            // saml:NameID construct and not a simple string value...
+            $nameIdElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('saml:NameID', $attributeValueElement)->item(0));
+            $nameId = new NameId($idpInfo->getEntityId(), $spInfo->getEntityId(), $nameIdElement);
+
+            return $nameId->toUserId();
+        }
+
+        // filter "scoped" attributes
+        // @see https://spaces.at.internet2.edu/display/InCFederation/2016/05/08/Scoped+User+Identifiers
+        $idpScopeList = $idpInfo->getScopeList();
+        if (0 !== \count($idpScopeList)) {
+            $scopedAttributeNameList = [
+                '1.3.6.1.4.1.5923.1.1.1.6',  // eduPersonPrincipalName
+                '1.3.6.1.4.1.5923.1.1.1.9',  // eduPersonScopedAffiliation
+                '1.3.6.1.4.1.5923.1.1.1.13', // eduPersonUniqueId
+            ];
+
+            if (\in_array($attributeName, $scopedAttributeNameList, true)) {
+                $attributeValue = $attributeValueElement->textContent;
+                foreach ($idpScopeList as $idpScope) {
+                    $attributeScope = Binary::safeSubstr($attributeValue, -(Binary::safeStrlen($idpScope) + 1));
+                    echo $attributeScope.PHP_EOL;
+                    if ('@'.$idpScope === $attributeScope) {
+                        return $attributeValue;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        return $attributeValueElement->textContent;
     }
 }

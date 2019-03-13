@@ -26,6 +26,7 @@ use fkooman\SAML\SP\IdpInfo;
 use fkooman\SAML\SP\PrivateKey;
 use fkooman\SAML\SP\PublicKey;
 use fkooman\SAML\SP\Response;
+use fkooman\SAML\SP\SpInfo;
 
 class ResponseBench
 {
@@ -40,13 +41,16 @@ class ResponseBench
         $response = new Response(new DateTime('2019-02-23T17:04:21Z'));
         $samlResponse = \file_get_contents(\dirname(__DIR__).'/tests/data/assertion/FrkoIdP.xml');
         $samlAssertion = $response->verify(
+            new SpInfo(
+                'http://localhost:8081/metadata',
+                PrivateKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.key'),
+                PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.crt'),
+                'http://localhost:8081/acs'
+            ),
+            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/FrkoIdP.crt')], []),
             $samlResponse,
-            'http://localhost:8081/metadata',
             '_2483d0b8847ccaa5edf203dad685f860',
-            'http://localhost:8081/acs',
-            [],
-            PrivateKey::fromFile(\dirname(__DIR__).'/tests/data/certs/sp.key'),
-            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(\dirname(__DIR__).'/tests/data/certs/FrkoIdP.crt')])
+            []
         );
     }
 }

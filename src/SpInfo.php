@@ -29,30 +29,31 @@ class SpInfo
     /** @var string */
     private $entityId;
 
-    /** @var string */
-    private $acsUrl;
-
-    /** @var string|null */
-    private $sloUrl;
-
     /** @var PrivateKey */
     private $privateKey;
 
     /** @var PublicKey */
     private $publicKey;
 
+    /** @var string */
+    private $acsUrl;
+
+    /** @var string|null */
+    private $sloUrl = null;
+
+    /** @var bool */
+    private $requireEncryptedAssertion = false;
+
     /**
-     * @param string      $entityId
-     * @param string      $acsUrl
-     * @param string|null $sloUrl
-     * @param PrivateKey  $privateKey
-     * @param PublicKey   $publicKey
+     * @param string     $entityId
+     * @param PrivateKey $privateKey
+     * @param PublicKey  $publicKey
+     * @param string     $acsUrl
      */
-    public function __construct($entityId, $acsUrl, $sloUrl, PrivateKey $privateKey, PublicKey $publicKey)
+    public function __construct($entityId, PrivateKey $privateKey, PublicKey $publicKey, $acsUrl)
     {
         $this->entityId = $entityId;
         $this->acsUrl = $acsUrl;
-        $this->sloUrl = $sloUrl;
         $this->privateKey = $privateKey;
         $this->publicKey = $publicKey;
     }
@@ -63,22 +64,6 @@ class SpInfo
     public function getEntityId()
     {
         return $this->entityId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAcsUrl()
-    {
-        return $this->acsUrl;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getSloUrl()
-    {
-        return $this->sloUrl;
     }
 
     /**
@@ -95,5 +80,49 @@ class SpInfo
     public function getPublicKey()
     {
         return $this->publicKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAcsUrl()
+    {
+        return $this->acsUrl;
+    }
+
+    /**
+     * @param string $sloUrl
+     *
+     * @return void
+     */
+    public function setSloUrl($sloUrl)
+    {
+        $this->sloUrl = $sloUrl;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSloUrl()
+    {
+        return $this->sloUrl;
+    }
+
+    /**
+     * @param bool $requireEncryptedAssertion
+     *
+     * @return void
+     */
+    public function setRequireEncryptedAssertion($requireEncryptedAssertion)
+    {
+        $this->requireEncryptedAssertion = $requireEncryptedAssertion;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getRequireEncryptedAssertion()
+    {
+        return $this->requireEncryptedAssertion;
     }
 }

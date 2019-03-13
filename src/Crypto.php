@@ -38,7 +38,11 @@ class Crypto
 
     const ENCRYPT_OPENSSL_ALGO = 'aes-256-gcm';
     const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
-    const ENCRYPT_KEY_ALGO = 'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p';
+    const ENCRYPT_KEY_DIGEST_ALGO = 'http://www.w3.org/2000/09/xmldsig#sha1';
+    const ENCRYPT_KEY_ALGO_LIST = [
+        'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
+        'http://www.w3.org/2001/04/xmlenc#rsa-oaep',
+    ];
     const ENCRYPT_KEY_LEN = 32;
     const ENCRYPT_TAG_LEN = 16; // GCM authentication tag is always 128 bits
 
@@ -49,7 +53,7 @@ class Crypto
      *
      * @return void
      */
-    public static function verifyPost(XmlDocument $xmlDocument, DOMElement $domElement, array $publicKeys)
+    public static function verifyXml(XmlDocument $xmlDocument, DOMElement $domElement, array $publicKeys)
     {
         $rootElementId = $xmlDocument->domXPath->evaluate('string(self::node()/@ID)', $domElement);
         $referenceUri = $xmlDocument->domXPath->evaluate('string(ds:Signature/ds:SignedInfo/ds:Reference/@URI)', $domElement);
@@ -88,39 +92,41 @@ class Crypto
             throw new CryptoException('unexpected digest');
         }
 
-        self::verifySignature($canonicalSignedInfo, Base64::decode($signatureValue), $publicKeys);
+        self::verify($canonicalSignedInfo, Base64::decode($signatureValue), $publicKeys);
     }
 
     /**
-     * @param string     $httpQuery
-     * @param PrivateKey $privateKey
-     *
-     * @return string
-     */
-    public static function signRedirect($httpQuery, PrivateKey $privateKey)
-    {
-        if (false === \openssl_sign($httpQuery, $signature, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
-            throw new CryptoException('unable to sign');
-        }
-
-        return Base64::encode($signature);
-    }
-
-    /**
-     * @param QueryParameters  $queryParameters
+     * @param string           $inStr
+     * @param string           $inSig
      * @param array<PublicKey> $publicKeys
      *
      * @return void
      */
-    public static function verifyRedirect(QueryParameters $queryParameters, array $publicKeys)
+    public static function verify($inStr, $inSig, array $publicKeys)
     {
-        $samlResponse = $queryParameters->requireQueryParameter('SAMLResponse', true);
-        $relayState = $queryParameters->requireQueryParameter('RelayState', true);
-        $sigAlg = $queryParameters->requireQueryParameter('SigAlg', true);
-        // XXX RelayState is actually optional...
-        $httpQuery = \sprintf('SAMLResponse=%s&RelayState=%s&SigAlg=%s', $samlResponse, $relayState, $sigAlg);
+        foreach ($publicKeys as $publicKey) {
+            if (1 === \openssl_verify($inStr, $inSig, $publicKey->raw(), self::SIGN_OPENSSL_ALGO)) {
+                // signature verified
+                return;
+            }
+        }
 
-        self::verifySignature($httpQuery, Base64::decode($queryParameters->requireQueryParameter('Signature')), $publicKeys);
+        throw new CryptoException('unable to verify signature');
+    }
+
+    /**
+     * @param string     $inStr
+     * @param PrivateKey $privateKey
+     *
+     * @return string
+     */
+    public static function sign($inStr, PrivateKey $privateKey)
+    {
+        if (false === \openssl_sign($inStr, $outSig, $privateKey->raw(), self::SIGN_OPENSSL_ALGO)) {
+            throw new CryptoException('unable to create signature');
+        }
+
+        return $outSig;
     }
 
     /**
@@ -128,7 +134,7 @@ class Crypto
      * @param \DOMElement $domElement
      * @param PrivateKey  $privateKey
      *
-     * @return \DOMElement
+     * @return string
      */
     public static function decryptXml(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
     {
@@ -140,8 +146,14 @@ class Crypto
 
         // make sure we support the key transport encryption algorithm
         $keyEncryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/@Algorithm)', $domElement);
-        if (self::ENCRYPT_KEY_ALGO !== $keyEncryptionMethod) {
-            throw new CryptoException(\sprintf('key encryption method "%s" not supported', $keyEncryptionMethod));
+        if (!\in_array($keyEncryptionMethod, self::ENCRYPT_KEY_ALGO_LIST, true)) {
+            throw new CryptoException(\sprintf('key encryption algorithm "%s" not supported', $keyEncryptionMethod));
+        }
+
+        // make sure we support the key transport encryption digest algorithm
+        $keyEncryptionDigestMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/ds:DigestMethod/@Algorithm)', $domElement);
+        if (self::ENCRYPT_KEY_DIGEST_ALGO !== $keyEncryptionDigestMethod) {
+            throw new CryptoException(\sprintf('key encryption digest "%s" not supported', $keyEncryptionDigestMethod));
         }
 
         // extract the session key
@@ -171,27 +183,6 @@ class Crypto
             throw new CryptoException('unable to decrypt data');
         }
 
-        // create and validate new document for Assertion
-        $assertionDocument = XmlDocument::fromAssertion($decryptedAssertion);
-
-        return XmlDocument::requireDomElement($assertionDocument->domXPath->query('/saml:Assertion')->item(0));
-    }
-
-    /**
-     * @param string           $data
-     * @param string           $signature
-     * @param array<PublicKey> $publicKeys
-     *
-     * @return void
-     */
-    private static function verifySignature($data, $signature, array $publicKeys)
-    {
-        foreach ($publicKeys as $publicKey) {
-            if (1 === \openssl_verify($data, $signature, $publicKey->raw(), self::SIGN_OPENSSL_ALGO)) {
-                return;
-            }
-        }
-
-        throw new CryptoException('invalid signature');
+        return $decryptedAssertion;
     }
 }

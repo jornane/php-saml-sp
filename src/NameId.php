@@ -35,7 +35,7 @@ class NameId
     private $spEntityId;
 
     /** @var string|null */
-    private $format;
+    private $nameIdFormat;
 
     /** @var string|null */
     private $nameQualifier;
@@ -69,7 +69,7 @@ class NameId
 
         $this->idpEntityId = $idpEntityId;
         $this->spEntityId = $spEntityId;
-        $this->format = $nameIdElement->hasAttribute('Format') ? $nameIdElement->getAttribute('Format') : null;
+        $this->nameIdFormat = $nameIdElement->hasAttribute('Format') ? $nameIdElement->getAttribute('Format') : null;
         $this->nameQualifier = $nameQualifier;
         $this->spNameQualifier = $spNameQualifier;
         $this->nameIdValue = \trim($nameIdElement->textContent);
@@ -87,8 +87,8 @@ class NameId
         if (null !== $this->spNameQualifier) {
             $attributeList[] = \sprintf('SPNameQualifier="%s"', $this->spNameQualifier);
         }
-        if (null !== $this->format) {
-            $attributeList[] = \sprintf('Format="%s"', $this->format);
+        if (null !== $this->nameIdFormat) {
+            $attributeList[] = \sprintf('Format="%s"', $this->nameIdFormat);
         }
 
         return \sprintf(
@@ -101,8 +101,13 @@ class NameId
     /**
      * @return string
      */
-    public function serialize()
+    public function toUserId()
     {
+        // this only makes sense when we have "persistent" NameID
+        if ('urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' !== $this->nameIdFormat) {
+            throw new NameIdException(\sprintf('NameID format "%s" not supported for user identifiers', $this->nameIdFormat));
+        }
+
         return \sprintf('%s!%s!%s', $this->idpEntityId, $this->spEntityId, $this->nameIdValue);
     }
 }

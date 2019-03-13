@@ -24,7 +24,6 @@
 
 namespace fkooman\SAML\SP;
 
-use DateInterval;
 use DateTime;
 use fkooman\SAML\SP\Exception\SpException;
 use ParagonIE\ConstantTime\Base64;
@@ -153,13 +152,11 @@ class SP
 
         $response = new Response($this->dateTime);
         $samlAssertion = $response->verify(
+            $this->spInfo,
+            $idpInfo,
             Base64::decode($samlResponse),
-            $this->spInfo->getEntityId(),
             $this->session->get('_fkooman_saml_sp_auth_id'),
-            $this->spInfo->getAcsUrl(),
-            $authnContextClassRef,
-            $this->spInfo->getPrivateKey(),
-            $idpInfo
+            $authnContextClassRef
         );
 
         $this->session->delete('_fkooman_saml_sp_auth_id');
@@ -210,10 +207,6 @@ class SP
                 'IssueInstant' => $this->dateTime->format('Y-m-d\TH:i:s\Z'),
                 'Destination' => $idpSloUrl,
                 'Issuer' => $this->spInfo->getEntityId(),
-                // we need the _exact_ (XML) NameID we got during
-                // authentication for the LogoutRequest
-                // XXX but it MUST be in the correct namespace, so we pretty much
-                // have to rewrite it to match LogoutRequest document namespace
                 'NameID' => $samlAssertion->getNameId(),
             ]
         );
@@ -269,22 +262,10 @@ class SP
      */
     public function metadata()
     {
-        $validUntil = \date_add(clone $this->dateTime, new DateInterval('PT36H'));
-
-//    <md:AttributeConsumingService index="0">
-//      <md:ServiceName xml:lang="en">Academic Journals R US</ServiceName>
-//      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.10" isRequired="true"/>
-//      <md:RequestedAttribute NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7" isRequired="false"/>
-//    </md:AttributeConsumingService>
-
         return $this->tpl->render(
             'Metadata',
             [
-                'validUntil' => $validUntil->format('Y-m-d\TH:i:s\Z'),
-                'entityID' => $this->spInfo->getEntityId(),
-                'X509Certificate' => $this->spInfo->getPublicKey()->toEncodedString(),
-                'AssertionConsumerService' => $this->spInfo->getAcsUrl(),
-                'SingleLogoutService' => $this->spInfo->getSloUrl(),
+                'spInfo' => $this->spInfo,
             ]
         );
     }
@@ -306,9 +287,11 @@ class SP
         ];
 
         // add the Signature key/value to the HTTP query
-        $httpQueryParameters['Signature'] = Crypto::signRedirect(
-            \http_build_query($httpQueryParameters),
-            $privateKey
+        $httpQueryParameters['Signature'] = Base64::encode(
+            Crypto::sign(
+                \http_build_query($httpQueryParameters),
+                $privateKey
+            )
         );
 
         return \sprintf(

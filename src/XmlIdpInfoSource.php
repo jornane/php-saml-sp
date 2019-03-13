@@ -35,20 +35,15 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
 
     /**
      * @param string $metadataFile
+     * @param bool   $validateSchema
      */
-    public function __construct($metadataFile)
+    public function __construct($metadataFile, $validateSchema = true)
     {
         if (false === $xmlData = \file_get_contents($metadataFile)) {
             throw new RuntimeException(\sprintf('unable to read file "%s"', $metadataFile));
         }
 
-        $this->xmlDocument = XmlDocument::fromMetadata(
-            $xmlData,
-            // XXX we have to be a bit smarter here! potential trouble!
-            // do NOT validate the schema, we assume the XML is validated and
-            // trusted...
-            false
-        );
+        $this->xmlDocument = XmlDocument::fromMetadata($xmlData, $validateSchema);
     }
 
     /**
@@ -58,23 +53,18 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
      */
     public function get($entityId)
     {
+        // find the IdP with specified entityId, if there is more than one
+        // we pick the first... Just don't have multiple entries for the same
+        // entityId...
         $xPathQuery = \sprintf('//md:EntityDescriptor[@entityID="%s"]/md:IDPSSODescriptor', $entityId);
-        $domNodeList = $this->xmlDocument->domXPath->query($xPathQuery);
-        if (0 === $domNodeList->length) {
-            // IdP not found
-            return false;
-        }
-        if (1 !== $domNodeList->length) {
-            // IdP found more than once?
-            throw new XmlIdpInfoSourceException(\sprintf('IdP "%s" found more than once', $entityId));
-        }
-        $domElement = XmlDocument::requireDomElement($domNodeList->item(0));
+        $domElement = XmlDocument::requireDomElement($this->xmlDocument->domXPath->query($xPathQuery)->item(0));
 
         return new IdpInfo(
             $entityId,
             $this->getSingleSignOnService($domElement),
             $this->getSingleLogoutService($domElement),
-            $this->getPublicKeys($domElement)
+            $this->getPublicKeys($domElement),
+            $this->getScope($domElement)
         );
     }
 
@@ -130,5 +120,22 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
         }
 
         return $publicKeys;
+    }
+
+    /**
+     * @param \DOMElement $domElement
+     *
+     * @return array<string>
+     */
+    private function getScope(DOMElement $domElement)
+    {
+        $scopeList = [];
+        $domNodeList = $this->xmlDocument->domXPath->query('md:Extensions/shibmd:Scope[not(@regexp) or @regexp="false" or @regexp="0"]', $domElement);
+        foreach ($domNodeList as $domNode) {
+            $scopeElement = XmlDocument::requireDomElement($domNode);
+            $scopeList[] = $scopeElement->textContent;
+        }
+
+        return $scopeList;
     }
 }
