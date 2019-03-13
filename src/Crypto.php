@@ -38,6 +38,7 @@ class Crypto
     const SIGN_HASH_ALGO = 'sha256';
 
     const ENCRYPT_ALGO = 'http://www.w3.org/2009/xmlenc11#aes256-gcm';
+    const ENCRYPT_KEY_DIGEST_ALGO = 'http://www.w3.org/2000/09/xmldsig#sha1';
     const ENCRYPT_KEY_ALGO_LIST = [
         'http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p',
         'http://www.w3.org/2001/04/xmlenc#rsa-oaep',
