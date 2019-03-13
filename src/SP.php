@@ -24,7 +24,6 @@
 
 namespace fkooman\SAML\SP;
 
-use DateInterval;
 use DateTime;
 use fkooman\SAML\SP\Exception\SpException;
 use ParagonIE\ConstantTime\Base64;
@@ -263,12 +262,9 @@ class SP
      */
     public function metadata()
     {
-        $validUntil = \date_add(clone $this->dateTime, new DateInterval('PT36H'));
-
         return $this->tpl->render(
             'Metadata',
             [
-                'validUntil' => $validUntil->format('Y-m-d\TH:i:s\Z'),
                 'spInfo' => $this->spInfo,
             ]
         );
