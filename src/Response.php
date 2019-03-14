@@ -238,13 +238,13 @@ class Response
             if (\in_array($attributeName, $scopedAttributeNameList, true)) {
                 $attributeValue = $attributeValueElement->textContent;
                 // make sure we have exactly one "@" in the attribute value
-                $identifierScope = \explode('@', $attributeValue, 2);
-                if (2 !== \count($identifierScope)) {
+                $identifierScopeArray = \explode('@', $attributeValue, 2);
+                if (2 !== \count($identifierScopeArray)) {
                     return false;
                 }
                 // try to match with all IdP supported scopes
                 foreach ($idpScopeList as $idpScope) {
-                    if ('@'.$idpScope === $identifierScope[1]) {
+                    if ($idpScope === $identifierScopeArray[1]) {
                         return $attributeValue;
                     }
                 }

@@ -322,4 +322,80 @@ class ResponseTest extends TestCase
             []
         );
     }
+
+    public function testEPPNScopeMatch()
+    {
+        // ePPN scope does not match IdP scope
+        $response = new Response(new DateTime('2019-03-14T14:01:22Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/assertion/ePPN_scope_mismatch.xml');
+        $samlAssertion = $response->verify(
+            new SpInfo(
+                'http://localhost:8081/metadata',
+                PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
+                PublicKey::fromFile(__DIR__.'/data/certs/sp.crt'),
+                'http://localhost:8081/acs'
+            ),
+            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')], ['example.com']),
+            $samlResponse,
+            '_d22979c597d8d8956b8d5b2f2bdae9bf',
+            []
+        );
+        $this->assertSame(
+            [
+                'urn:oid:0.9.2342.19200300.100.1.1' => [
+                    'foo',
+                ],
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.7' => [
+                    'foo',
+                    'bar',
+                    'baz',
+                    'urn:example:LC-admin',
+                    'urn:example:admin',
+                ],
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.6' => [
+                    'foo@example.com',
+                ],
+            ],
+            $samlAssertion->getAttributes()
+        );
+    }
+
+    public function testEPPNScopeMismatch()
+    {
+        // ePPN scope does not match IdP scope
+        $response = new Response(new DateTime('2019-03-14T14:01:22Z'));
+        $samlResponse = \file_get_contents(__DIR__.'/data/assertion/ePPN_scope_mismatch.xml');
+        $samlAssertion = $response->verify(
+            new SpInfo(
+                'http://localhost:8081/metadata',
+                PrivateKey::fromFile(__DIR__.'/data/certs/sp.key'),
+                PublicKey::fromFile(__DIR__.'/data/certs/sp.crt'),
+                'http://localhost:8081/acs'
+            ),
+            new IdpInfo('http://localhost:8080/metadata.php', 'http://localhost:8080/sso.php', null, [PublicKey::fromFile(__DIR__.'/data/certs/FrkoIdP.crt')], ['example.org']),
+            $samlResponse,
+            '_d22979c597d8d8956b8d5b2f2bdae9bf',
+            []
+        );
+        $this->assertSame(
+            [
+                'urn:oid:0.9.2342.19200300.100.1.1' => [
+                    'foo',
+                ],
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.7' => [
+                    'foo',
+                    'bar',
+                    'baz',
+                    'urn:example:LC-admin',
+                    'urn:example:admin',
+                ],
+                // NOTE: the ePPN is not there because it does NOT match the
+                // expected scope of @example.org
+//                'urn:oid:1.3.6.1.4.1.5923.1.1.1.6' => [
+//                    'foo@example.com',
+//                ]
+            ],
+            $samlAssertion->getAttributes()
+        );
+    }
 }
