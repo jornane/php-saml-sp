@@ -231,9 +231,9 @@ class Response
         $idpScopeList = $idpInfo->getScopeList();
         if (0 !== \count($idpScopeList)) {
             $scopedAttributeNameList = [
-                '1.3.6.1.4.1.5923.1.1.1.6',  // eduPersonPrincipalName
-                '1.3.6.1.4.1.5923.1.1.1.9',  // eduPersonScopedAffiliation
-                '1.3.6.1.4.1.5923.1.1.1.13', // eduPersonUniqueId
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.6',  // eduPersonPrincipalName
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.9',  // eduPersonScopedAffiliation
+                'urn:oid:1.3.6.1.4.1.5923.1.1.1.13', // eduPersonUniqueId
             ];
 
             if (\in_array($attributeName, $scopedAttributeNameList, true)) {
