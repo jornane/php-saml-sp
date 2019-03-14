@@ -240,7 +240,6 @@ class Response
                 $attributeValue = $attributeValueElement->textContent;
                 foreach ($idpScopeList as $idpScope) {
                     $attributeScope = Binary::safeSubstr($attributeValue, -(Binary::safeStrlen($idpScope) + 1));
-                    echo $attributeScope.PHP_EOL;
                     if ('@'.$idpScope === $attributeScope) {
                         return $attributeValue;
                     }
