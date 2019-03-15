@@ -9,7 +9,7 @@
 - Do we also need to check `/samlp:Response/saml:Assertion/saml:Conditions/@NotOnOrAfter`?
 - Validate schema of outgoing SAML messages (`AuthnRequest`, `LogoutRequest`, `Metadata`)?
 - Validate `RelayState` on return from IdP?
-- check xenc:EncryptedKey @Recipient?
+- check `xenc:EncryptedKey` `@Recipient`?
 
 ## 1.1
 
