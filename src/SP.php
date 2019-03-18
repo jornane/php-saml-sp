@@ -191,11 +191,11 @@ class SP
         }
         $idpSloUrl = $idpInfo->getSloUrl();
         if (null === $idpSloUrl) {
-            // IdP does not support SLO, nothing we can do about it
+            // IdP does not support logout, nothing we can do about it
             return $relayState;
         }
         if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
-            // SP does not support SLO, do not redirect to IdP
+            // SP does not support logout, do not redirect to IdP
             return $relayState;
         }
 
@@ -224,7 +224,7 @@ class SP
     public function handleLogoutResponse($queryString)
     {
         if (null === $spSloUrl = $this->spInfo->getSloUrl()) {
-            // SP does not support SLO, nothing we can do here...
+            // SP does not support logout, nothing we can do here...
             return;
         }
 
