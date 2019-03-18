@@ -36,6 +36,8 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     /**
      * @param string $metadataFile
      * @param bool   $validateSchema
+     *
+     * @throws \RuntimeException
      */
     public function __construct($metadataFile, $validateSchema = true)
     {
@@ -71,6 +73,8 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
     /**
      * @param \DOMElement $domElement
      *
+     * @throws \fkooman\SAML\SP\Exception\XmlIdpInfoSourceException
+     *
      * @return string
      */
     private function getSingleSignOnService(DOMElement $domElement)
@@ -102,6 +106,8 @@ class XmlIdpInfoSource implements IdpInfoSourceInterface
 
     /**
      * @param \DOMElement $domElement
+     *
+     * @throws \fkooman\SAML\SP\Exception\XmlIdpInfoSourceException
      *
      * @return array<PublicKey>
      */

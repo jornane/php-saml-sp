@@ -106,6 +106,8 @@ class SP
      * @param string        $relayState
      * @param array<string> $authnContextClassRef
      *
+     * @throws \fkooman\SAML\SP\Exception\SpException
+     *
      * @return string
      */
     public function login($idpEntityId, $relayState, array $authnContextClassRef = [])
@@ -138,6 +140,8 @@ class SP
     /**
      * @param string $samlResponse
      *
+     * @throws \fkooman\SAML\SP\Exception\SpException
+     *
      * @return void
      */
     public function handleResponse($samlResponse)
@@ -167,6 +171,8 @@ class SP
 
     /**
      * @param string $relayState
+     *
+     * @throws \fkooman\SAML\SP\Exception\SpException
      *
      * @return string
      */
@@ -218,6 +224,8 @@ class SP
 
     /**
      * @param string $queryString
+     *
+     * @throws \fkooman\SAML\SP\Exception\SpException
      *
      * @return void
      */

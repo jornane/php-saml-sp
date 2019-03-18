@@ -89,6 +89,8 @@ class XmlDocument
     /**
      * @param mixed $inputVar
      *
+     * @throws \fkooman\SAML\SP\Exception\XmlDocumentException
+     *
      * @return \DOMElement
      */
     public static function requireDomElement($inputVar)
@@ -103,6 +105,8 @@ class XmlDocument
     /**
      * @param string        $xmlStr
      * @param array<string> $schemaFiles
+     *
+     * @throws \fkooman\SAML\SP\Exception\XmlDocumentException
      *
      * @return self
      */

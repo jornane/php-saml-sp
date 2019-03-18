@@ -45,6 +45,8 @@ class Crypto
      * @param \DOMElement      $domElement
      * @param array<PublicKey> $publicKeys
      *
+     * @throws \fkooman\SAML\SP\Exception\CryptoException
+     *
      * @return void
      */
     public static function verifyXml(XmlDocument $xmlDocument, DOMElement $domElement, array $publicKeys)
@@ -94,6 +96,8 @@ class Crypto
      * @param string           $inSig
      * @param array<PublicKey> $publicKeys
      *
+     * @throws \fkooman\SAML\SP\Exception\CryptoException
+     *
      * @return void
      */
     public static function verify($inStr, $inSig, array $publicKeys)
@@ -112,6 +116,8 @@ class Crypto
      * @param string     $inStr
      * @param PrivateKey $privateKey
      *
+     * @throws \fkooman\SAML\SP\Exception\CryptoException
+     *
      * @return string
      */
     public static function sign($inStr, PrivateKey $privateKey)
@@ -127,6 +133,8 @@ class Crypto
      * @param XmlDocument $xmlDocument
      * @param \DOMElement $domElement
      * @param PrivateKey  $privateKey
+     *
+     * @throws \fkooman\SAML\SP\Exception\CryptoException
      *
      * @return string
      */

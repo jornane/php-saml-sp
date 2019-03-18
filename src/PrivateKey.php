@@ -35,6 +35,8 @@ class PrivateKey
 
     /**
      * @param string $pemStr
+     *
+     * @throws \fkooman\SAML\SP\Exception\KeyException
      */
     public function __construct($pemStr)
     {
@@ -59,6 +61,8 @@ class PrivateKey
 
     /**
      * @param string $fileName
+     *
+     * @throws \RuntimeException
      *
      * @return self
      */

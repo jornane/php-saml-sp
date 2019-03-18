@@ -48,6 +48,8 @@ class Response
      * @param string        $expectedInResponseTo
      * @param array<string> $authnContext
      *
+     * @throws \fkooman\SAML\SP\Exception\ResponseException
+     *
      * @return Assertion
      */
     public function verify(SpInfo $spInfo, IdpInfo $idpInfo, $samlResponse, $expectedInResponseTo, array $authnContext)

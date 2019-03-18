@@ -50,6 +50,8 @@ class NameId
      * @param string      $idpEntityId
      * @param string      $spEntityId
      * @param \DOMElement $nameIdElement
+     *
+     * @throws \fkooman\SAML\SP\Exception\NameIdException
      */
     public function __construct($idpEntityId, $spEntityId, \DOMElement $nameIdElement)
     {
@@ -99,6 +101,8 @@ class NameId
     }
 
     /**
+     * @throws \fkooman\SAML\SP\Exception\NameIdException
+     *
      * @return string
      */
     public function toUserId()

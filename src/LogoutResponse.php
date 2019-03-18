@@ -35,6 +35,8 @@ class LogoutResponse
      * @param string          $expectedSloUrl
      * @param IdpInfo         $idpInfo
      *
+     * @throws \fkooman\SAML\SP\Exception\ResponseException
+     *
      * @return void
      */
     public function verify(QueryParameters $queryParameters, $expectedInResponseTo, $expectedSloUrl, IdpInfo $idpInfo)

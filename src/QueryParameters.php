@@ -46,6 +46,8 @@ class QueryParameters
      * @param string $parameterName
      * @param bool   $rawValue
      *
+     * @throws \fkooman\SAML\SP\Exception\QueryParametersException
+     *
      * @return string
      */
     public function requireQueryParameter($parameterName, $rawValue = false)

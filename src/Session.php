@@ -43,6 +43,8 @@ class Session implements SessionInterface
     /**
      * @param string $key
      *
+     * @throws \fkooman\SAML\SP\Exception\SessionException
+     *
      * @return mixed
      */
     public function get($key)
@@ -79,6 +81,8 @@ class Session implements SessionInterface
     }
 
     /**
+     * @throws \fkooman\SAML\SP\Exception\SessionException
+     *
      * @return void
      */
     private static function requireSession()
