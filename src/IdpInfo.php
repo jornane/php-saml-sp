@@ -66,6 +66,8 @@ class IdpInfo
     }
 
     /**
+     * Get SingleSignOn URL.
+     *
      * @return string
      */
     public function getSsoUrl()
@@ -74,6 +76,8 @@ class IdpInfo
     }
 
     /**
+     * Get SingleLogout URL.
+     *
      * @return string|null
      */
     public function getSloUrl()

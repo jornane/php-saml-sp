@@ -83,6 +83,8 @@ class SpInfo
     }
 
     /**
+     * Get AssertionConsumerService URL.
+     *
      * @return string
      */
     public function getAcsUrl()
@@ -91,6 +93,8 @@ class SpInfo
     }
 
     /**
+     * Set SingleLogout URL.
+     *
      * @param string $sloUrl
      *
      * @return void
@@ -101,6 +105,8 @@ class SpInfo
     }
 
     /**
+     * Get SingleLogout URL.
+     *
      * @return string|null
      */
     public function getSloUrl()
