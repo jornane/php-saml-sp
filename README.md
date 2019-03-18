@@ -86,7 +86,7 @@ SP library.
 
 # Example
 
-Two examples are provided in the `example/` directory. In order test them:
+An example is provided in the `example/` directory. In order run it:
 
     $ /path/to/composer install
     $ php -S localhost:8081 -t example
