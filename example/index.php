@@ -46,7 +46,7 @@ try {
         PublicKey::fromFile('sp.crt'),
         'http://localhost:8081/acs'
     );
-    // we also want to support SLO in the example
+    // we also want to support logout in the example
     $spInfo->setSloUrl('http://localhost:8081/slo');
 
     $sp = new SP($spInfo, $idpInfoSource);
