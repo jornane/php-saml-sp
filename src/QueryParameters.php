@@ -26,6 +26,17 @@ namespace fkooman\SAML\SP;
 
 use fkooman\SAML\SP\Exception\QueryParametersException;
 
+/**
+ * Ability to handle "raw" HTTP query string.
+ *
+ * We need to use the *exact* values as used in the HTTP query string for
+ * HTTP-Redirect signature verification before they are URL-decoded by PHP.
+ * Some implementations, e.g. Microsoft use upper-case URL encoding instead of
+ * the more typical lower case encoding which exposed a bug in the code that
+ * assumed everyone would be using lower-case encoding. The specification is
+ * quite clear about how to implement it. Doesn't make it a good specification
+ * though!
+ */
 class QueryParameters
 {
     /** @var array<string,string> */
