@@ -36,6 +36,8 @@ use fkooman\SAML\SP\Exception\QueryParametersException;
  * assumed everyone would be using lower-case encoding. The specification is
  * quite clear about how to implement it. Doesn't make it a good specification
  * though!
+ *
+ * @see saml-bindings-2.0-os (3.4.4.1 DEFLATE Encoding)
  */
 class QueryParameters
 {
