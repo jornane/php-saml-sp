@@ -140,6 +140,11 @@ class Crypto
      */
     public static function decryptXml(XmlDocument $xmlDocument, DOMElement $domElement, PrivateKey $privateKey)
     {
+        // make sure this hardware supports aes-256-gcm
+        if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
+            throw new RuntimeException('hardware accelerated AES not available on this system');
+        }
+
         // make sure we support the encryption algorithm
         $encryptionMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/xenc:EncryptionMethod/@Algorithm)', $domElement);
         if (self::ENCRYPT_ALGO !== $encryptionMethod) {
@@ -163,11 +168,6 @@ class Crypto
         $keyEncryptionDigestMethod = $xmlDocument->domXPath->evaluate('string(xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey/xenc:EncryptionMethod/ds:DigestMethod/@Algorithm)', $domElement);
         if (self::ENCRYPT_KEY_DIGEST_ALGO !== $keyEncryptionDigestMethod) {
             throw new CryptoException(\sprintf('key encryption digest "%s" not supported', $keyEncryptionDigestMethod));
-        }
-
-        // make sure this system supports aes-256-gcm from libsodium
-        if (false === \sodium_crypto_aead_aes256gcm_is_available()) {
-            throw new RuntimeException('decryption not supported on this hardware');
         }
 
         // extract the session key
