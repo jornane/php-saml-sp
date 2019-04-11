@@ -217,8 +217,8 @@ class Response
      */
     private static function processAttributeValue(XmlDocument $xmlDocument, DOMElement $attributeValueElement, $attributeName, IdpInfo $idpInfo, SpInfo $spInfo)
     {
-        // eduPersonTargetedId
-        if (in_array($attributeName, ['eduPersonTargetedId', 'urn:oid:1.3.6.1.4.1.5923.1.1.1.10'])) {
+        // eduPersonTargetedID
+        if (in_array($attributeName, ['eduPersonTargetedID', 'urn:oid:1.3.6.1.4.1.5923.1.1.1.10'])) {
             // ePTID (eduPersonTargetedId) is a special case as it wraps a
             // saml:NameID construct and not a simple string value...
             $nameIdElement = XmlDocument::requireDomElement($xmlDocument->domXPath->query('saml:NameID', $attributeValueElement)->item(0));
